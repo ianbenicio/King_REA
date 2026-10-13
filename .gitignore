@@ -5,3 +5,6 @@ node_modules/
 alvos/
 saidas/
 .rea/
+
+# Clones de ferramentas externas (fixados em commit, auditados; nao versionados aqui)
+ferramentas/universal-modder/
