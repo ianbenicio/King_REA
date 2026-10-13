@@ -92,7 +92,7 @@ O resultado esperado é `healthy: true`, com 170 tools e 6 prompts.
 
 ### 5.1 Ligar o REA ao Claude Code
 
-1. Abra uma sessão do Claude Code na pasta `PRKing_REA`.
+1. Abra uma sessão do Claude Code **na raiz** da pasta `PRKing_REA`, não numa subpasta. O `.mcp.json` usa caminho relativo (`node_modules/...`), e o Claude Code inicia o servidor a partir da pasta da sessão.
 2. Na primeira vez, o Claude Code pergunta se você aprova o servidor MCP `rea` do `.mcp.json`. Aprove.
 3. Peça: "liste as tools do REA disponíveis". Se aparecerem, está ligado.
 
@@ -325,7 +325,8 @@ npx rea trace <alvo> "texto" --provider ghidra --json
 
 | Sintoma | O que fazer |
 |---|---|
-| O Claude não vê as tools do REA | Reinicie a sessão na pasta do projeto, aprove o servidor `rea` e rode `npx rea mcp doctor` |
+| O Claude não vê as tools do REA | Confira se a sessão foi aberta na raiz do projeto (o `.mcp.json` usa caminho relativo), aprove o servidor `rea` e rode `npx rea mcp doctor` |
+| Projeto clonado em outra máquina | Rode `npm ci --ignore-scripts` antes de abrir a sessão, para criar o `node_modules` |
 | "Bloqueado pelo gate REA" | É a trava de segurança. Falta o protocolo de segurança do alvo, ou a tool está fora do plano. A mensagem diz o motivo |
 | `provider_unavailable` | Rode `npx rea doctor --provider <id> --json` e siga a correção indicada |
 | `capability_unavailable` com `ambiguous` | Mais de um provider serve. Escolha com `--provider` ou `provider_id` |
