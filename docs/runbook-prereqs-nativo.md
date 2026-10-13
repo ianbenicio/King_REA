@@ -78,7 +78,11 @@ Auditado em 13/10/2026 (tag `2.0`, commit `1e98025`): Apache-2.0, servidor HTTP 
 }
 ```
 
-## 4. Pendência de segurança ao registrar o GhidraMCP
+## 4. Segurança ao registrar o GhidraMCP
+
+> **Atualização 13/10/2026:** feito. O gate agora cobre `mcp__(rea|ghidra)__.*` com um mapa por servidor; `.claude/hooks/ghidra-niveis.json` mapeia as 30 tools do GhidraMCP 2.0, todas N1. Falta só o @devops registrar o servidor `ghidra` no `.mcp.json`, depois que JDK e Ghidra estiverem instalados. O texto abaixo fica como histórico.
+
+### Situação original
 
 O gate `.claude/hooks/rea-gate.mjs` só cobre as tools `mcp__rea__*`. As tools do GhidraMCP serão `mcp__ghidra__*` e **não passam pelo gate hoje**. Antes de registrar o servidor, o @devops deve:
 

@@ -319,15 +319,17 @@ npx rea trace <alvo> "texto" --provider ghidra --json
 - **Formato de saída:** o padrão é TOON. Use `--json` para salvar ou processar.
 - **Código de saída:** `0` significa concluído (pode haver evidência parcial ou lacunas); `1` significa falha, com o motivo na saída.
 
-> **Atenção:** a trava de segurança cobre as tools MCP, não o terminal. O CLI contra um alvo segue as mesmas regras: só depois do protocolo de segurança aprovado e dentro dos níveis do plano.
+> **Atenção:** o terminal também tem trava (`.claude/hooks/cli-gate.mjs`). Comandos sem alvo (ajuda, `doctor`, `providers`, `capabilities`, `mcp`, evidência) passam direto. Comandos contra um alvo só rodam com alvo ativo aprovado e pedem confirmação. `setup`, `update` e `uninstall` são bloqueados.
 
 ## 10. Problemas comuns
 
 | Sintoma | O que fazer |
 |---|---|
 | O Claude não vê as tools do REA | Confira se a sessão foi aberta na raiz do projeto (o `.mcp.json` usa caminho relativo), aprove o servidor `rea` e rode `npx rea mcp doctor` |
-| Projeto clonado em outra máquina | Rode `npm ci --ignore-scripts` antes de abrir a sessão, para criar o `node_modules` |
-| "Bloqueado pelo gate REA" | É a trava de segurança. Falta o protocolo de segurança do alvo, ou a tool está fora do plano. A mensagem diz o motivo |
+| Projeto clonado em outra máquina | Rode `npm ci --ignore-scripts` e `git config core.hooksPath .githooks` antes de abrir a sessão (cria o `node_modules` e liga a checagem de commit) |
+| "Bloqueado pelo gate RE" | É a trava de segurança das tools MCP. Falta o protocolo de segurança do alvo, a tool está fora do plano, ou o servidor não tem mapa de níveis. A mensagem diz o motivo |
+| "gate CLI REA" num comando de terminal | Mesma trava, no terminal: o comando age sobre um alvo. Precisa de alvo ativo aprovado e da sua confirmação |
+| Commit recusado com "[pre-commit] registros/" | O arquivo traria dados brutos, binário ou código descompilado longo para o repositório público. Mova para `saidas/<slug>/` ou resuma |
 | `provider_unavailable` | Rode `npx rea doctor --provider <id> --json` e siga a correção indicada |
 | `capability_unavailable` com `ambiguous` | Mais de um provider serve. Escolha com `--provider` ou `provider_id` |
 | `unsupported_host` | O recurso não existe no Windows (seções 7.7 e 3) |

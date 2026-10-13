@@ -1,12 +1,25 @@
 {
+  "env": {
+    "ECC_DISABLED_HOOKS": "pre:edit-write:gateguard-fact-force"
+  },
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "mcp__rea__.*",
+        "matcher": "mcp__(rea|ghidra)__.*",
         "hooks": [
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/rea-gate.mjs\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/cli-gate.mjs\"",
             "timeout": 10
           }
         ]
