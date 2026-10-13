@@ -3,7 +3,7 @@
     "rea": {
       "command": "node",
       "args": [
-        "H:/King/Clientes e Projetos/PRKing_REA/node_modules/rea-agents/scripts/rea.mjs",
+        "node_modules/rea-agents/scripts/rea.mjs",
         "mcp"
       ]
     }
