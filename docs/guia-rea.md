@@ -385,6 +385,7 @@ A decisão é sempre do responsável.
 - Documentação da versão instalada: https://github.com/morluto/rea/tree/rea-agents-6.4.0/docs
 - Documentação do `main`: https://github.com/morluto/rea/tree/main/docs
 - Comunidade: Discord (link no site) e issues no GitHub
+- Comparação com outras ferramentas (universal-modder, Ghidra/IDA MCP, Cheat Engine, Android, iOS): `docs/benchmark-ferramentas-re.md`
 
 ## Histórico de revisões
 
