@@ -33,6 +33,11 @@ O REA continua como base de evidência. Em volta dele, montamos a pilha de games
 | Gráficos | **RenderDoc + renderdoc-mcp** | captura + MCP | N2 (analisa captura) / N3 (captura ao vivo) | Média |
 | Depuração | x64dbg + x64dbgMCP | plugin + MCP | N3 | Média |
 | Conhecimento | **universal-modder** (só `knowledge/` e guias) | clone fixado, sem plugin global | N0 (texto) | Alta |
+| Dados Unity (parâmetros) | **UnityPy** (ou AssetRipper) | lib Python fixada / GUI | N1 (lê assets) | Alta — mais barato que descompilar |
+| Dados Unreal (parâmetros) | **FModel / CUE4Parse** (export JSON de DataTables/CurveTables) | GUI / CLI | N1 (lê `.pak`) | Alta — mais barato que descompilar |
+| Fontes da comunidade | TASVideos, TCRF, wikis, speedrun | leitura web | N0 | Alta — hipóteses a confirmar |
+
+> **Ordem eficiente (protocolo de mecânicas):** comunidade → dados → código → execução → simulação. Os valores de balanceamento costumam estar em dados; o código só é necessário para as fórmulas.
 
 ## Ordem de execução
 
