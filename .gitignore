@@ -1,0 +1,7 @@
+node_modules/
+.claude/settings.local.json
+
+# Alvos e saídas de análise ficam fora do git por padrão
+alvos/
+saidas/
+.rea/
