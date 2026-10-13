@@ -1,0 +1,3 @@
+# Scripts de shell precisam de LF (com CRLF, o sh lê "\r" no fim de cada linha).
+.githooks/pre-commit text eol=lf
+*.sh text eol=lf
