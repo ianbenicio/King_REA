@@ -88,6 +88,13 @@ Auditado em 13/10/2026 (tag `2.0`, commit `1e98025`): Apache-2.0, servidor HTTP 
 }
 ```
 
+### Instalação feita em 14/10/2026 (e uma armadilha do Windows)
+
+- **Release 2.0 verificada:** `GhidraMCP-release-2-0.zip` com o digest do GitHub (`ebf904…2e72`); o fonte Java dentro da extensão (12 arquivos) e o wheel Python (6 arquivos) são **idênticos** ao commit `1e98025` auditado. Arquivos guardados em `C:\tools\GhidraMCP\` (extensão `4a5901…4ad8`, wheel `af9818…7e8e`).
+- **Plugin instalado na pasta da instalação:** `C:\tools\ghidra_12.1.4_PUBLIC\Ghidra\Extensions\GhidraMCP` (método oficial do `GettingStarted.md` do Ghidra: extrair ali; vale na próxima abertura, para qualquer usuário). Desinstalar = apagar essa pasta.
+- **Armadilha (app do Claude é pacote MSIX):** tudo que o app, ou um programa aberto por ele, grava em `%APPDATA%` vai para `%LOCALAPPDATA%\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\`. Um Ghidra aberto pelo Claude e um aberto pelo Explorer **enxergam pastas de usuário diferentes**. Por isso: extensões vão na pasta da instalação (não em `AppData`), e o Ghidra de trabalho deve ser aberto **por você**, pelo Explorer (`C:\tools\ghidra_12.1.4_PUBLIC\ghidraRun.bat`).
+- **Servidor MCP:** registrado pelo @devops no `.mcp.json` (`b92a651`), fixado no commit `1e98025` com `mcp==1.30.0` e `requests==2.34.2`; teste de `tools/list`: 30 tools, todas no mapa N1.
+
 ## 4. Segurança ao registrar o GhidraMCP
 
 > **Atualização 13/10/2026:** feito. O gate agora cobre `mcp__(rea|ghidra)__.*` com um mapa por servidor; `.claude/hooks/ghidra-niveis.json` mapeia as 30 tools do GhidraMCP 2.0, todas N1. Falta só o @devops registrar o servidor `ghidra` no `.mcp.json`, depois que JDK e Ghidra estiverem instalados. O texto abaixo fica como histórico.
