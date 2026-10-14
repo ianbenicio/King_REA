@@ -37,6 +37,20 @@ O REA continua como base de evidência. Em volta dele, montamos a pilha de games
 | Dados Unreal (parâmetros) | **FModel / CUE4Parse** (export JSON de DataTables/CurveTables) | GUI / CLI | N1 (lê `.pak`) | Alta — mais barato que descompilar |
 | Fontes da comunidade | TASVideos, TCRF, wikis, speedrun | leitura web | N0 | Alta — hipóteses a confirmar |
 
+### Camada de assets (protocolo `protocolo-assets`)
+
+Organizador próprio já pronto: `scripts/assets/organizar-assets.mjs` (identifica pelo conteúdo, separa por tipo e categoria, deduplica, cataloga). As ferramentas abaixo entram **por alvo**, auditadas e fixadas:
+
+| Função | Ferramenta | Nível | Situação na máquina (13/10/2026) |
+|---|---|---|---|
+| Extrair Unity | AssetRipper / UnityPy | N1 | Python 3.14 e `uv` presentes; ferramentas ausentes |
+| Extrair Unreal | FModel / CUE4Parse | N1 | ausente |
+| Áudio de jogo (Wwise, FMOD, CRI, XMA) | **vgmstream** | N1 | ausente |
+| Vídeo (Bink 1, MP4, WebM) | **ffmpeg** | N1 | ausente |
+| Imagens (DDS, KTX, TGA → PNG) | texconv / ImageMagick / Pillow | N1 | Pillow via `uv` quando preciso |
+| 3D (PSK, UEFormat, MDL → glTF) | **Blender** + importadores | N1 | ausente |
+| Formatos desconhecidos | QuickBMS + script da comunidade | N1 | ausente; auditar cada script |
+
 > **Ordem eficiente (protocolo de mecânicas):** comunidade → dados → código → execução → simulação. Os valores de balanceamento costumam estar em dados; o código só é necessário para as fórmulas.
 
 ## Ordem de execução

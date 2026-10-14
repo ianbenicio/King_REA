@@ -10,6 +10,14 @@ Instala os pré-requisitos para analisar código nativo: **JDK 21**, **Ghidra 12
 
 > Estado da máquina em 13/10/2026: JDK, Ghidra e adb ausentes; winget e choco disponíveis; 26 GB livres em C:. O WSL não inicia.
 
+## Atalho: um comando faz os passos 1 e 2
+
+```powershell
+powershell -ExecutionPolicy Bypass -File "H:\King\Clientes e Projetos\PRKing_REA\scripts\instalar-prereqs-nativo.ps1"
+```
+
+O script instala o JDK 21 (winget), baixa o Ghidra 12.1.4, **confere o SHA-256** (apaga e para se não bater), extrai em `C:\tools` e grava `GHIDRA_INSTALL_DIR` e `JAVA_HOME` no usuário. Pula o que já estiver instalado. Depois, feche e reabra o app do Claude. Os passos manuais abaixo ficam como referência.
+
 ## 1. JDK 21 (64-bit)
 
 ```bash

@@ -14,8 +14,9 @@ Projeto para engenharia reversa com o REA (`rea-agents`), ligado ao Claude Code 
 1. **Protocolo de segurança** (skill `protocolo-seguranca`): roda uma vez, no início de cada alvo novo, antes de qualquer tool do REA. Gera `registros/<slug>/00-seguranca.md` e ativa o alvo em `registros/ALVO_ATIVO`.
 2. **Análise** com o REA, registrada em `registros/<slug>/01-analise.md`. O gate `.claude/hooks/rea-gate.mjs` libera só os níveis aprovados (um mapa por servidor MCP em `.claude/hooks/<servidor>-niveis.json`; hoje `rea` e `ghidra`); N3 e N4b pedem confirmação a cada chamada. Servidor MCP novo de RE: acrescentar ao matcher em `.claude/settings.json` e criar o mapa dele — sem mapa, o gate bloqueia. Tool fora do plano: adendo com aprovação, não um novo protocolo.
 3. **Mecânicas e dinâmicas (jogos)** (skill `protocolo-mecanicas`): quando o responsável pedir, ou oferecido quando o alvo for jogo. Coleta dentro dos níveis aprovados (dados → código → execução → simulação, framework MDA); gera `registros/<slug>/03-mecanicas.md`.
-4. **Ao concluir a análise** (todos os critérios de conclusão do `01-analise.md` marcados e `status: concluida`): **pergunte ao responsável se pode executar o protocolo de registro e benchmark.** Nunca execute sem o "sim" na conversa.
-5. **Protocolo de benchmark** (skill `protocolo-benchmark`): gera `registros/<slug>/02-benchmark.md`.
+4. **Assets (jogos)** (skill `protocolo-assets`): quando o responsável pedir. Identifica, extrai, converte (opcional) e organiza meshes 3D, imagens, áudio e vídeo em `saidas/<slug>/assets/` (fora do git), por tipo e categoria, com catálogo e deduplicação, usando `scripts/assets/organizar-assets.mjs`; registra o inventário em `registros/<slug>/04-assets.md`. Assets extraídos nunca vão para o git nem são redistribuídos.
+5. **Ao concluir a análise** (todos os critérios de conclusão do `01-analise.md` marcados e `status: concluida`): **pergunte ao responsável se pode executar o protocolo de registro e benchmark.** Nunca execute sem o "sim" na conversa.
+6. **Protocolo de benchmark** (skill `protocolo-benchmark`): gera `registros/<slug>/02-benchmark.md`.
 
 Modelos em `registros/_modelos/`. Procedimentos de segurança adicionais em `.claude/skills/protocolo-seguranca/procedimentos/`.
 
