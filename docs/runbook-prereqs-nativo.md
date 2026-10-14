@@ -16,7 +16,9 @@ Instala os pré-requisitos para analisar código nativo: **JDK 21**, **Ghidra 12
 powershell -ExecutionPolicy Bypass -File "H:\King\Clientes e Projetos\PRKing_REA\scripts\instalar-prereqs-nativo.ps1"
 ```
 
-O script instala o JDK 21 (winget), baixa o Ghidra 12.1.4, **confere o SHA-256** (apaga e para se não bater), extrai em `C:\tools` e grava `GHIDRA_INSTALL_DIR` e `JAVA_HOME` no usuário. Pula o que já estiver instalado. Depois, feche e reabra o app do Claude. Os passos manuais abaixo ficam como referência.
+O script baixa o JDK 21 (ZIP oficial da Microsoft, sem winget nem administrador) e o Ghidra 12.1.4, **confere o SHA-256 fixo de cada um** (apaga e para se não bater), extrai em `C:\tools` e grava `GHIDRA_INSTALL_DIR` e `JAVA_HOME` no usuário. Se já houver JDK 21 em `C:\tools` ou em `C:\Program Files\Microsoft`, usa esse. Pula o que já estiver instalado. Depois, feche e reabra o app do Claude. Os passos manuais abaixo ficam como referência.
+
+> **Instalado nesta máquina em 13/10/2026:** JDK 21.0.12.1 (`C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot`, via winget) e Ghidra 12.1.4 (`C:\tools\ghidra_12.1.4_PUBLIC`). `npx rea doctor --provider ghidra`: 10/10 verificações. Lição: não rodar duas instâncias do script ao mesmo tempo (a segunda colide com a primeira: "arquivo em uso").
 
 ## 1. JDK 21 (64-bit)
 
