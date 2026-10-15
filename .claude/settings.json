@@ -1,6 +1,7 @@
 {
   "env": {
-    "ECC_DISABLED_HOOKS": "pre:edit-write:gateguard-fact-force"
+    "ECC_DISABLED_HOOKS": "pre:edit-write:gateguard-fact-force",
+    "MCP_TIMEOUT": "90000"
   },
   "hooks": {
     "PreToolUse": [
