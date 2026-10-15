@@ -1,8 +1,8 @@
 ---
 alvo: notepad-teste
-status: em_andamento
+status: concluida
 inicio: 2026-10-14
-fim:
+fim: 2026-10-15
 ---
 
 # Análise — Bloco de Notas do Windows (alvo de treino)
@@ -29,4 +29,6 @@ fim:
 - [x] Sistemas principais do alvo identificados, cada um com ao menos uma evidência (escopo de teste: inicialização do runtime, `wWinMain`, filtros do diálogo Abrir/Salvar)
 - [x] Lacunas registradas no REA (`record_unknown`) e conferidas com `list_unknowns` (nenhuma lacuna: o bundle tem 0 unknowns)
 - [x] Bundle de evidência exportado para `saidas/<slug>/evidence.json`
-- [ ] Responsável não pediu mais investigação
+- [x] Responsável não pediu mais investigação
+
+**Encerramento (2026-10-15):** concluída por decisão do responsável, **sem protocolo de benchmark** (alvo de treino; o objetivo era validar a cadeia GhidraMCP + REA + gate). Alvo desativado (`registros/ALVO_ATIVO` removido).
