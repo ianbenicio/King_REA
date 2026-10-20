@@ -12,14 +12,33 @@ Editor de texto simples para Windows (C# + WPF), escrito do zero a partir da esp
 3. Dúvida de comportamento que a especificação não responde: registrar como pergunta e decidir por conta própria (documentando), ou confirmar usando o Bloco de Notas normalmente. Não voltar ao binário para isso sem um adendo aprovado na análise.
 4. Diferenças deliberadas em relação ao original (por exemplo, desfazer de vários níveis, gravação via arquivo temporário) ficam listadas na seção "Diferenças" abaixo.
 
-## Estrutura (prevista)
+## Estrutura
 
 ```
 reimplementacoes/notepad/
-├── PRKingNotepad.sln
-├── src/PRKingNotepad/         # app WPF
-└── tests/PRKingNotepad.Tests/ # testes da lógica (codificação, fins de linha, arquivo)
+├── PRKingNotepad.slnx
+├── Directory.Build.props          # avisos viram erro; dependências travadas (packages.lock.json)
+├── src/PRKingNotepad.Core/        # lógica sem interface: codificação, quebras de linha, arquivo, linha de comando
+├── src/PRKingNotepad/             # app WPF
+└── tests/PRKingNotepad.Core.Tests/
 ```
+
+## Compilar, testar e rodar
+
+```
+dotnet build PRKingNotepad.slnx
+dotnet test PRKingNotepad.slnx
+src\PRKingNotepad\bin\Debug\net10.0-windows\PRKingNotepad.exe [/A | /W] [arquivo]
+```
+
+## Andamento
+
+| Bloco | Conteúdo | Situação |
+|---|---|---|
+| 1 | Leitura e gravação (detecção de codificação, BOM, perda em ANSI com recarga, quebras de linha, ".LOG", limite de 1 GiB, gravação segura); janela com menus Arquivo/Editar/Exibir, barra de status, título com asterisco, pergunta ao descartar, arrastar e soltar, linha de comando `/A` `/W` | Feito |
+| 2 | Localizar, substituir, ir para linha; lista de codificação nas caixas Abrir/Salvar | A fazer |
+| 3 | Fonte, quebra automática, zoom, preferências persistentes, posição da janela | A fazer |
+| 4 | Configurar página e impressão; ajuda e sobre; documentos recentes | A fazer |
 
 ## Requisitos de build
 
@@ -27,4 +46,11 @@ reimplementacoes/notepad/
 
 ## Diferenças em relação ao original
 
-(preencher durante a implementação)
+Decisões deliberadas, permitidas pela especificação ou tomadas onde ela deixa lacuna:
+
+1. **Desfazer de vários níveis** (o controle de texto do WPF), em vez de um nível só.
+2. **Gravação segura:** grava num arquivo temporário na mesma pasta e só então substitui o destino; o original grava direto no arquivo.
+3. **Quebras de linha mistas:** o tipo do documento é o da primeira quebra, e ao salvar todas as quebras passam para esse tipo. Arquivos com um só tipo de quebra voltam idênticos.
+4. **UTF-16 sem BOM:** heurística própria (bytes zero em posições ímpares), só para texto de alfabeto latino e a partir de 100 bytes.
+5. **Escolha de codificação (provisório até o bloco 2):** em Arquivo > Codificação ao salvar. Abrir forçando uma codificação, por enquanto, só pela linha de comando (`/A`, `/W`).
+6. **Linha de comando:** nome sem extensão que não existe passa a ser `nome.txt`.

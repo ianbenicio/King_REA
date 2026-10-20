@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PRKingNotepad.Core/PRKingNotepad.Core.csproj" />
+    <Project Path="src/PRKingNotepad/PRKingNotepad.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PRKingNotepad.Core.Tests/PRKingNotepad.Core.Tests.csproj" />
+  </Folder>
+</Solution>
