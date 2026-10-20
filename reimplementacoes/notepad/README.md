@@ -23,7 +23,7 @@ reimplementacoes/notepad/
 
 ## Requisitos de build
 
-- .NET SDK 8 (LTS) para Windows.
+- .NET SDK 10 (LTS, suporte até 11/2028), versão fixada 10.0.401, em `C:	ools\dotnet`. Instalação sem administrador, com hash conferido: `powershell -ExecutionPolicy Bypass -File scripts\instalar-dotnet.ps1`.
 
 ## Diferenças em relação ao original
 
