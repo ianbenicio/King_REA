@@ -1,13 +1,13 @@
 ---
 alvo: notepad-reimpl
-status: em_andamento
+status: concluida
 inicio: 2026-10-15
-fim:
+fim: 2026-10-20
 ---
 
 # Análise — Bloco de Notas (especificação para reimplementação)
 
-Produto desta análise: `registros/notepad-reimpl/especificacao.md`, em palavras próprias (sala limpa), entregue ao projeto `PRKing_Notepad`.
+Produto desta análise: `registros/notepad-reimpl/especificacao.md`, em palavras próprias (sala limpa), entregue à reimplementação em `reimplementacoes/notepad/` (mesmo repositório; decisão do responsável em 2026-10-20).
 
 ## Perguntas da análise
 
@@ -36,4 +36,6 @@ Produto desta análise: `registros/notepad-reimpl/especificacao.md`, em palavras
 - [x] Sistemas principais do alvo identificados, cada um com ao menos uma evidência
 - [x] Lacunas registradas no REA (`record_unknown`) e conferidas com `list_unknowns` (2 abertas, ambas de severidade baixa, resolvíveis sem ferramentas de RE)
 - [x] Bundle de evidência exportado para `saidas/<slug>/evidence.json`
-- [ ] Responsável não pediu mais investigação
+- [x] Responsável não pediu mais investigação
+
+**Encerramento (2026-10-20):** concluída por decisão do responsável, **sem protocolo de benchmark**. As 2 lacunas (severidade baixa) ficam para confirmação por uso normal do programa, sem ferramentas de RE. Alvo desativado (`registros/ALVO_ATIVO` removido). A especificação segue para `reimplementacoes/notepad/`.

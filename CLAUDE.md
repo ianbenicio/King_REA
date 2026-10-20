@@ -17,6 +17,7 @@ Projeto para engenharia reversa com o REA (`rea-agents`), ligado ao Claude Code 
 4. **Assets (jogos)** (skill `protocolo-assets`): quando o responsável pedir. Identifica, extrai, converte (opcional) e organiza meshes 3D, imagens, áudio e vídeo em `saidas/<slug>/assets/` (fora do git), por tipo e categoria, com catálogo e deduplicação, usando `scripts/assets/organizar-assets.mjs`; registra o inventário em `registros/<slug>/04-assets.md`. Assets extraídos nunca vão para o git nem são redistribuídos.
 5. **Ao concluir a análise** (todos os critérios de conclusão do `01-analise.md` marcados e `status: concluida`): **pergunte ao responsável se pode executar o protocolo de registro e benchmark.** Nunca execute sem o "sim" na conversa.
 6. **Protocolo de benchmark** (skill `protocolo-benchmark`): gera `registros/<slug>/02-benchmark.md`.
+7. **Reimplementação (opcional, quando o responsável pedir):** a análise produz `registros/<slug>/especificacao.md` em palavras próprias, e o código novo fica em `reimplementacoes/<nome>/`, neste mesmo repositório. **Sala limpa:** o trabalho em `reimplementacoes/` lê só a especificação — nunca `alvos/`, `saidas/`, evidência nem pseudocódigo — e não copia código, ícones ou textos do alvo. Hoje: `reimplementacoes/notepad/` (C# + WPF), a partir de `notepad-reimpl`.
 
 Modelos em `registros/_modelos/`. Procedimentos de segurança adicionais em `.claude/skills/protocolo-seguranca/procedimentos/`.
 

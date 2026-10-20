@@ -1,13 +1,13 @@
 ---
 alvo: notepad-reimpl
-destino: PRKing_Notepad (C# + WPF)
+destino: reimplementacoes/notepad/ (C# + WPF), no próprio King_REA
 versao_observada: notepad.exe 10.0.19041.4522 (x64) + notepad.exe.mui pt-BR
 data: 2026-10-15
 ---
 
 # Especificação de comportamento — editor de texto simples (sala limpa)
 
-Este documento descreve **o que** o Bloco de Notas do Windows 10 faz, em palavras próprias, para orientar uma reimplementação independente. Não contém código, ícones nem textos da Microsoft além de rótulos funcionais curtos. A implementação em `PRKing_Notepad` deve usar seus próprios textos, ícones e nomes, e seguir este documento, não o binário.
+Este documento descreve **o que** o Bloco de Notas do Windows 10 faz, em palavras próprias, para orientar uma reimplementação independente. Não contém código, ícones nem textos da Microsoft além de rótulos funcionais curtos. A implementação em `reimplementacoes/notepad/` deve usar seus próprios textos, ícones e nomes, e seguir este documento, não o binário.
 
 Convenções: **DEVE** = comportamento observado que a reimplementação reproduz; **PODE** = opcional; **FORA** = fora do escopo da primeira versão. Cada seção cita a evidência (IDs do REA `ev_…`, ou `recursos` para o decodificador de recursos PE, saída em `saidas/notepad-reimpl/recursos.json`).
 
