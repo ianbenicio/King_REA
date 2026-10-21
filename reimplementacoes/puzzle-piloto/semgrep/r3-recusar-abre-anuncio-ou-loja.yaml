@@ -1,0 +1,29 @@
+rules:
+  - id: r3-recusar-abre-anuncio-ou-loja
+    message: >-
+      Função de fechar ou recusar ("$F") chamando "$CALL". Fechar, recusar ou pular precisa só
+      fechar: abrir anúncio, loja ou compra a partir dele é botão de fechar enganoso (MON-0021)
+      e recusa que não é recusa (MON-0009 exige recusa com o mesmo destaque e sem custo).
+    severity: ERROR
+    languages: [javascript]
+    paths:
+      include:
+        - "**/src/**"
+        - "**/r3-recusar-abre-anuncio-ou-loja.mjs"
+    patterns:
+      # "function $F" também casa métodos de classe e de objeto e propriedades com arrow,
+      # cada um com o próprio nome; "const $F = () =>" cobre funções em variável.
+      - pattern-either:
+          - pattern-inside: |
+              function $F(...) { ... }
+          - pattern-inside: |
+              const $F = (...) => { ... }
+      - metavariable-regex:
+          metavariable: $F
+          regex: (?i).*(fechar|recusar|close|dismiss|cancel|skip|pular|negar|decline)  # metavariable-regex compara a partir do início do nome
+      - pattern-either:
+          - pattern: $CALL(...)
+          - pattern: $O.$CALL(...)
+      - metavariable-regex:
+          metavariable: $CALL
+          regex: (?i)^(exibir|mostrar\w*|comprar|abrir\w*loja|openstore|showad\w*|purchase|buy\w*)$

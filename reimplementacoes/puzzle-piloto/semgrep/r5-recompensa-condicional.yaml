@@ -1,0 +1,28 @@
+rules:
+  - id: r5-recompensa-condicional
+    message: >-
+      Condição dentro do callback de recompensa "$F". A recompensa prometida precisa ser
+      entregue quando o anúncio foi concluído, sem condição extra (MON-0001; o contrário é
+      MON-0030). A única condição aceita é a trava de entrega única (variável "entregue").
+      Confirme que a condição não retém a recompensa.
+    severity: WARNING
+    languages: [javascript]
+    paths:
+      include:
+        - "**/src/**"
+        - "**/r5-recompensa-condicional.mjs"
+    patterns:
+      # "function $F" também casa métodos de classe e de objeto e propriedades com arrow,
+      # cada um com o próprio nome; "const $F = () =>" cobre funções em variável.
+      - pattern-either:
+          - pattern-inside: |
+              function $F(...) { ... }
+          - pattern-inside: |
+              const $F = (...) => { ... }
+      - metavariable-regex:
+          metavariable: $F
+          regex: (?i).*(recompens|reward)  # metavariable-regex compara a partir do início do nome
+      - pattern: if ($COND) $CORPO
+      - metavariable-regex:
+          metavariable: $COND
+          regex: ^(?![\s\S]*(entregue|delivered))

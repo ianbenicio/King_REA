@@ -163,6 +163,13 @@ test("Markdown, bin/ e obj/ não contam como marcador", () => {
   assert.deepEqual(r.problemas, []);
 });
 
+test("regras de detecção (pasta semgrep/) citam padrões C sem bloquear; o mesmo texto no código bloqueia", () => {
+  const regra = "message: acoplamento proibido (MON-0033)";
+  assert.deepEqual(rodar({ "reimplementacoes/jogo/semgrep/r1.yaml": regra, "reimplementacoes/jogo/semgrep/r1.mjs": "// MON-0021" }).problemas, []);
+  assert.equal(rodar({ "reimplementacoes/jogo/src/semgrep.mjs": "// MON-0021" }).problemas.length, 1, "arquivo chamado semgrep não é pasta de detecção");
+  assert.equal(rodar({ "reimplementacoes/jogo/config/regras.yaml": regra }).problemas.length, 1);
+});
+
 test("versão do catálogo diferente gera aviso, não bloqueio", () => {
   const r = um(perfil({ catalogo_versao: 2, padroes: [] }));
   assert.deepEqual(r.problemas, []);

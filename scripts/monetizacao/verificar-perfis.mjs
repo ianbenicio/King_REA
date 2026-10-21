@@ -26,6 +26,8 @@ export const RAIZ = "reimplementacoes/";
 const PERFIL = "monetizacao.json";
 const PUBLICOS = ["adulto", "geral", "infantojuvenil"];
 const PASTAS_IGNORADAS = new Set(["bin", "obj", ".vs", "node_modules", "TestResults", "publish"]);
+// Regras de detecção e seus casos de teste citam padrões (inclusive C) sem implementá-los.
+const PASTAS_DE_DETECCAO = new Set(["semgrep"]);
 const MARCADOR = /\bMON-(?:\d{4}|[A-Z]-\d{2})\b/g;
 const TITULO = /^###\s+(MON-\d{4})\s+[—-]\s+(.+?)\s*$/;
 const CAMPO = /^-\s+\*\*(Classe|Infantojuvenil|Público|Aliases):\*\*\s+(.+?)\s*$/;
@@ -129,6 +131,7 @@ export function verificarProjetos({ catalogo, arquivos, hoje = hojeLocal() }) {
       continue;
     }
     if (/\.md$/i.test(caminho)) continue; // documentação pode citar IDs ("não usamos MON-0021")
+    if (partes.slice(1, -1).some((p) => PASTAS_DE_DETECCAO.has(p))) continue;
     conteudo.split(/\r?\n/).forEach((linha, i) => {
       for (const m of linha.matchAll(MARCADOR)) projeto.marcadores.push({ id: m[0], local: `${caminho}:${i + 1}` });
     });

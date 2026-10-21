@@ -1,0 +1,28 @@
+rules:
+  - id: r4-intersticial-durante-jogada
+    message: >-
+      Intersticial exibido dentro de "$F", que trata uma jogada. Intersticial só no fim de
+      partida (MON-0002); durante a jogada ele aparece sob o dedo do jogador e induz toque
+      acidental (MON-0031).
+    severity: ERROR
+    languages: [javascript]
+    paths:
+      include:
+        - "**/src/**"
+        - "**/r4-intersticial-durante-jogada.mjs"
+    patterns:
+      # "function $F" também casa métodos de classe e de objeto e propriedades com arrow,
+      # cada um com o próprio nome; "const $F = () =>" cobre funções em variável.
+      - pattern-either:
+          - pattern-inside: |
+              function $F(...) { ... }
+          - pattern-inside: |
+              const $F = (...) => { ... }
+      - metavariable-regex:
+          metavariable: $F
+          regex: (?i)^(jogar|colocar\w*|arrastar\w*|soltar\w*|tocar\w*|aoTocar\w*|aoColocar\w*|aoArrastar\w*|place\w*|drag\w*|drop\w*|tap\w*|onTap\w*|onDrag\w*|onDrop\w*|move\w*)$
+      - pattern-either:
+          - pattern: $O.$M(..., "intersticial", ...)
+          - pattern: $M(..., "intersticial", ...)
+          - pattern: $O.$M(..., "interstitial", ...)
+          - pattern: $O.showInterstitial(...)

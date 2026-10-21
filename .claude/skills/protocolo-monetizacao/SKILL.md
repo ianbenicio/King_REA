@@ -124,7 +124,7 @@ Quando o responsável pedir para usar padrões num projeto:
    - marcador no código sem o padrão declarado no perfil;
    - perfil inválido (JSON quebrado, campos faltando).
    Alias (ID antigo) passa com aviso para migrar.
-6. Comportamento se garante com teste no próprio projeto. Exemplo para MON-0033: com a mesma semente e as mesmas jogadas, mudar a frequência de anúncios não muda a sequência de peças.
+6. Comportamento se garante com teste no próprio projeto. Exemplo para MON-0033: com a mesma semente e as mesmas jogadas, mudar a frequência de anúncios não muda a sequência de peças. Modelo pronto no piloto: `reimplementacoes/puzzle-piloto/tests/invariancia.test.mjs` (invariância com mutações) e `reimplementacoes/puzzle-piloto/semgrep/` (regras R1–R5 de acoplamento, rodadas pelo `scripts/semgrep/rodar.mjs`).
 7. Não desativar nem contornar a checagem (mesma regra do gate).
 
 ## 9. Ao fim

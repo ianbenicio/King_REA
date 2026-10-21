@@ -1,0 +1,21 @@
+rules:
+  - id: r2-nucleo-le-monetizacao
+    message: >-
+      Código do núcleo (src/nucleo/) usando um nome de monetização ("$NOME"). O sorteio e a
+      dificuldade só podem depender do estado do jogo e do desempenho (MON-0004); ler anúncio,
+      oferta, compra, vidas ou configuração remota é acoplamento proibido (MON-0033).
+      Limite: a regra olha nomes; renomear escapa dela. A garantia de comportamento é o teste
+      de invariância (tests/invariancia.test.mjs).
+    severity: ERROR
+    languages: [javascript]
+    paths:
+      include:
+        - "**/src/nucleo/**"
+        - "**/r2-nucleo-le-monetizacao.mjs"
+    patterns:
+      - pattern-either:
+          - pattern: $O.$NOME
+          - pattern: $NOME
+      - metavariable-regex:
+          metavariable: $NOME
+          regex: (?i)^[\w$]*(anunci|intersticial|rewarded|recompens|oferta|compra|gasto|loja|monetiz|agendador|vidas|sdk|publicidade|consentimento|remoto)[\w$]*$

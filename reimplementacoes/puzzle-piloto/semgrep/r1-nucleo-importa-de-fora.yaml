@@ -1,0 +1,34 @@
+rules:
+  - id: r1-nucleo-importa-de-fora
+    message: >-
+      O núcleo (src/nucleo/) só pode importar módulos do próprio núcleo ("./..."). Importar
+      monetização, sessão ou qualquer outro módulo permite acoplar o sorteio de peças a
+      anúncios ou compras (MON-0033). Mova a lógica para fora do núcleo e reaja a eventos.
+    severity: ERROR
+    languages: [javascript]
+    paths:
+      include:
+        - "**/src/nucleo/**"
+        - "**/r1-nucleo-importa-de-fora.mjs"
+    pattern-either:
+      # Origem literal: só "./arquivo" (irmão no núcleo) é aceita.
+      - patterns:
+          - pattern-either:
+              - pattern: import $X from "$SRC"
+              - pattern: import { ... } from "$SRC"
+              - pattern: import * as $X from "$SRC"
+              - pattern: import "$SRC"
+              - pattern: export { ... } from "$SRC"
+              - pattern: export * from "$SRC"
+              - pattern: import("$SRC")
+              - pattern: require("$SRC")
+          - metavariable-regex:
+              metavariable: $SRC
+              regex: ^(?!\./[^/]+$)
+      # Origem calculada em tempo de execução: não dá para conferir, então é proibida.
+      - patterns:
+          - pattern-either:
+              - pattern: import($EXPR)
+              - pattern: require($EXPR)
+          - pattern-not: import("$S")
+          - pattern-not: require("$S")
