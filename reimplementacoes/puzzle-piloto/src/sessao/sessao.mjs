@@ -3,10 +3,10 @@
 // altera a partida pelas ações explícitas do núcleo (trocarRodada, continuar).
 import * as nucleoPadrao from "../nucleo/jogo.mjs";
 import { semear } from "../nucleo/prng.mjs";
-import { AGENDADOR_INICIAL, aoTerminarPartida, registrarExibicao } from "../monetizacao/agendador.mjs";
+import { AGENDADOR_INICIAL, aoTerminarPartida, registrarAnuncio, registrarExibicao } from "../monetizacao/agendador.mjs";
 import { resolverConfig } from "../monetizacao/config.mjs";
 import { comprar, restaurar, semAnuncios } from "../monetizacao/loja.mjs";
-import { entregaUnica, ofertaContinuar, podeTrocar } from "../monetizacao/recompensas.mjs";
+import { entregaUnica, ofertaContinuar, ofertaTroca, podeTrocar } from "../monetizacao/recompensas.mjs";
 import { consumirVida, ganharPorAnuncio, podeGanharPorAnuncio, tempoAteProxima, vidasIniciais } from "../monetizacao/vidas.mjs";
 
 // Semente da partida n: derivada só da semente da sessão e de n (nada de monetização entra).
@@ -65,6 +65,15 @@ export function criarSessao({ sementeSessao, sdk, relogio, consentimento, remoto
     else encerrarPartida();
   }
 
+  // Exibe um rewarded escolhido pelo jogador. Se apareceu (concluído ou não), conta para o
+  // intervalo mínimo do intersticial: anúncio de qualquer tipo abre o intervalo.
+  function exibirRewarded(tipo, entrega) {
+    const { exibido, resultado } = sdk.exibir("rewarded", { aoRecompensar: entrega.aoRecompensar });
+    if (exibido) agendador = registrarAnuncio(agendador, relogio());
+    registrar({ tipo, resultado, entregue: entrega.entregue });
+    return resultado;
+  }
+
   const exigirPartida = () => {
     if (!partida) throw new Error("nenhuma partida em andamento");
     if (partida.oferta) throw new Error("responda a oferta de continuar antes");
@@ -104,8 +113,7 @@ export function criarSessao({ sementeSessao, sdk, relogio, consentimento, remoto
         partida.trocasComAnuncio += 1;
         anotarSorteio(efeito);
       });
-      const { resultado } = sdk.exibir("rewarded", { aoRecompensar: entrega.aoRecompensar });
-      registrar({ tipo: "rewarded_troca", resultado, entregue: entrega.entregue });
+      const resultado = exibirRewarded("rewarded_troca", entrega);
       if (entrega.entregue) aposAcao();
       return { ok: entrega.entregue, resultado };
     },
@@ -124,8 +132,7 @@ export function criarSessao({ sementeSessao, sdk, relogio, consentimento, remoto
         partida.estado = continuar(partida.estado).estado;
         partida.continuacoesComAnuncio += 1;
       });
-      const { resultado } = sdk.exibir("rewarded", { aoRecompensar: entrega.aoRecompensar });
-      registrar({ tipo: "rewarded_continuar", resultado, entregue: entrega.entregue });
+      const resultado = exibirRewarded("rewarded_continuar", entrega);
       if (entrega.entregue) aposAcao();
       else encerrarPartida();
       return { ok: entrega.entregue, resultado };
@@ -138,8 +145,7 @@ export function criarSessao({ sementeSessao, sdk, relogio, consentimento, remoto
       const entrega = entregaUnica(() => {
         vidas = ganharPorAnuncio(vidas, relogio(), config.valores);
       });
-      const { resultado } = sdk.exibir("rewarded", { aoRecompensar: entrega.aoRecompensar });
-      registrar({ tipo: "rewarded_vida", resultado, entregue: entrega.entregue });
+      const resultado = exibirRewarded("rewarded_vida", entrega);
       return { ok: entrega.entregue, resultado };
     },
 
@@ -161,6 +167,11 @@ export function criarSessao({ sementeSessao, sdk, relogio, consentimento, remoto
       return config;
     },
 
+    // MON-0001: o que o jogador vê antes de escolher trocar (null se não puder).
+    get ofertaTroca() {
+      if (!partida || partida.oferta) return null;
+      return ofertaTroca({ fim: partida.estado.fim, trocasComAnuncio: partida.trocasComAnuncio, rodada: partida.estado.rodada });
+    },
     get config() {
       return config;
     },

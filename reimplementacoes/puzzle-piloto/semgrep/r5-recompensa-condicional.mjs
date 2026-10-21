@@ -31,3 +31,8 @@ export function semCondicao() {
   // ok: r5-recompensa-condicional
   if (sessao.ativa) entregar();
 }
+
+export function exibirRewarded(sdk, exibido) {
+  // ok: r5-recompensa-condicional
+  if (exibido) sdk.registrar();
+}

@@ -3,8 +3,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { CONFIG_PADRAO, LIMITES, resolverConfig } from "../src/monetizacao/config.mjs";
 import { criarSdkSimulado } from "../src/monetizacao/sdk-simulado.mjs";
-import { AGENDADOR_INICIAL, aoTerminarPartida, registrarExibicao } from "../src/monetizacao/agendador.mjs";
-import { entregaUnica, ofertaContinuar, podeTrocar } from "../src/monetizacao/recompensas.mjs";
+import { AGENDADOR_INICIAL, aoTerminarPartida, registrarAnuncio, registrarExibicao } from "../src/monetizacao/agendador.mjs";
+import { entregaUnica, ofertaContinuar, ofertaTroca, podeTrocar } from "../src/monetizacao/recompensas.mjs";
 import { REMOVER_ANUNCIOS, comprar, restaurar, semAnuncios } from "../src/monetizacao/loja.mjs";
 import { consumirVida, ganharPorAnuncio, podeGanharPorAnuncio, tempoAteProxima, vidasIniciais } from "../src/monetizacao/vidas.mjs";
 
@@ -177,4 +177,36 @@ test("vidas por anúncio: só abaixo do máximo, até 3 por dia, zera no dia seg
   // recargaDesde no início de amanhã, para isolar a virada do dia da recarga por tempo
   assert.equal(podeGanharPorAnuncio({ ...v, vidas: 0, recargaDesde: amanha }, amanha, config), true);
   assert.equal(podeGanharPorAnuncio({ ...v, vidas: 0 }, amanha, config), false, "24 h de recarga já encheram as vidas");
+});
+
+test("config: recarga de vidas remota só entre 20 e 40 min (sem teto empurraria para o anúncio)", () => {
+  assert.equal(resolverConfig({ recarga_vida_min: 40 }).valores.recarga_vida_min, 40);
+  for (const lenta of [41, 600]) {
+    const r = resolverConfig({ recarga_vida_min: lenta });
+    assert.equal(r.valores.recarga_vida_min, 20, String(lenta));
+    assert.equal(r.rejeitados.length, 1);
+  }
+});
+
+test("agendador: rewarded exibido abre o intervalo mínimo, mas não conta no teto nem nas partidas", () => {
+  const config = CONFIG_PADRAO;
+  const base = { ...AGENDADOR_INICIAL, partidasTerminadas: 10, partidasDesdeUltimo: 5 };
+  const depoisDoRewarded = registrarAnuncio(base, 0);
+  assert.equal(depoisDoRewarded.exibidosNaSessao, 0);
+  assert.equal(depoisDoRewarded.partidasDesdeUltimo, 5);
+  assert.equal(aoTerminarPartida(depoisDoRewarded, { config, agora: 30 * 1000, semAnuncios: false }).motivo, "intervalo mínimo");
+  assert.equal(aoTerminarPartida(depoisDoRewarded, { config, agora: 61 * 1000, semAnuncios: false }).exibir, true);
+  // vale o mais recente entre intersticial e rewarded
+  const ambos = registrarAnuncio({ ...registrarExibicao(base, 0), partidasDesdeUltimo: 5 }, 50 * 1000);
+  assert.equal(aoTerminarPartida(ambos, { config, agora: 100 * 1000, semAnuncios: false }).motivo, "intervalo mínimo");
+  assert.equal(aoTerminarPartida(ambos, { config, agora: 111 * 1000, semAnuncios: false }).exibir, true);
+});
+
+test("recompensas: a oferta de troca diz quantas peças serão trocadas de fato", () => {
+  const oferta = (rodada, extra = {}) => ofertaTroca({ fim: false, trocasComAnuncio: 0, rodada, ...extra });
+  assert.equal(oferta(["P01", "P02", "P03"]).recompensa, "3 peças novas no lugar das que faltam usar");
+  assert.equal(oferta(["P01", null, "P02"]).pecas, 2);
+  assert.equal(oferta([null, null, "P01"]).recompensa, "1 peça nova no lugar da que falta usar");
+  assert.equal(oferta(["P01"], { fim: true }), null);
+  assert.equal(oferta(["P01"], { trocasComAnuncio: 1 }), null);
 });

@@ -28,7 +28,8 @@ const REGRAS = {
   intervalo_s: { padrao: intervalo.intervalo_min_s, aceita: (v) => inteiro(v) && v >= intervalo.intervalo_min_s },
   max_por_sessao: { padrao: intervalo.max_por_sessao, aceita: (v) => inteiro(v) && v >= 0 && v <= intervalo.max_por_sessao },
   carencia_partidas: { padrao: intervalo.carencia_partidas_min, aceita: (v) => inteiro(v) && v >= intervalo.carencia_partidas_min },
-  recarga_vida_min: { padrao: vidas.recarga_min, aceita: (v) => inteiro(v) && v >= vidas.recarga_min },
+  // Recarga: mais lenta que o padrão só até o teto do perfil (sem teto, empurraria para o anúncio de vida).
+  recarga_vida_min: { padrao: vidas.recarga_min, aceita: (v) => inteiro(v) && v >= vidas.recarga_min && v <= vidas.recarga_max_min },
 };
 
 export const CONFIG_PADRAO = Object.freeze(Object.fromEntries(Object.entries(REGRAS).map(([k, r]) => [k, r.padrao])));

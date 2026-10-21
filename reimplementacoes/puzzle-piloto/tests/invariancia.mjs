@@ -137,6 +137,15 @@ function conferirLimites(r, onde) {
     if (e.tipo.startsWith("rewarded_") && e.entregue !== (e.resultado === "completo" || e.resultado === "duplicado"))
       erros.push(`${onde}: recompensa ${e.entregue ? "entregue" : "negada"} com resultado "${e.resultado}"`);
   });
+  // Intervalo mínimo entre um anúncio exibido (de qualquer tipo) e o próximo intersticial.
+  let ultimoAnuncio = null;
+  for (const e of r.eventos) {
+    const exibido = (e.tipo === "intersticial" || e.tipo.startsWith("rewarded_")) && e.resultado !== "indisponivel";
+    if (!exibido) continue;
+    if (e.tipo === "intersticial" && ultimoAnuncio !== null && e.em - ultimoAnuncio < r.sessao.config.valores.intervalo_s * 1000)
+      erros.push(`${onde}: intersticial ${(e.em - ultimoAnuncio) / 1000} s depois de outro anúncio`);
+    ultimoAnuncio = e.em;
+  }
   for (const fim of r.eventos.filter((e) => e.tipo === "fim_partida")) {
     if (fim.trocas > 1) erros.push(`${onde}: partida ${fim.partida} com ${fim.trocas} trocas`);
     if (fim.continuacoes > 1) erros.push(`${onde}: partida ${fim.partida} com ${fim.continuacoes} continuações`);

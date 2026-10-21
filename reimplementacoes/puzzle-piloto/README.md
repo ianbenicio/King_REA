@@ -17,7 +17,7 @@ tests/           testes (node:test), rodados pelo npm test da raiz do repositór
 
 `src/nucleo/` não pode importar `src/monetizacao/` nem `src/sessao/`.
 
-O perfil inclui MON-0011 (classe B), aprovado pelo responsável em 2026-10-21 com o hash desta revisão. Mudar qualquer parâmetro do perfil invalida a aprovação: recalcule com `node scripts/monetizacao/verificar-perfis.mjs --hash reimplementacoes/puzzle-piloto/monetizacao.json` e peça aprovação de novo.
+O perfil inclui MON-0011 (classe B), aprovado pelo responsável em 2026-10-21 com o hash desta revisão (a revisão atual é a pós-F6, com teto da recarga remota e intervalo para todos os tipos de anúncio). Mudar qualquer parâmetro do perfil invalida a aprovação: recalcule com `node scripts/monetizacao/verificar-perfis.mjs --hash reimplementacoes/puzzle-piloto/monetizacao.json` e peça aprovação de novo.
 
 ## Rodar
 
@@ -79,4 +79,4 @@ npm run semgrep:mutacoes
 | F3 — invariância | feito: 19 perfis (anúncios, falhas, compra, configuração remota, relógio) × 20 sementes no `npm test`; 7 mutações de acoplamento, todas detectadas; achou e corrigiu bug de vidas com relógio voltando |
 | F4 — Semgrep | feito: Semgrep 1.180.0 auditado e fixado por digest; R1–R5 com testes anotados; zero achados no produto; 5 mutações no código real, todas detectadas |
 | F5 — variante plantada | feito: plantio e gabarito em `pilotos/puzzle-plantado/`, dois builds de distribuição em `alvos/` com nomes neutros, protocolo de segurança aprovado (N0, N1) |
-| F6 — análise cega | feito: duas sessões separadas; plantado 6/6 com ID e estados certos e iscas evitadas; limpo sem nenhum falso positivo de classe C; 3 achados reais sobre o produto (texto da troca, recarga remota sem teto, limite por tipo de anúncio) |
+| F6 — análise cega | feito: duas sessões separadas; plantado 6/6 com ID e estados certos e iscas evitadas; limpo sem nenhum falso positivo de classe C; 3 achados reais sobre o produto (texto da troca, recarga remota sem teto, limite por tipo de anúncio); os 3 achados de produto foram corrigidos depois, com testes e nova aprovação do perfil |

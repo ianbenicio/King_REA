@@ -4,10 +4,20 @@ import { LIMITES } from "./config.mjs";
 
 // MON-0001 — trocar as peças da rodada assistindo a um anúncio: opcional, recompensa informada
 // antes, no máximo LIMITES.trocaComAnuncioPorPartida vezes por partida. Recusar não muda nada.
-export const OFERTA_TROCA = Object.freeze({ acao: "trocar", recompensa: "3 peças novas no lugar das não usadas", anuncio: "rewarded" });
-
 export function podeTrocar({ fim, trocasComAnuncio }) {
   return !fim && trocasComAnuncio < LIMITES.trocaComAnuncioPorPartida;
+}
+
+// A oferta diz exatamente quantas peças serão trocadas: só as que ainda faltam usar na rodada.
+export function ofertaTroca({ fim, trocasComAnuncio, rodada }) {
+  if (!podeTrocar({ fim, trocasComAnuncio })) return null;
+  const pecas = rodada.filter((id) => id !== null).length;
+  return Object.freeze({
+    acao: "trocar",
+    anuncio: "rewarded",
+    pecas,
+    recompensa: pecas === 1 ? "1 peça nova no lugar da que falta usar" : `${pecas} peças novas no lugar das que faltam usar`,
+  });
 }
 
 // MON-0009 — continuar após a derrota com anúncio: no máximo uma vez por partida, recusa com o

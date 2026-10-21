@@ -164,3 +164,31 @@ test("semente de cada partida depende só da semente da sessão e do número da 
   const pecas = (s) => s.eventos.find((e) => e.tipo === "fim_partida").pecas;
   assert.deepEqual(pecas(a.sessao), pecas(b.sessao));
 });
+
+test("oferta de troca na sessão mostra o número real de peças e some depois de usada", () => {
+  const { sessao } = montar();
+  sessao.iniciarPartida();
+  assert.equal(sessao.ofertaTroca.pecas, 3);
+  sessao.jogar(escolherJogada(sessao.partida.estado));
+  assert.equal(sessao.ofertaTroca.pecas, 2);
+  assert.equal(sessao.trocarComAnuncio().ok, true);
+  assert.equal(sessao.ofertaTroca, null);
+});
+
+test("rewarded que apareceu impede intersticial na mesma pausa; rewarded indisponível não conta", () => {
+  for (const [rewarded, esperado] of [["completo", "intervalo mínimo"], ["fechado", "intervalo mínimo"], ["indisponivel", null]]) {
+    const { sessao, avancar } = montar({ roteiro: (tipo) => (tipo === "rewarded" ? rewarded : "completo") });
+    for (let p = 1; p <= 2; p++) {
+      avancar(2 * MIN);
+      partidaCompleta(sessao);
+      avancar(25 * MIN);
+    }
+    sessao.iniciarPartida(); // 3ª partida: elegível para intersticial
+    jogarAteParar(sessao);
+    sessao.responderContinuar("continuar");
+    jogarAteParar(sessao);
+    const ultimo = sessao.eventos.at(-1);
+    if (esperado) assert.equal(ultimo.motivo, esperado, rewarded);
+    else assert.equal(ultimo.tipo, "intersticial", rewarded);
+  }
+});

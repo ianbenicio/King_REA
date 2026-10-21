@@ -21,7 +21,7 @@ rules:
               const $F = (...) => { ... }
       - metavariable-regex:
           metavariable: $F
-          regex: (?i).*(recompens|reward)  # metavariable-regex compara a partir do início do nome
+          regex: (?i)(ao|on|quando|handle)\w*(recompens|reward)  # nome de callback (aoRecompensar, onUserEarnedReward); compara a partir do início
       - pattern: if ($COND) $CORPO
       - metavariable-regex:
           metavariable: $COND
