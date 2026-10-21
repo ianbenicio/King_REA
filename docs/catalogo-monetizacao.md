@@ -1,8 +1,8 @@
 ---
 titulo: Catálogo de padrões de monetização e dark patterns
-versao: 1
+versao: 2
 data: 2026-10-20
-status: rascunho — classificação aguarda revisão do responsável
+status: rascunho — v2 com MON-B-05, MON-B-06, MON-B-10 e MON-A-09 revistos pelo responsável (2026-10-20); as demais classificações aguardam revisão
 ---
 
 # Catálogo de padrões de monetização
@@ -19,9 +19,18 @@ Fonte única dos IDs usados pelo `protocolo-monetizacao` (identificação nos al
 
 **Infantojuvenil:** jogo voltado a menores ou com acesso provável por eles (critério do ECA Digital, Lei 15.211/2025). Na dúvida, tratar como infantojuvenil. Padrão marcado `Infantojuvenil: proibido` é bloqueado nesses projetos, mesmo sendo A ou B.
 
+**Somente adulto:** padrão marcado `Público: somente adulto` só é aceito em projeto com `publico: adulto`. Público `geral` também é bloqueado, porque tem acesso provável por menores.
+
 ## Formato (lido pela checagem)
 
-Cada padrão é um título `### MON-<classe>-<NN> — <nome>` seguido de itens. A checagem lê o título e a linha `Infantojuvenil`. Padrão novo: próximo número livre da classe; mudar a classe de um padrão existente exige aprovação do responsável (mesma regra do `00-seguranca.md`).
+Cada padrão é um título `### MON-<classe>-<NN> — <nome>` seguido de itens. A checagem lê o título e as linhas `Infantojuvenil` e `Público`. Padrão novo: próximo número livre da classe; mudar a classe de um padrão existente exige aprovação do responsável (mesma regra do `00-seguranca.md`).
+
+IDs nunca são reaproveitados. Quando um padrão muda de classe, ganha ID novo e o antigo fica em "IDs retirados"; a checagem recusa o ID retirado e indica o novo.
+
+## IDs retirados
+
+- **MON-B-05** → MON-C-13 (v2: dificuldade ou sorte ligada a monetização passou para C)
+- **MON-B-06** → MON-A-10 (v2: oferta com prazo real passou para A)
 
 Referências: [Z13] Zagal, Björk e Lewis 2013 · [UIG] UIGuard 2023 · [ADS] AdsDP 2025 · [FTC] FTC × Epic 2022 · [CPC] princípios CPC sobre moedas virtuais 2025 · [ECA] Lei 15.211/2025 · [LOJA] políticas do Google Play, App Store e AdMob · [IND] material da indústria (Unity, ironSource). Links no documento de pesquisa.
 
@@ -80,10 +89,18 @@ Referências: [Z13] Zagal, Björk e Lewis 2013 · [UIG] UIGuard 2023 · [ADS] Ad
 - **Referências:** [LOJA]
 
 ### MON-A-09 — Continuar com anúncio, com limite
-- **Descrição:** após a derrota, o jogador pode continuar assistindo a um anúncio, com limite por partida (ex.: uma vez).
-- **Sinais:** tela de derrota com opção de continuar e opção clara de recusar; contador por partida.
+- **Descrição:** após a derrota, o jogador pode continuar assistindo a um anúncio. Só é A se cumprir as três regras: (1) no máximo uma vez por partida; (2) recusar é tão visível e fácil quanto aceitar (mesmo tamanho e destaque, sem texto de culpa); (3) sem contagem regressiva ou outra pressão de tempo na decisão. Faltando qualquer regra, deixa de ser A: pressão de tempo cai em MON-C-04, recusa com culpa em MON-C-07.
+- **Sinais:** tela de derrota com opção de continuar e opção de recusar; contador por partida; ausência de temporizador na tela.
+- **Parâmetros típicos:** continuações por partida (máximo 1).
 - **Infantojuvenil:** permitido
-- **Referências:** [IND]
+- **Referências:** [IND], [Z13]
+
+### MON-A-10 — Oferta com prazo real
+- **Descrição:** oferta por tempo limitado em que o prazo e o estoque são verdadeiros: data fixa, igual para todos, e a mesma oferta não reaparece logo em seguida. Prazo ou estoque falso é MON-C-04.
+- **Sinais:** contagem regressiva baseada em data fixa do servidor; histórico de ofertas sem repetição imediata.
+- **Infantojuvenil:** proibido
+- **Referências:** [CPC]
+- **Histórico:** era MON-B-06 até a v1.
 
 ---
 
@@ -113,19 +130,6 @@ Referências: [Z13] Zagal, Björk e Lewis 2013 · [UIG] UIGuard 2023 · [ADS] Ad
 - **Infantojuvenil:** proibido
 - **Referências:** [Z13]
 
-### MON-B-05 — Dificuldade ligada a monetização
-- **Descrição:** a dificuldade ou a sorte muda conforme o estado de monetização (perto de oferta ou anúncio, histórico de gasto), ou induz quase-vitórias antes de oferecer continuar.
-- **Sinais:** função de dificuldade ou gerador de peças/drops que lê contadores de anúncio, oferta ou gasto; probabilidade diferente na partida que precede uma oferta.
-- **Infantojuvenil:** proibido
-- **Referências:** patentes EA, [Z13]
-- **Nota:** se escondido do jogador e usado para vender, tende a C; manter em B exige transparência no perfil.
-
-### MON-B-06 — Oferta com prazo real
-- **Descrição:** oferta por tempo limitado em que o prazo e o estoque são verdadeiros.
-- **Sinais:** contagem regressiva baseada em data fixa do servidor; mesma oferta não reaparece logo em seguida.
-- **Infantojuvenil:** proibido
-- **Referências:** [CPC]
-
 ### MON-B-07 — Várias moedas virtuais
 - **Descrição:** mais de uma moeda, ou conversões entre moedas, dificultando saber o custo real.
 - **Sinais:** duas ou mais moedas na loja; tabelas de câmbio internas.
@@ -148,7 +152,9 @@ Referências: [Z13] Zagal, Björk e Lewis 2013 · [UIG] UIGuard 2023 · [ADS] Ad
 - **Descrição:** gacha ou caixa paga com resultado aleatório, probabilidades exibidas e verdadeiras.
 - **Sinais:** sorteio ponderado após compra; tela de probabilidades acessível antes de pagar.
 - **Infantojuvenil:** proibido
+- **Público:** somente adulto
 - **Referências:** [ECA], [LOJA]
+- **Nota:** em jogo infantojuvenil, ou com probabilidades ocultas ou falsas, é MON-C-06.
 
 ### MON-B-11 — Notificações de reengajamento
 - **Descrição:** notificações push para trazer o jogador de volta (energia cheia, evento, oferta).
@@ -225,3 +231,9 @@ Referências: [Z13] Zagal, Björk e Lewis 2013 · [UIG] UIGuard 2023 · [ADS] Ad
 - **Descrição:** coleta de identificadores ou dados para segmentação de anúncios sem consentimento válido.
 - **Sinais:** SDK de anúncio inicializado antes do consentimento; identificador de publicidade lido sem diálogo de consentimento.
 - **Referências:** [LOJA], LGPD
+
+### MON-C-13 — Dificuldade ou sorte ligada a monetização
+- **Descrição:** a dificuldade, o gerador de peças ou a sorte mudam conforme o estado de monetização (proximidade de anúncio ou oferta, histórico de gasto, propensão a pagar), ou induzem quase-vitórias antes de oferecer continuar ou comprar. É C mesmo quando divulgado: o jogador não tem como saber, na partida, se perdeu pelo jogo ou pela venda.
+- **Sinais:** função de dificuldade ou gerador de peças/drops que lê contadores de anúncio, oferta ou gasto; distribuição diferente na partida que precede uma oferta; quase-vitórias acima do esperado pela distribuição declarada.
+- **Referências:** patentes EA, [Z13]
+- **Histórico:** era MON-B-05 até a v1. Dificuldade dinâmica que lê só desempenho continua sendo MON-A-04.

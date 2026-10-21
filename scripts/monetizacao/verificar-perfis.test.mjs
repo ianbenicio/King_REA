@@ -7,16 +7,64 @@ import { lerCatalogo, verificarProjetos } from "./verificar-perfis.mjs";
 const real = lerCatalogo(readFileSync(new URL("../../docs/catalogo-monetizacao.md", import.meta.url), "utf8"));
 
 const aprovado = { por: "responsável", data: "2026-10-20" };
-const perfil = (dados) => JSON.stringify({ catalogo_versao: 1, publico: "geral", ...dados });
+const perfil = (dados) => JSON.stringify({ catalogo_versao: 2, publico: "geral", ...dados });
 const rodar = (arquivos, catalogo = real) => verificarProjetos({ catalogo, arquivos: new Map(Object.entries(arquivos)) });
 
 test("catálogo real: sem erros, três classes, linha Infantojuvenil em A e B", () => {
   assert.deepEqual(real.erros, []);
-  assert.equal(real.versao, 1);
+  assert.equal(real.versao, 2);
   const classes = new Set([...real.padroes.values()].map((p) => p.classe));
   assert.deepEqual([...classes].sort(), ["A", "B", "C"]);
   assert.equal(real.padroes.get("MON-B-02").infantojuvenil, "proibido");
   assert.equal(real.padroes.get("MON-A-01").infantojuvenil, "permitido");
+});
+
+test("revisão v2: B-05 → C-13, B-06 → A-10, B-10 somente adulto, A-09 continua A", () => {
+  assert.equal(real.padroes.has("MON-B-05"), false);
+  assert.equal(real.padroes.has("MON-B-06"), false);
+  assert.equal(real.retirados.get("MON-B-05"), "MON-C-13");
+  assert.equal(real.retirados.get("MON-B-06"), "MON-A-10");
+  assert.equal(real.padroes.get("MON-C-13").classe, "C");
+  assert.equal(real.padroes.get("MON-A-10").classe, "A");
+  assert.equal(real.padroes.get("MON-A-10").infantojuvenil, "proibido");
+  assert.equal(real.padroes.get("MON-B-10").somenteAdulto, true);
+  assert.equal(real.padroes.get("MON-A-09").classe, "A");
+});
+
+test("ID retirado é bloqueado e a mensagem indica o novo", () => {
+  const r = rodar({
+    "reimplementacoes/jogo/monetizacao.json": perfil({ padroes: [{ id: "MON-B-06" }] }),
+    "reimplementacoes/jogo/src/Dda.cs": "// MON-B-05",
+  });
+  assert.equal(r.problemas.length, 2);
+  assert.match(r.problemas.join("\n"), /MON-B-06 retirado.*MON-A-10/);
+  assert.match(r.problemas.join("\n"), /MON-B-05 retirado.*MON-C-13 \(classe C\)/);
+});
+
+test("dificuldade ligada a monetização (MON-C-13) é bloqueada", () => {
+  const r = rodar({ "reimplementacoes/jogo/src/Dda.cs": "// MON-C-13" });
+  assert.match(r.problemas[0], /classe C/);
+});
+
+test("caixa paga (MON-B-10) só em projeto adulto", () => {
+  const entrada = { id: "MON-B-10", justificativa: "x", limites: "y", aprovacao: aprovado };
+  for (const publico of ["geral", "infantojuvenil"]) {
+    const r = rodar({ "reimplementacoes/jogo/monetizacao.json": perfil({ publico, padroes: [entrada] }) });
+    assert.equal(r.problemas.length, 1, publico);
+  }
+  const adulto = rodar({ "reimplementacoes/jogo/monetizacao.json": perfil({ publico: "adulto", padroes: [entrada] }) });
+  assert.deepEqual(adulto.problemas, []);
+});
+
+test("oferta com prazo real (MON-A-10) dispensa aprovação, mas não entra em infantojuvenil", () => {
+  assert.deepEqual(rodar({ "reimplementacoes/jogo/monetizacao.json": perfil({ padroes: [{ id: "MON-A-10" }] }) }).problemas, []);
+  const infanto = rodar({ "reimplementacoes/jogo/monetizacao.json": perfil({ publico: "infantojuvenil", padroes: [{ id: "MON-A-10" }] }) });
+  assert.equal(infanto.problemas.length, 1);
+});
+
+test("catálogo com ID retirado e definido, ou apontando para ID inexistente, tem erro", () => {
+  const ruim = lerCatalogo("---\nversao: 2\n---\n- **MON-A-01** → MON-C-99\n### MON-A-01 — x\n- **Infantojuvenil:** permitido\n");
+  assert.equal(ruim.erros.length, 2);
 });
 
 test("projeto sem perfil nem marcadores passa", () => {

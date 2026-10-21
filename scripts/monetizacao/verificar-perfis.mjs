@@ -5,6 +5,8 @@
 // - ID fora do catálogo;
 // - classe B sem justificativa, limites ou aprovação com data;
 // - padrão "Infantojuvenil: proibido" em projeto com publico "infantojuvenil";
+// - padrão "Público: somente adulto" em projeto com publico diferente de "adulto";
+// - ID retirado do catálogo (indica o ID novo);
 // - marcador no código sem o padrão declarado no perfil;
 // - perfil inválido.
 // Uso: node scripts/monetizacao/verificar-perfis.mjs   (lê a árvore de trabalho)
@@ -21,10 +23,14 @@ const PASTAS_IGNORADAS = new Set(["bin", "obj", ".vs", "node_modules", "TestResu
 const MARCADOR = /\bMON-([A-Z])-(\d{2})\b/g;
 const TITULO = /^###\s+(MON-([A-Z])-(\d{2}))\s+[—-]\s+(.+?)\s*$/;
 const INFANTOJUVENIL = /^-\s+\*\*Infantojuvenil:\*\*\s+(permitido|proibido)\b/;
+const SOMENTE_ADULTO = /^-\s+\*\*Público:\*\*\s+somente adulto\b/;
+const RETIRADO = /^-\s+\*\*(MON-[A-Z]-\d{2})\*\*\s+→\s+(MON-[A-Z]-\d{2})\b/;
 
-// Lê o catálogo em Markdown: "### MON-<classe>-NN — nome" + linha "Infantojuvenil" (A e B).
+// Lê o catálogo em Markdown: "### MON-<classe>-NN — nome" + linhas "Infantojuvenil" (A e B)
+// e "Público: somente adulto" (opcional); "- **MON-X-NN** → MON-Y-NN" marca ID retirado.
 export function lerCatalogo(texto) {
   const padroes = new Map();
+  const retirados = new Map();
   const erros = [];
   const versao = Number(texto.match(/^versao:\s*(\d+)\s*$/m)?.[1]);
   let atual = null;
@@ -39,7 +45,7 @@ export function lerCatalogo(texto) {
       const [, id, classe, , nome] = titulo;
       if (!["A", "B", "C"].includes(classe)) erros.push(`${CATALOGO}: ${id} com classe desconhecida`);
       if (padroes.has(id)) erros.push(`${CATALOGO}: ${id} duplicado`);
-      atual = { id, classe, nome, infantojuvenil: classe === "C" ? "proibido" : null };
+      atual = { id, classe, nome, infantojuvenil: classe === "C" ? "proibido" : null, somenteAdulto: false };
       padroes.set(id, atual);
       continue;
     }
@@ -48,12 +54,23 @@ export function lerCatalogo(texto) {
       atual = null;
       continue;
     }
-    const infanto = atual && linha.match(INFANTOJUVENIL);
+    const retirado = linha.match(RETIRADO);
+    if (retirado) {
+      retirados.set(retirado[1], retirado[2]);
+      continue;
+    }
+    if (!atual) continue;
+    const infanto = linha.match(INFANTOJUVENIL);
     if (infanto && atual.classe !== "C") atual.infantojuvenil = infanto[1];
+    if (SOMENTE_ADULTO.test(linha)) atual.somenteAdulto = true;
   }
   fechar();
   if (padroes.size === 0) erros.push(`${CATALOGO}: nenhum padrão encontrado`);
-  return { versao, padroes, erros };
+  for (const [velho, novo] of retirados) {
+    if (padroes.has(velho)) erros.push(`${CATALOGO}: ${velho} está retirado e definido ao mesmo tempo`);
+    if (!padroes.has(novo)) erros.push(`${CATALOGO}: ${velho} retirado aponta para ${novo}, que não existe`);
+  }
+  return { versao, padroes, retirados, erros };
 }
 
 const textoPreenchido = (v) => typeof v === "string" && v.trim().length > 0;
@@ -86,7 +103,7 @@ export function verificarProjetos({ catalogo, arquivos }) {
     if (perfil) verificarPerfil(perfil, catalogo, declarados, problemas, avisos);
     for (const { id, local } of marcadores) {
       const padrao = catalogo.padroes.get(id);
-      if (!padrao) problemas.push(`${local}: marcador ${id} fora do catálogo`);
+      if (!padrao) problemas.push(`${local}: marcador ${id} ${foraDoCatalogo(catalogo, id)}`);
       else if (padrao.classe === "C") problemas.push(`${local}: marcador ${id} (${padrao.nome}) é classe C, proibida em projeto nosso`);
       else if (!declarados.has(id))
         problemas.push(`${local}: marcador ${id} sem declaração em ${RAIZ}${nome}/${PERFIL}`);
@@ -97,6 +114,13 @@ export function verificarProjetos({ catalogo, arquivos }) {
   if (usaPadroes) problemas.unshift(...catalogo.erros);
   return { problemas, avisos };
 }
+
+const foraDoCatalogo = (catalogo, id) => {
+  const novo = catalogo.retirados?.get(id);
+  if (!novo) return "fora do catálogo";
+  const padrao = catalogo.padroes.get(novo);
+  return `retirado do catálogo; agora é ${novo} (classe ${padrao?.classe ?? "?"}), revise`;
+};
 
 function verificarPerfil({ caminho, conteudo }, catalogo, declarados, problemas, avisos) {
   let perfil;
@@ -128,7 +152,7 @@ function verificarPerfil({ caminho, conteudo }, catalogo, declarados, problemas,
     }
     const padrao = catalogo.padroes.get(id);
     if (!padrao) {
-      problemas.push(`${onde}: ${id} fora do catálogo`);
+      problemas.push(`${onde}: ${id} ${foraDoCatalogo(catalogo, id)}`);
       return;
     }
     if (declarados.has(id)) problemas.push(`${onde}: ${id} declarado mais de uma vez`);
@@ -139,6 +163,8 @@ function verificarPerfil({ caminho, conteudo }, catalogo, declarados, problemas,
     }
     if (perfil.publico === "infantojuvenil" && padrao.infantojuvenil === "proibido")
       problemas.push(`${onde}: ${id} (${padrao.nome}) é proibido em projeto infantojuvenil`);
+    else if (padrao.somenteAdulto && perfil.publico !== "adulto")
+      problemas.push(`${onde}: ${id} (${padrao.nome}) é somente para público adulto; "${perfil.publico}" tem acesso provável por menores`);
     if (padrao.classe === "B") {
       if (!textoPreenchido(entrada.justificativa)) problemas.push(`${onde}: ${id} é classe B e precisa de "justificativa"`);
       if (!textoPreenchido(entrada.limites)) problemas.push(`${onde}: ${id} é classe B e precisa de "limites"`);
