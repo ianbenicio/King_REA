@@ -10,15 +10,16 @@ export function vidasIniciais(agora) {
   return { vidas: LIMITES.vidasMax, recargaDesde: agora, porAnuncioHoje: 0, dia: diaDe(agora) };
 }
 
-// Aplica a recarga e a virada do dia até "agora".
+// Aplica a recarga e a virada do dia até "agora". Relógio que volta nunca tira vidas (o período
+// de recarga recomeça) nem zera o limite diário (só um dia novo zera).
 export function atualizar(estado, agora, config) {
   const periodo = config.recarga_vida_min * 60 * 1000;
   let { vidas, recargaDesde, porAnuncioHoje, dia } = estado;
-  if (diaDe(agora) !== dia) {
+  if (diaDe(agora) > dia) {
     dia = diaDe(agora);
     porAnuncioHoje = 0;
   }
-  if (vidas >= LIMITES.vidasMax) recargaDesde = agora;
+  if (vidas >= LIMITES.vidasMax || agora < recargaDesde) recargaDesde = agora;
   else {
     const ganhas = Math.floor((agora - recargaDesde) / periodo);
     vidas = Math.min(LIMITES.vidasMax, vidas + ganhas);

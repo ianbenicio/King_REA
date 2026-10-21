@@ -1,7 +1,7 @@
 // Sessão de jogo: liga o núcleo à monetização (ESPECIFICACAO.md, seção 9). O núcleo não conhece
 // esta camada; aqui a monetização só reage a eventos do jogo (fim de partida, derrota) e só
 // altera a partida pelas ações explícitas do núcleo (trocarRodada, continuar).
-import { continuar, jogar, novaPartida, trocarRodada } from "../nucleo/jogo.mjs";
+import * as nucleoPadrao from "../nucleo/jogo.mjs";
 import { semear } from "../nucleo/prng.mjs";
 import { AGENDADOR_INICIAL, aoTerminarPartida, registrarExibicao } from "../monetizacao/agendador.mjs";
 import { resolverConfig } from "../monetizacao/config.mjs";
@@ -12,8 +12,10 @@ import { consumirVida, ganharPorAnuncio, podeGanharPorAnuncio, tempoAteProxima, 
 // Semente da partida n: derivada só da semente da sessão e de n (nada de monetização entra).
 export const sementeDaPartida = (sementeSessao, n) => semear((sementeSessao ^ Math.imul(n, 0x9e3779b9)) >>> 0)[0];
 
-export function criarSessao({ sementeSessao, sdk, relogio, consentimento, remoto, compras = [] }) {
+// nucleo: as quatro ações do núcleo; trocável só para testes (gravar sorteios, aplicar mutações).
+export function criarSessao({ sementeSessao, sdk, relogio, consentimento, remoto, compras = [], nucleo = nucleoPadrao }) {
   if (!Number.isInteger(sementeSessao)) throw new TypeError("sementeSessao precisa ser inteira");
+  const { continuar, jogar, novaPartida, trocarRodada } = nucleo;
   sdk.inicializar({ consentimento });
   let config = resolverConfig(remoto);
   let agendador = AGENDADOR_INICIAL;
@@ -35,7 +37,15 @@ export function criarSessao({ sementeSessao, sdk, relogio, consentimento, remoto
     const derrota = pontosAnterior !== null && pontos < pontosAnterior;
     derrotasSeguidas = derrota ? derrotasSeguidas + 1 : 0;
     pontosAnterior = pontos;
-    registrar({ tipo: "fim_partida", partida: numeroPartida, pontos, derrota, pecas: partida.pecas.slice() });
+    registrar({
+      tipo: "fim_partida",
+      partida: numeroPartida,
+      pontos,
+      derrota,
+      pecas: partida.pecas.slice(),
+      trocas: partida.estado.trocas,
+      continuacoes: partida.estado.continuacoes,
+    });
     const agora = relogio();
     const decisao = aoTerminarPartida(agendador, { config: config.valores, agora, semAnuncios: semAnuncios(carteira) });
     agendador = decisao.estado;

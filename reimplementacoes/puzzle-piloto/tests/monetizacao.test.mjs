@@ -151,6 +151,20 @@ test("vidas: consumo, recarga por tempo até o máximo e tempo até a próxima",
   assert.equal(consumirVida(v, 20 * MIN, lenta).ok, false, "remoto mais lento vale");
 });
 
+test("vidas: relógio que volta não tira vidas nem libera mais vidas por anúncio no mesmo dia", () => {
+  const config = CONFIG_PADRAO;
+  let v = vidasIniciais(10 * MIN);
+  v = consumirVida(v, 10 * MIN, config).estado;
+  v = consumirVida(v, 10 * MIN, config).estado;
+  assert.equal(v.vidas, 3);
+  const voltou = consumirVida(v, -30 * MIN, config);
+  assert.equal(voltou.ok, true);
+  assert.equal(voltou.estado.vidas, 2, "relógio 40 min para trás não tira vidas");
+  let w = { ...vidasIniciais(10 * MIN), vidas: 0 };
+  for (let i = 0; i < 3; i++) w = ganharPorAnuncio(w, 10 * MIN, config);
+  assert.equal(podeGanharPorAnuncio({ ...w, vidas: 0, recargaDesde: -2 * 24 * 60 * MIN }, -2 * 24 * 60 * MIN, config), false, "voltar o dia não zera o limite");
+});
+
 test("vidas por anúncio: só abaixo do máximo, até 3 por dia, zera no dia seguinte", () => {
   const config = CONFIG_PADRAO;
   let v = { ...vidasIniciais(0), vidas: 0 };
