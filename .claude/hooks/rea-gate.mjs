@@ -6,8 +6,13 @@
 // da tool estiver no plano aprovado.
 // Fail-closed: servidor sem mapa, tool fora do mapa, registro ausente ou ilegível => bloqueia.
 // N3 e N4b (execução do alvo, mutação de dispositivo) sempre pedem confirmação.
-import { readFileSync } from "node:fs";
-import { join, dirname } from "node:path";
+// Vínculo ao alvo: todo caminho local nos argumentos da tool (inclusive em N0) precisa
+// ficar, depois de resolvido e canonizado, dentro de alvos/<slug>/ ou saidas/<slug>/ do
+// alvo ativo. Fora disso, bloqueia. Limites: tools que operam sobre sessão já aberta
+// (argumento "document", tools do Ghidra) e alvos por URL ou dispositivo não têm caminho
+// para conferir; o vínculo delas vem da sessão aberta por um caminho conferido.
+import { existsSync, readFileSync, realpathSync } from "node:fs";
+import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -65,7 +70,58 @@ if (level === undefined)
     `Tool "${tool}" não está no mapa de "${server}" (versão ${map.versao ?? map.rea_version ?? "?"}). Versão nova exige auditoria e atualização de .claude/hooks/${server}-niveis.json.`,
   );
 
-if (level === "N0") decide("allow", `${server}/${tool} é N0 (sessão/evidência).`);
+// ---------- caminhos nos argumentos ----------
+// Chaves cujo valor é sempre caminho local (mapeadas no schema do REA 6.4.0).
+const PATH_KEY = /(^|_)(path|paths|root|roots|directory)$|^(executable|local_path)$/i;
+// Caminhos que não são do host ou não são do alvo: no dispositivo Android, unidades
+// internas do JEB, executável do servidor de análise.
+const EXEMPT_KEYS = new Set(["device_path", "unit_path", "parent_unit_path", "expected_server_path"]);
+// Texto livre (buscas, regex, nomes, comentários) nunca é tratado como caminho pela aparência.
+const TEXT_KEYS = new Set(["pattern", "query", "filter", "filters", "selector", "comment", "inline_comment", "notes", "question", "goal", "name", "names", "detail"]);
+// Em qualquer outra chave, só valores que claramente são caminho local.
+const looksLikePath = (value) =>
+  /^[a-z]:[\\/]/i.test(value) || /^\\\\/.test(value) || /^~[\\/]/.test(value) || /^\.\.?[\\/]/.test(value) ||
+  (/[\\/]/.test(value) && /\.[a-z0-9]{1,8}$/i.test(value) && !/\s/.test(value));
+
+const collectPaths = (value, key = "", out = []) => {
+  if (EXEMPT_KEYS.has(key)) return out;
+  if (typeof value === "string") {
+    const fileUrl = /^file:/i.test(value);
+    const otherUrl = !fileUrl && /^[a-z][a-z0-9+.-]+:\/\//i.test(value);
+    if (fileUrl || (value && !otherUrl && (PATH_KEY.test(key) || (!TEXT_KEYS.has(key) && looksLikePath(value)))))
+      out.push({ key, value });
+  } else if (Array.isArray(value)) value.forEach((item) => collectPaths(item, key, out));
+  else if (value && typeof value === "object") for (const [k, v] of Object.entries(value)) collectPaths(v, k, out);
+  return out;
+};
+
+const caseFold = (p) => (process.platform === "win32" ? p.toLowerCase() : p);
+// Caminho canônico: resolve relativo à raiz do projeto, segue links e junções no trecho que existe.
+const canonical = (p) => {
+  let rest = "";
+  let current = resolve(p);
+  while (!existsSync(current)) {
+    const parent = dirname(current);
+    if (parent === current) return resolve(p);
+    rest = rest ? join(basename(current), rest) : basename(current);
+    current = parent;
+  }
+  const real = realpathSync.native(current);
+  return rest ? join(real, rest) : real;
+};
+const inside = (base, p) => {
+  const rel = relative(caseFold(base), caseFold(p));
+  return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
+};
+const toLocal = (value) => {
+  if (/^file:/i.test(value)) return fileURLToPath(value);
+  if (/^~[\\/]/.test(value)) return join(process.env.USERPROFILE ?? process.env.HOME ?? "~", value.slice(2));
+  return isAbsolute(value) ? value : join(root, value);
+};
+
+const paths = collectPaths(input.tool_input ?? {});
+
+if (level === "N0" && paths.length === 0) decide("allow", `${server}/${tool} é N0 (sessão/evidência).`);
 
 const slug = readText(join(root, "registros", "ALVO_ATIVO"))?.trim();
 if (!slug || !/^[a-z0-9][a-z0-9._-]*$/.test(slug))
@@ -88,6 +144,23 @@ if (status !== "aprovado")
     "deny",
     `Protocolo de segurança de "${slug}" está com status "${status ?? "?"}", não "aprovado".`,
   );
+
+const bases = ["alvos", "saidas"].map((dir) => canonical(join(root, dir, slug)));
+for (const { key, value } of paths) {
+  let target;
+  try {
+    target = canonical(toLocal(value));
+  } catch {
+    decide("deny", `Caminho ilegível em "${key}": ${value}. Bloqueado por segurança.`);
+  }
+  if (!bases.some((base) => inside(base, target)))
+    decide(
+      "deny",
+      `${server}/${tool}: "${key}" aponta para fora do alvo ativo "${slug}" (${value}). Só são aceitos caminhos em alvos/${slug}/ e saidas/${slug}/. Copie o arquivo para alvos/${slug}/ ou, se for outro alvo, rode o protocolo de segurança para ele.`,
+    );
+}
+
+if (level === "N0") decide("allow", `${server}/${tool} é N0 (sessão/evidência), caminhos dentro de "${slug}".`);
 
 const approved = (front.match(/^niveis_aprovados:\s*\[([^\]]*)\]/m)?.[1] ?? "")
   .split(",")

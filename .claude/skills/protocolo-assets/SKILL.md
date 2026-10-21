@@ -70,7 +70,7 @@ saidas/<slug>/assets/
 
 - A categoria é **inferida pelo caminho** (nomes de pasta e arquivo); prioridade: UI antes de armas e personagens. Revisar `outros`: cada jogo tem nomes próprios; se o responsável quiser, refinar com regras específicas do jogo e reorganizar.
 - Duplicatas (mesmo SHA-256) ficam só no catálogo, apontando para o original.
-- Reexecutar é seguro: não sobrescreve arquivos existentes.
+- Reexecutar é seguro: nunca sobrescreve. Destino com o mesmo conteúdo fica como `reutilizado`; com conteúdo diferente, o item fica como `conflito` (destino preservado, `sha256_destino` no catálogo), o resumo lista os conflitos e o script sai com código 1. Resolver o conflito (destino novo e vazio, ou decidir qual versão vale) antes de registrar o inventário.
 
 ## 5. Verificação
 

@@ -239,14 +239,14 @@ Suporte **experimental** no Windows, só leitura. Analisa EXE e DLL nativos x86/
 npx rea doctor --provider ghidra --json
 ```
 
-**Uso:** "Abra `C:/alvos/programa.exe` com o Ghidra e mostre como a função que trata <menu> calcula <valor>."
+**Uso:** "Abra `alvos/<slug>/programa.exe` com o Ghidra e mostre como a função que trata <menu> calcula <valor>."
 
-**Pelo terminal:**
+**Pelo terminal** (caminho sem aspas e sem espaços; com aspas, o gate não consegue interpretar e pede confirmação de qualquer forma):
 
 ```bash
-npx rea function "C:/alvos/programa.exe" main --provider ghidra --json
-npx rea search "C:/alvos/programa.exe" "texto" --provider ghidra --json
-npx rea decompile "C:/alvos/programa.exe" 0x1000 --provider ghidra --json
+npx rea function alvos/<slug>/programa.exe main --provider ghidra --json
+npx rea search alvos/<slug>/programa.exe texto --provider ghidra --json
+npx rea decompile alvos/<slug>/programa.exe 0x1000 --provider ghidra --json
 ```
 
 **Pontos de atenção:**
@@ -319,7 +319,7 @@ npx rea trace <alvo> "texto" --provider ghidra --json
 - **Formato de saída:** o padrão é TOON. Use `--json` para salvar ou processar.
 - **Código de saída:** `0` significa concluído (pode haver evidência parcial ou lacunas); `1` significa falha, com o motivo na saída.
 
-> **Atenção:** o terminal também tem trava (`.claude/hooks/cli-gate.mjs`). Comandos sem alvo (ajuda, `doctor`, `providers`, `capabilities`, `mcp`, evidência) passam direto. Comandos contra um alvo só rodam com alvo ativo aprovado e pedem confirmação. `setup`, `update` e `uninstall` são bloqueados.
+> **Atenção:** o terminal também tem trava (`.claude/hooks/cli-gate.mjs`). Comandos sem alvo (ajuda, `doctor`, `providers`, `capabilities`, `mcp`, evidência) passam direto. Comandos contra um alvo só rodam com alvo ativo aprovado e pedem confirmação. `setup`, `update` e `uninstall` são bloqueados em qualquer forma (entre aspas, via `npm run rea`, dentro de `bash -c`). Qualquer outra menção ao REA que a trava não consegue interpretar (aspas, vários comandos, shell aninhado) pede confirmação.
 
 ## 10. Problemas comuns
 
@@ -327,7 +327,7 @@ npx rea trace <alvo> "texto" --provider ghidra --json
 |---|---|
 | O Claude não vê as tools do REA | Confira se a sessão foi aberta na raiz do projeto (o `.mcp.json` usa caminho relativo), aprove o servidor `rea` e rode `npx rea mcp doctor` |
 | Projeto clonado em outra máquina | Rode `npm ci --ignore-scripts` e `git config core.hooksPath .githooks` antes de abrir a sessão (cria o `node_modules` e liga a checagem de commit) |
-| "Bloqueado pelo gate RE" | É a trava de segurança das tools MCP. Falta o protocolo de segurança do alvo, a tool está fora do plano, ou o servidor não tem mapa de níveis. A mensagem diz o motivo |
+| "Bloqueado pelo gate RE" | É a trava de segurança das tools MCP. Falta o protocolo de segurança do alvo, a tool está fora do plano, o servidor não tem mapa de níveis, ou um caminho nos argumentos aponta para fora de `alvos/<slug>/` e `saidas/<slug>/` do alvo ativo. A mensagem diz o motivo |
 | "gate CLI REA" num comando de terminal | Mesma trava, no terminal: o comando age sobre um alvo. Precisa de alvo ativo aprovado e da sua confirmação |
 | Commit recusado com "[pre-commit] registros/" | O arquivo traria dados brutos, binário ou código descompilado longo para o repositório público. Mova para `saidas/<slug>/` ou resuma |
 | `provider_unavailable` | Rode `npx rea doctor --provider <id> --json` e siga a correção indicada |

@@ -247,6 +247,39 @@ async function lerInicio(path, n = 64) {
 }
 const PASTA = { "3d": "3d", imagem: "imagens", audio: "audio", video: "video" };
 
+// Grava no destino sem nunca sobrescrever. Destino já existente só é reaproveitado se tiver
+// o mesmo conteúdo; com conteúdo diferente fica como está e o item vira "conflito" (o
+// catálogo não pode afirmar um hash que o arquivo do destino não tem).
+// Estados: copiado | movido | reutilizado | conflito | falhou.
+async function gravar(path, alvo, item) {
+  try {
+    await fs.mkdir(dirname(alvo), { recursive: true });
+    const existe = await fs.lstat(alvo).then(() => true, (e) => (e.code === "ENOENT" ? false : Promise.reject(e)));
+    if (!existe) {
+      // rename sobrescreve no Windows; por isso a checagem acima vale também para --mover.
+      if (mover) await fs.rename(path, alvo);
+      else await fs.copyFile(path, alvo, 1 /* COPYFILE_EXCL: não sobrescreve */);
+      item.estado = mover ? "movido" : "copiado";
+      return;
+    }
+  } catch (e) {
+    if (e.code !== "EEXIST") {
+      item.estado = "falhou";
+      item.erro = `${e.code ?? "erro"}: ${e.message}`;
+      return;
+    }
+  }
+  try {
+    item.sha256_destino = await sha256(alvo);
+  } catch (e) {
+    item.estado = "falhou";
+    item.erro = `destino existente ilegível: ${e.message}`;
+    return;
+  }
+  item.estado = item.sha256_destino === item.sha256 ? "reutilizado" : "conflito";
+  if (item.estado === "reutilizado") item.sha256_destino = "";
+}
+
 const catalogo = [];
 const vistos = new Map();
 for await (const path of percorrer(ORIGEM)) {
@@ -255,7 +288,7 @@ for await (const path of percorrer(ORIGEM)) {
   const head = await lerInicio(path);
   const ext = extname(path).toLowerCase();
   const { tipo, formato } = identificar(head, ext);
-  const item = { caminho_original: rel.split(sep).join("/"), tipo, formato, tamanho: size, sha256: "", categoria: "", destino: "", duplicata_de: "", info: "", acao: "" };
+  const item = { caminho_original: rel.split(sep).join("/"), tipo, formato, tamanho: size, sha256: "", categoria: "", destino: "", duplicata_de: "", info: "", acao: "", estado: "", sha256_destino: "", erro: "" };
 
   if (tipo === "conteiner") {
     item.acao = `extrair com: ${FERRAMENTA[formato] ?? "ferramenta da engine"}`;
@@ -268,19 +301,13 @@ for await (const path of percorrer(ORIGEM)) {
     if (CONVERSAO[formato]) item.acao = `converter: ${CONVERSAO[formato]}`;
     if (vistos.has(item.sha256)) {
       item.duplicata_de = vistos.get(item.sha256);
+      item.estado = "duplicata";
     } else {
       vistos.set(item.sha256, item.caminho_original);
       const alvo = join(DESTINO, PASTA[tipo], item.categoria, rel);
       item.destino = relative(DESTINO, alvo).split(sep).join("/");
-      if (!simular) {
-        await fs.mkdir(dirname(alvo), { recursive: true });
-        try {
-          if (mover) await fs.rename(path, alvo);
-          else await fs.copyFile(path, alvo, 1 /* COPYFILE_EXCL: não sobrescreve */);
-        } catch (e) {
-          if (e.code !== "EEXIST") throw e;
-        }
-      }
+      if (simular) item.estado = "simulado";
+      else await gravar(path, alvo, item);
     }
   }
   catalogo.push(item);
@@ -290,7 +317,7 @@ for await (const path of percorrer(ORIGEM)) {
 const pastaCat = join(DESTINO, "_catalogo");
 await fs.mkdir(pastaCat, { recursive: true });
 await fs.writeFile(join(pastaCat, "catalogo.json"), JSON.stringify({ origem: ORIGEM, gerado_em: new Date().toISOString(), simulado: simular, itens: catalogo }, null, 2));
-const cols = ["caminho_original", "tipo", "formato", "categoria", "tamanho", "info", "sha256", "destino", "duplicata_de", "acao"];
+const cols = ["caminho_original", "tipo", "formato", "categoria", "tamanho", "info", "sha256", "destino", "duplicata_de", "acao", "estado", "sha256_destino", "erro"];
 const csvCell = (v) => (/[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
 await fs.writeFile(join(pastaCat, "catalogo.csv"), [cols.join(","), ...catalogo.map((i) => cols.map((c) => csvCell(i[c])).join(","))].join("\n") + "\n");
 
@@ -323,5 +350,24 @@ const resumo = [
     : "Nenhuma.",
   ``,
 ].join("\n");
-await fs.writeFile(join(pastaCat, "resumo.md"), resumo);
-console.log(resumo);
+const problemas = catalogo.filter((i) => i.estado === "conflito" || i.estado === "falhou");
+const gravacao = [
+  `## Gravação`,
+  tabela(conta((i) => i.estado), "Estado", "Arquivos"),
+  ``,
+  ...(problemas.length
+    ? [
+        `### Conflitos e falhas (destino não alterado)`,
+        "| Destino | Estado | Detalhe |",
+        "|---|---|---|",
+        ...problemas.map((i) => `| ${i.destino} | ${i.estado} | ${i.estado === "conflito" ? `origem ${i.sha256.slice(0, 12)}… ≠ destino ${i.sha256_destino.slice(0, 12)}…` : i.erro} |`),
+        ``,
+      ]
+    : []),
+].join("\n");
+await fs.writeFile(join(pastaCat, "resumo.md"), `${resumo}\n${gravacao}`);
+console.log(`${resumo}\n${gravacao}`);
+if (problemas.length) {
+  console.error(`\n${problemas.length} arquivo(s) em conflito ou com falha. Use um --destino vazio ou resolva os conflitos listados em ${join(pastaCat, "resumo.md")}.`);
+  process.exit(1);
+}
