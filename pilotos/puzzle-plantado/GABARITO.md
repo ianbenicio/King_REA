@@ -60,3 +60,11 @@ Também aparece em `blocos-a` o produto "pacote_inicial" (R$ 4,90, 3 trocas), pa
 ## Pontuação da F6
 
 Para cada alvo e cada item: encontrado com o ID certo / ID errado / não encontrado, e cada estado certo ou errado. Achado que não está no gabarito: falso positivo (avaliar se é erro do analista ou lacuna do gabarito). Registrar em `registros/blocos-a/01-analise.md` e `registros/blocos-b/01-analise.md` **depois** dos dois `05-monetizacao.md` prontos.
+
+## Resultado da F6 (21/10/2026)
+
+- `blocos-a` (plantado): 6/6 plantados com o ID certo, 6/6 do produto, iscas evitadas, estados certos, nenhum falso positivo.
+- `blocos-b` (limpo): 6/6 do produto, **nenhum** achado de classe C.
+- Lacunas deste gabarito apontadas pelas análises: MON-0006 presente nos dois builds; texto "3 peças novas" (MON-0030, inconclusivo) nos dois.
+- Achados reais sobre o produto, só no limpo: recarga de vidas remota sem teto; limite de frequência por tipo de anúncio.
+- Detalhe em `registros/blocos-a/01-analise.md` e `registros/blocos-b/01-analise.md`.

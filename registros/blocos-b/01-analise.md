@@ -33,3 +33,25 @@ fim: 2026-10-21
 - [x] Lacunas registradas no REA (`record_unknown`) e conferidas com `list_unknowns`
 - [x] Bundle de evidência exportado para `saidas/blocos-b/evidence.json`
 - [x] Responsável não pediu mais investigação
+
+## Comparação com o gabarito (F6, feita depois da análise)
+
+Feita na sessão principal, depois das duas análises cegas prontas. Gabarito: `pilotos/puzzle-plantado/GABARITO.md`. Este alvo é o build **limpo** (controle de falso positivo).
+
+| Item | Esperado | Encontrado | Resultado |
+|---|---|---|---|
+| Produto: MON-0001, 0002, 0003, 0004, 0009, 0011 | presentes | A-02, A-01, A-04, A-07, A-03, A-06 | certos |
+| MON-0009 | cumpre as 3 regras | cumpre (regras como dados; tela fora do build) | certo |
+| MON-0004 | só desempenho | só desempenho; MON-0033 verificado e não observado | certo |
+| Qualquer classe C | nenhum | nenhum | **0 falsos positivos** |
+
+**Estados:** todos certos.
+
+**Além do gabarito (achados reais sobre o produto):**
+- MON-0006 (loja transparente): verdadeiro positivo; o gabarito deixou de listar.
+- MON-0030 candidato: o texto "3 peças novas no lugar das não usadas" promete mais do que a troca entrega quando só restam 1 ou 2 peças.
+- P-02: a configuração remota pode deixar a recarga de vidas lenta **sem teto** (só há mínimo), o que empurra para o anúncio de vida.
+- P-03: o limite de frequência conta só intersticiais; um rewarded pode ser seguido de intersticial na mesma pausa.
+- P-01: o limite remoto pelo perfil local como salvaguarda documentável de MON-0002.
+
+**Placar:** 6/6 do produto, 0 falsos positivos, 3 achados reais de produto que o gabarito e os testes não tinham.

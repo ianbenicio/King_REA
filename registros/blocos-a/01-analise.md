@@ -34,3 +34,29 @@ fim: 2026-10-21
 - [x] Lacunas registradas no REA (`record_unknown`) e conferidas com `list_unknowns`
 - [x] Bundle de evidência exportado para `saidas/blocos-a/evidence.json`
 - [x] Responsável não pediu mais investigação
+
+## Comparação com o gabarito (F6, feita depois da análise)
+
+Feita na sessão principal, depois das duas análises cegas prontas. Gabarito: `pilotos/puzzle-plantado/GABARITO.md`. Este alvo é o build **plantado**.
+
+| Item | Esperado | Encontrado | Resultado |
+|---|---|---|---|
+| M1 dificuldade ligada a anúncio | MON-0033 | A-01 MON-0033 | certo, estados certos |
+| M2 urgência falsa | MON-0024 | A-03 MON-0024 | certo |
+| M3 recusa com culpa | MON-0027 | A-04 MON-0027 (e MON-0009 desqualificado) | certo |
+| M4 SDK ignora consentimento | MON-0032 | A-02 MON-0032 | certo |
+| M5 sequência de dias | MON-0012 (B) | A-14 MON-0012 | certo |
+| M6 cosmético de preço fixo | MON-0036 (A) | A-12 MON-0036 | certo |
+| Produto: MON-0001, 0002, 0003, 0004, 0009, 0011 | presentes | A-06, A-08, A-09, A-10, A-05, A-13 | certos |
+| I1 constante de 5 s | não é intervalo ativo | código morto, intervalo efetivo 60 s | isca evitada |
+| I2 `contagemRegressiva` | não é temporizador | só como limitação condicional | isca evitada |
+| "pacote_inicial" sem ID | proposta aceita | P-1 "item pago não entregue" | aceito |
+
+**Estados:** todos certos (execução "não testado", causalidade "hipótese", configuração "padrão local" e "remoto desconhecido" onde o código aceita remoto).
+
+**Além do gabarito:**
+- MON-0006 (loja transparente): verdadeiro positivo; o gabarito deixou de listar.
+- MON-0030 inconclusivo: o texto do produto promete "3 peças novas" e a troca repõe só as não usadas. Achado real no produto.
+- P-2 (declaração divergente do código como sinal de auditoria): sugestão útil para o catálogo.
+
+**Placar:** 6/6 plantados, 6/6 do produto, 0 iscas caídas, 0 falsos positivos.
