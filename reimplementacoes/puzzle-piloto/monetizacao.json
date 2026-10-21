@@ -1,0 +1,16 @@
+{
+  "catalogo_versao": 3,
+  "publico": "geral",
+  "children_likely": "unknown",
+  "padroes": [
+    {
+      "id": "MON-0004",
+      "parametros": {
+        "entradas": ["ocupacao", "derrotas_seguidas"],
+        "fator_pequenas_ocupacao_50": 1.5,
+        "fator_pequenas_ocupacao_70": 2.0,
+        "fator_grandes_2_derrotas": 0.5
+      }
+    }
+  ]
+}
