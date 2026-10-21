@@ -78,3 +78,4 @@ npm run semgrep:mutacoes
 | F2 — monetização simulada | feito: SDK simulado, intersticial, rewarded (trocar, continuar, vida), remover anúncios, configuração remota conferida, vidas (MON-0011 aprovado) |
 | F3 — invariância | feito: 19 perfis (anúncios, falhas, compra, configuração remota, relógio) × 20 sementes no `npm test`; 7 mutações de acoplamento, todas detectadas; achou e corrigiu bug de vidas com relógio voltando |
 | F4 — Semgrep | feito: Semgrep 1.180.0 auditado e fixado por digest; R1–R5 com testes anotados; zero achados no produto; 5 mutações no código real, todas detectadas |
+| F5 — variante plantada | feito: plantio e gabarito em `pilotos/puzzle-plantado/`, dois builds de distribuição em `alvos/` com nomes neutros, protocolo de segurança aprovado (N0, N1) |
