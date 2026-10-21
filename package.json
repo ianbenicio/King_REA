@@ -5,7 +5,9 @@
   "description": "Engenharia reversa com REA (rea-agents) integrado ao Claude Code via MCP local.",
   "scripts": {
     "rea": "rea",
-    "doctor": "rea mcp doctor"
+    "doctor": "rea mcp doctor",
+    "test": "node --test scripts/monetizacao/verificar-perfis.test.mjs",
+    "check:monetizacao": "node scripts/monetizacao/verificar-perfis.mjs"
   },
   "dependencies": {
     "rea-agents": "6.4.0"
