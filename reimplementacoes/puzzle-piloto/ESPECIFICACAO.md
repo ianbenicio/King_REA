@@ -76,6 +76,20 @@ São ações do jogo; quem decide quando elas podem acontecer (anúncio, limite)
 - **Mesma semente + mesmas derrotas seguidas + mesmas jogadas → mesma partida**, peça a peça e ponto a ponto.
 - O estado é um objeto de dados simples (serializável em JSON).
 
+## 9. Sessão e monetização simulada
+
+A sessão (`src/sessao/`) liga o núcleo à monetização (`src/monetizacao/`). Parâmetros e limites vêm do perfil aprovado `monetizacao.json`.
+
+- **Semente de cada partida:** derivada só da semente da sessão e do número da partida. Nenhum estado de monetização entra.
+- **Derrota:** partida que termina com menos pontos que a anterior. Derrotas seguidas zeram numa partida que não é derrota. Esse é o único dado de sessão que chega ao núcleo (seção 3).
+- **Intersticial (MON-0002):** só no fim de partida, depois de 2 partidas de carência, a cada 2 partidas, com 60 s de intervalo mínimo e no máximo 5 por sessão. Só conta como exibido se o SDK tinha anúncio.
+- **Trocar a rodada com anúncio (MON-0001):** escolha do jogador, uma vez por partida; a troca acontece só no callback de recompensa, uma vez, mesmo com callback duplicado. Falha do anúncio não gasta o limite.
+- **Continuar com anúncio (MON-0009):** no fim da partida, oferta com "continuar" e "encerrar" de mesmo destaque e sem prazo, uma vez por partida. Anúncio interrompido ou indisponível encerra a partida normalmente.
+- **Remover anúncios (MON-0003):** compra simulada que exige confirmação explícita e pode ser restaurada; desliga o intersticial, rewarded continua opcional.
+- **Vidas (MON-0011, classe B, aprovado):** cada partida consome uma vida; máximo 5; recarga grátis de 1 a cada 20 min; até 3 vidas por anúncio por dia; sem venda de vidas; com 0 vidas o jogo informa o tempo de espera.
+- **Configuração remota:** só as chaves de ritmo (intervalo, partidas entre anúncios, teto, carência, recarga de vida). Vale apenas se for igual ou menos agressiva que o perfil; senão é rejeitada e o padrão local continua. A origem de cada valor fica registrada.
+- **Consentimento:** o SDK só é inicializado depois da decisão de consentimento; sem consentimento, anúncios não personalizados.
+
 ## 8. Jogador automático
 
 Para simulação e testes (`src/simulacao/`). Em cada jogada, escolhe a de maior valor: `1000 × linhas limpas + 10 × pontos ganhos − buracos`, onde buraco é célula vazia sem vizinho vazio (acima, abaixo, esquerda, direita; borda conta como ocupada). Empate: primeira na ordem de `jogadasPossiveis` (peça, linha, coluna). Determinístico.

@@ -9,11 +9,15 @@ Puzzle próprio de encaixe em grade 8 × 8, usado como **produto limpo** do pilo
 
 ```
 src/nucleo/      regras, peças, gerador e dificuldade — puro, não importa nada de fora
+src/monetizacao/ SDK simulado, configuração local/remota, agendador, recompensas, loja, vidas
+src/sessao/      liga núcleo e monetização; a monetização só reage a eventos do jogo
 src/simulacao/   jogador automático e simulação de partidas (usa só o núcleo)
 tests/           testes (node:test), rodados pelo npm test da raiz do repositório
 ```
 
-A monetização simulada (F2) entra em `src/monetizacao/` e só reage a eventos do jogo; `src/nucleo/` não pode importá-la.
+`src/nucleo/` não pode importar `src/monetizacao/` nem `src/sessao/`.
+
+O perfil inclui MON-0011 (classe B), aprovado pelo responsável em 2026-10-21 com o hash desta revisão. Mudar qualquer parâmetro do perfil invalida a aprovação: recalcule com `node scripts/monetizacao/verificar-perfis.mjs --hash reimplementacoes/puzzle-piloto/monetizacao.json` e peça aprovação de novo.
 
 ## Rodar
 
@@ -28,6 +32,6 @@ npm test
 | Fase do plano | Situação |
 |---|---|
 | F1 — núcleo | feito: regras, peças, gerador, dificuldade por desempenho, jogador automático |
-| F2 — monetização simulada | pendente |
+| F2 — monetização simulada | feito: SDK simulado, intersticial, rewarded (trocar, continuar, vida), remover anúncios, configuração remota conferida, vidas (MON-0011 aprovado) |
 | F3 — invariância | pendente |
 | F4 — Semgrep | pendente |

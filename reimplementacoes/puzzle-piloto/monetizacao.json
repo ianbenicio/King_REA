@@ -4,6 +4,23 @@
   "children_likely": "unknown",
   "padroes": [
     {
+      "id": "MON-0001",
+      "parametros": { "troca_com_anuncio_max_por_partida": 1 }
+    },
+    {
+      "id": "MON-0002",
+      "parametros": {
+        "partidas_entre_anuncios_min": 2,
+        "intervalo_min_s": 60,
+        "max_por_sessao": 5,
+        "carencia_partidas_min": 2
+      }
+    },
+    {
+      "id": "MON-0003",
+      "parametros": { "produto": "remover_anuncios", "confirmacao_obrigatoria": true, "restauravel": true }
+    },
+    {
       "id": "MON-0004",
       "parametros": {
         "entradas": ["ocupacao", "derrotas_seguidas"],
@@ -11,6 +28,21 @@
         "fator_pequenas_ocupacao_70": 2.0,
         "fator_grandes_2_derrotas": 0.5
       }
+    },
+    {
+      "id": "MON-0009",
+      "parametros": { "continuacoes_max_por_partida": 1, "destaque_recusa": "igual", "prazo_decisao": "nenhum" }
+    },
+    {
+      "id": "MON-0011",
+      "parametros": { "vidas_max": 5, "recarga_min": 20, "vida_por_anuncio_max_por_dia": 3 },
+      "justificativa": "Ritmo de sessão do piloto e exercício da aprovação presa ao hash; não há venda de vidas.",
+      "limites": "Recarga grátis sempre ativa (1 vida a cada 20 min, configuração remota só pode deixar mais lenta a partir de 20); no máximo 3 vidas por anúncio por dia; nenhuma compra de vidas; com 0 vidas o jogo mostra o tempo até a próxima vida, sem oferta de compra."
     }
-  ]
+  ],
+  "aprovacao": {
+    "por": "responsável (conversa de 2026-10-21, revisão F2 do piloto)",
+    "data": "2026-10-21",
+    "perfil_sha256": "adf0ad05b0429f3349bc631502fee6e1a7345598d7a7c84244ecd324db237481"
+  }
 }
