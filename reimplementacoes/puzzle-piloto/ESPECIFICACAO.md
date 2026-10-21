@@ -76,6 +76,10 @@ São ações do jogo; quem decide quando elas podem acontecer (anúncio, limite)
 - **Mesma semente + mesmas derrotas seguidas + mesmas jogadas → mesma partida**, peça a peça e ponto a ponto.
 - O estado é um objeto de dados simples (serializável em JSON).
 
+## 8. Jogador automático
+
+Para simulação e testes (`src/simulacao/`). Em cada jogada, escolhe a de maior valor: `1000 × linhas limpas + 10 × pontos ganhos − buracos`, onde buraco é célula vazia sem vizinho vazio (acima, abaixo, esquerda, direita; borda conta como ocupada). Empate: primeira na ordem de `jogadasPossiveis` (peça, linha, coluna). Determinístico.
+
 ## 9. Sessão e monetização simulada
 
 A sessão (`src/sessao/`) liga o núcleo à monetização (`src/monetizacao/`). Parâmetros e limites vêm do perfil aprovado `monetizacao.json`.
@@ -89,7 +93,3 @@ A sessão (`src/sessao/`) liga o núcleo à monetização (`src/monetizacao/`). 
 - **Vidas (MON-0011, classe B, aprovado):** cada partida consome uma vida; máximo 5; recarga grátis de 1 a cada 20 min; até 3 vidas por anúncio por dia; sem venda de vidas; com 0 vidas o jogo informa o tempo de espera.
 - **Configuração remota:** só as chaves de ritmo (intervalo, partidas entre anúncios, teto, carência, recarga de vida). Vale apenas se for igual ou menos agressiva que o perfil; senão é rejeitada e o padrão local continua. A origem de cada valor fica registrada.
 - **Consentimento:** o SDK só é inicializado depois da decisão de consentimento; sem consentimento, anúncios não personalizados.
-
-## 8. Jogador automático
-
-Para simulação e testes (`src/simulacao/`). Em cada jogada, escolhe a de maior valor: `1000 × linhas limpas + 10 × pontos ganhos − buracos`, onde buraco é célula vazia sem vizinho vazio (acima, abaixo, esquerda, direita; borda conta como ocupada). Empate: primeira na ordem de `jogadasPossiveis` (peça, linha, coluna). Determinístico.
