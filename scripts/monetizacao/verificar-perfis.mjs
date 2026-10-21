@@ -1,16 +1,22 @@
 #!/usr/bin/env node
 // Checagem dos padrões de monetização nos projetos de reimplementacoes/ (protocolo-monetizacao).
-// Fonte dos IDs e classes: docs/catalogo-monetizacao.md. Bloqueia:
-// - qualquer ID de classe C, no perfil (monetizacao.json) ou em marcador no código;
+// Fonte dos IDs, classes e aliases: docs/catalogo-monetizacao.md. Confere declarações (perfil
+// monetizacao.json e marcadores "MON-NNNN" no código), não o comportamento do código. Bloqueia:
+// - qualquer padrão de classe C, no perfil ou em marcador no código;
 // - ID fora do catálogo;
-// - classe B sem justificativa, limites ou aprovação com data;
-// - padrão "Infantojuvenil: proibido" em projeto com publico "infantojuvenil";
-// - padrão "Público: somente adulto" em projeto com publico diferente de "adulto";
-// - ID retirado do catálogo (indica o ID novo);
+// - classe B sem justificativa ou limites;
+// - perfil com classe B sem aprovação válida: data real e não futura, e perfil_sha256 igual ao
+//   hash desta revisão do perfil (uma aprovação antiga não vale para parâmetros novos);
+// - padrão "Infantojuvenil: proibido" com menores prováveis (children_likely true ou "unknown",
+//   ou publico "infantojuvenil");
+// - padrão "Público: somente adulto" fora de publico "adulto" com children_likely false;
 // - marcador no código sem o padrão declarado no perfil;
 // - perfil inválido.
-// Uso: node scripts/monetizacao/verificar-perfis.mjs   (lê a árvore de trabalho)
+// Alias (ID antigo MON-<classe>-NN) é aceito com aviso para migrar.
+// Uso: node scripts/monetizacao/verificar-perfis.mjs          (lê a árvore de trabalho)
+//      node scripts/monetizacao/verificar-perfis.mjs --hash <monetizacao.json>
 // O .githooks/pre-commit.mjs chama verificarProjetos() com o conteúdo do índice.
+import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,32 +26,31 @@ export const RAIZ = "reimplementacoes/";
 const PERFIL = "monetizacao.json";
 const PUBLICOS = ["adulto", "geral", "infantojuvenil"];
 const PASTAS_IGNORADAS = new Set(["bin", "obj", ".vs", "node_modules", "TestResults", "publish"]);
-const MARCADOR = /\bMON-([A-Z])-(\d{2})\b/g;
-const TITULO = /^###\s+(MON-([A-Z])-(\d{2}))\s+[—-]\s+(.+?)\s*$/;
-const INFANTOJUVENIL = /^-\s+\*\*Infantojuvenil:\*\*\s+(permitido|proibido)\b/;
-const SOMENTE_ADULTO = /^-\s+\*\*Público:\*\*\s+somente adulto\b/;
-const RETIRADO = /^-\s+\*\*(MON-[A-Z]-\d{2})\*\*\s+→\s+(MON-[A-Z]-\d{2})\b/;
+const MARCADOR = /\bMON-(?:\d{4}|[A-Z]-\d{2})\b/g;
+const TITULO = /^###\s+(MON-\d{4})\s+[—-]\s+(.+?)\s*$/;
+const CAMPO = /^-\s+\*\*(Classe|Infantojuvenil|Público|Aliases):\*\*\s+(.+?)\s*$/;
 
-// Lê o catálogo em Markdown: "### MON-<classe>-NN — nome" + linhas "Infantojuvenil" (A e B)
-// e "Público: somente adulto" (opcional); "- **MON-X-NN** → MON-Y-NN" marca ID retirado.
+// Lê o catálogo em Markdown: "### MON-NNNN — nome" + itens Classe, Infantojuvenil, Público, Aliases.
 export function lerCatalogo(texto) {
   const padroes = new Map();
-  const retirados = new Map();
+  const aliases = new Map();
   const erros = [];
   const versao = Number(texto.match(/^versao:\s*(\d+)\s*$/m)?.[1]);
   let atual = null;
   const fechar = () => {
-    if (atual && atual.classe !== "C" && atual.infantojuvenil === null)
+    if (!atual) return;
+    if (!["A", "B", "C"].includes(atual.classe)) erros.push(`${CATALOGO}: ${atual.id} sem "Classe" A, B ou C`);
+    else if (atual.classe !== "C" && atual.infantojuvenil === null)
       erros.push(`${CATALOGO}: ${atual.id} sem a linha "Infantojuvenil"`);
+    if (atual.classe === "C") atual.infantojuvenil = "proibido";
   };
   for (const linha of texto.split(/\r?\n/)) {
     const titulo = linha.match(TITULO);
     if (titulo) {
       fechar();
-      const [, id, classe, , nome] = titulo;
-      if (!["A", "B", "C"].includes(classe)) erros.push(`${CATALOGO}: ${id} com classe desconhecida`);
+      const [, id, nome] = titulo;
       if (padroes.has(id)) erros.push(`${CATALOGO}: ${id} duplicado`);
-      atual = { id, classe, nome, infantojuvenil: classe === "C" ? "proibido" : null, somenteAdulto: false };
+      atual = { id, nome, classe: null, infantojuvenil: null, somenteAdulto: false };
       padroes.set(id, atual);
       continue;
     }
@@ -54,29 +59,60 @@ export function lerCatalogo(texto) {
       atual = null;
       continue;
     }
-    const retirado = linha.match(RETIRADO);
-    if (retirado) {
-      retirados.set(retirado[1], retirado[2]);
-      continue;
-    }
-    if (!atual) continue;
-    const infanto = linha.match(INFANTOJUVENIL);
-    if (infanto && atual.classe !== "C") atual.infantojuvenil = infanto[1];
-    if (SOMENTE_ADULTO.test(linha)) atual.somenteAdulto = true;
+    const campo = atual && linha.match(CAMPO);
+    if (!campo) continue;
+    const [, nomeCampo, valor] = campo;
+    if (nomeCampo === "Classe") atual.classe = valor.trim().toUpperCase();
+    else if (nomeCampo === "Infantojuvenil") atual.infantojuvenil = /^proibido\b/i.test(valor) ? "proibido" : /^permitido\b/i.test(valor) ? "permitido" : null;
+    else if (nomeCampo === "Público") atual.somenteAdulto = /^somente adulto\b/i.test(valor);
+    else
+      for (const alias of valor.match(/MON-[A-Z]-\d{2}/g) ?? []) {
+        if (aliases.has(alias)) erros.push(`${CATALOGO}: alias ${alias} usado por ${aliases.get(alias)} e ${atual.id}`);
+        aliases.set(alias, atual.id);
+      }
   }
   fechar();
   if (padroes.size === 0) erros.push(`${CATALOGO}: nenhum padrão encontrado`);
-  for (const [velho, novo] of retirados) {
-    if (padroes.has(velho)) erros.push(`${CATALOGO}: ${velho} está retirado e definido ao mesmo tempo`);
-    if (!padroes.has(novo)) erros.push(`${CATALOGO}: ${velho} retirado aponta para ${novo}, que não existe`);
-  }
-  return { versao, padroes, retirados, erros };
+  return { versao, padroes, aliases, erros };
 }
+
+// Hash de uma revisão do perfil: JSON canônico (chaves ordenadas) sem o campo "aprovacao".
+const canonico = (valor) =>
+  Array.isArray(valor)
+    ? `[${valor.map(canonico).join(",")}]`
+    : valor && typeof valor === "object"
+      ? `{${Object.keys(valor).sort().map((k) => `${JSON.stringify(k)}:${canonico(valor[k])}`).join(",")}}`
+      : JSON.stringify(valor);
+export function hashPerfil(perfil) {
+  const { aprovacao, ...resto } = perfil;
+  return createHash("sha256").update(canonico(resto)).digest("hex");
+}
+
+const hojeLocal = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+// Data de calendário real (AAAA-MM-DD) e não posterior a hoje.
+const dataValida = (texto, hoje) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(texto ?? "");
+  if (!m) return false;
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  const real = d.getUTCFullYear() === +m[1] && d.getUTCMonth() === +m[2] - 1 && d.getUTCDate() === +m[3];
+  return real && texto <= hoje;
+};
 
 const textoPreenchido = (v) => typeof v === "string" && v.trim().length > 0;
 
+// Resolve ID estável ou alias. Retorna { padrao, id, alias } ou { motivo }.
+const resolver = (catalogo, id) => {
+  if (catalogo.padroes.has(id)) return { padrao: catalogo.padroes.get(id), id };
+  const novo = catalogo.aliases?.get(id);
+  if (novo) return { padrao: catalogo.padroes.get(novo), id: novo, alias: id };
+  return { motivo: "fora do catálogo" };
+};
+
 // arquivos: Map<caminho relativo com "/", conteúdo em texto> só de reimplementacoes/.
-export function verificarProjetos({ catalogo, arquivos }) {
+export function verificarProjetos({ catalogo, arquivos, hoje = hojeLocal() }) {
   const problemas = [];
   const avisos = [];
   const projetos = new Map();
@@ -92,7 +128,7 @@ export function verificarProjetos({ catalogo, arquivos }) {
       projeto.perfil = { caminho, conteudo };
       continue;
     }
-    if (/\.md$/i.test(caminho)) continue; // documentação pode citar IDs ("não usamos MON-C-01")
+    if (/\.md$/i.test(caminho)) continue; // documentação pode citar IDs ("não usamos MON-0021")
     conteudo.split(/\r?\n/).forEach((linha, i) => {
       for (const m of linha.matchAll(MARCADOR)) projeto.marcadores.push({ id: m[0], local: `${caminho}:${i + 1}` });
     });
@@ -100,13 +136,16 @@ export function verificarProjetos({ catalogo, arquivos }) {
 
   for (const [nome, { perfil, marcadores }] of projetos) {
     const declarados = new Set();
-    if (perfil) verificarPerfil(perfil, catalogo, declarados, problemas, avisos);
+    if (perfil) verificarPerfil(perfil, catalogo, declarados, problemas, avisos, hoje);
     for (const { id, local } of marcadores) {
-      const padrao = catalogo.padroes.get(id);
-      if (!padrao) problemas.push(`${local}: marcador ${id} ${foraDoCatalogo(catalogo, id)}`);
-      else if (padrao.classe === "C") problemas.push(`${local}: marcador ${id} (${padrao.nome}) é classe C, proibida em projeto nosso`);
-      else if (!declarados.has(id))
-        problemas.push(`${local}: marcador ${id} sem declaração em ${RAIZ}${nome}/${PERFIL}`);
+      const r = resolver(catalogo, id);
+      if (!r.padrao) {
+        problemas.push(`${local}: marcador ${id} ${r.motivo}`);
+        continue;
+      }
+      if (r.alias) avisos.push(`${local}: marcador ${id} é ID antigo; use ${r.id}`);
+      if (r.padrao.classe === "C") problemas.push(`${local}: marcador ${id} (${r.id}, ${r.padrao.nome}) é classe C, proibida em projeto nosso`);
+      else if (!declarados.has(r.id)) problemas.push(`${local}: marcador ${id} sem declaração em ${RAIZ}${nome}/${PERFIL}`);
     }
   }
   // Catálogo com defeito só bloqueia quando algum projeto usa padrões.
@@ -115,14 +154,7 @@ export function verificarProjetos({ catalogo, arquivos }) {
   return { problemas, avisos };
 }
 
-const foraDoCatalogo = (catalogo, id) => {
-  const novo = catalogo.retirados?.get(id);
-  if (!novo) return "fora do catálogo";
-  const padrao = catalogo.padroes.get(novo);
-  return `retirado do catálogo; agora é ${novo} (classe ${padrao?.classe ?? "?"}), revise`;
-};
-
-function verificarPerfil({ caminho, conteudo }, catalogo, declarados, problemas, avisos) {
+function verificarPerfil({ caminho, conteudo }, catalogo, declarados, problemas, avisos, hoje) {
   let perfil;
   try {
     perfil = JSON.parse(conteudo);
@@ -134,8 +166,16 @@ function verificarPerfil({ caminho, conteudo }, catalogo, declarados, problemas,
     problemas.push(`${caminho}: o perfil precisa ser um objeto`);
     return;
   }
-  if (!PUBLICOS.includes(perfil.publico))
-    problemas.push(`${caminho}: "publico" precisa ser ${PUBLICOS.join(", ")} (na dúvida, infantojuvenil)`);
+  if (!PUBLICOS.includes(perfil.publico)) problemas.push(`${caminho}: "publico" precisa ser ${PUBLICOS.join(", ")}`);
+  const criancas = perfil.children_likely;
+  if (![true, false, "unknown"].includes(criancas))
+    problemas.push(`${caminho}: "children_likely" precisa ser true, false ou "unknown" (acesso provável por menores, ECA Digital art. 20)`);
+  if (criancas === false && !textoPreenchido(perfil.children_likely_fundamento))
+    problemas.push(`${caminho}: children_likely false exige "children_likely_fundamento"`);
+  if (criancas === false && perfil.publico === "infantojuvenil")
+    problemas.push(`${caminho}: publico "infantojuvenil" com children_likely false é contraditório`);
+  const menores = perfil.publico === "infantojuvenil" || criancas !== false;
+
   if (!Number.isInteger(perfil.catalogo_versao)) problemas.push(`${caminho}: "catalogo_versao" ausente`);
   else if (Number.isInteger(catalogo.versao) && perfil.catalogo_versao !== catalogo.versao)
     avisos.push(`${caminho}: feito para o catálogo v${perfil.catalogo_versao}, atual é v${catalogo.versao}; revisar`);
@@ -143,6 +183,7 @@ function verificarPerfil({ caminho, conteudo }, catalogo, declarados, problemas,
     problemas.push(`${caminho}: "padroes" precisa ser uma lista`);
     return;
   }
+  let temB = false;
   perfil.padroes.forEach((entrada, i) => {
     const onde = `${caminho}: padroes[${i}]`;
     const id = entrada?.id;
@@ -150,29 +191,44 @@ function verificarPerfil({ caminho, conteudo }, catalogo, declarados, problemas,
       problemas.push(`${onde}: sem "id"`);
       return;
     }
-    const padrao = catalogo.padroes.get(id);
-    if (!padrao) {
-      problemas.push(`${onde}: ${id} ${foraDoCatalogo(catalogo, id)}`);
+    const r = resolver(catalogo, id);
+    if (!r.padrao) {
+      problemas.push(`${onde}: ${id} ${r.motivo}`);
       return;
     }
-    if (declarados.has(id)) problemas.push(`${onde}: ${id} declarado mais de uma vez`);
-    declarados.add(id);
+    const { padrao } = r;
+    const nome = r.alias ? `${id} (${r.id}, ${padrao.nome})` : `${id} (${padrao.nome})`;
+    if (r.alias) avisos.push(`${onde}: ${id} é ID antigo; use ${r.id}`);
+    if (declarados.has(r.id)) problemas.push(`${onde}: ${r.id} declarado mais de uma vez`);
+    declarados.add(r.id);
+    if (entrada.aprovacao !== undefined)
+      problemas.push(`${onde}: "aprovacao" por padrão não vale mais; a aprovação fica na raiz do perfil, presa ao hash`);
     if (padrao.classe === "C") {
-      problemas.push(`${onde}: ${id} (${padrao.nome}) é classe C, proibida em projeto nosso`);
+      problemas.push(`${onde}: ${nome} é classe C, proibida em projeto nosso`);
       return;
     }
-    if (perfil.publico === "infantojuvenil" && padrao.infantojuvenil === "proibido")
-      problemas.push(`${onde}: ${id} (${padrao.nome}) é proibido em projeto infantojuvenil`);
-    else if (padrao.somenteAdulto && perfil.publico !== "adulto")
-      problemas.push(`${onde}: ${id} (${padrao.nome}) é somente para público adulto; "${perfil.publico}" tem acesso provável por menores`);
+    if (menores && padrao.infantojuvenil === "proibido")
+      problemas.push(`${onde}: ${nome} é proibido com menores prováveis (publico "${perfil.publico}", children_likely ${JSON.stringify(criancas)})`);
+    else if (padrao.somenteAdulto && (perfil.publico !== "adulto" || criancas !== false))
+      problemas.push(`${onde}: ${nome} é somente para público adulto com children_likely false`);
     if (padrao.classe === "B") {
-      if (!textoPreenchido(entrada.justificativa)) problemas.push(`${onde}: ${id} é classe B e precisa de "justificativa"`);
-      if (!textoPreenchido(entrada.limites)) problemas.push(`${onde}: ${id} é classe B e precisa de "limites"`);
-      const aprovacao = entrada.aprovacao;
-      if (!textoPreenchido(aprovacao?.por) || !/^\d{4}-\d{2}-\d{2}$/.test(aprovacao?.data ?? ""))
-        problemas.push(`${onde}: ${id} é classe B e precisa de "aprovacao" com "por" e "data" (AAAA-MM-DD)`);
+      temB = true;
+      if (!textoPreenchido(entrada.justificativa)) problemas.push(`${onde}: ${nome} é classe B e precisa de "justificativa"`);
+      if (!textoPreenchido(entrada.limites)) problemas.push(`${onde}: ${nome} é classe B e precisa de "limites"`);
     }
   });
+
+  if (temB) {
+    const aprovacao = perfil.aprovacao;
+    const esperado = hashPerfil(perfil);
+    if (!textoPreenchido(aprovacao?.por)) problemas.push(`${caminho}: perfil com classe B precisa de "aprovacao.por"`);
+    if (!dataValida(aprovacao?.data, hoje))
+      problemas.push(`${caminho}: "aprovacao.data" precisa ser uma data real, AAAA-MM-DD, não posterior a hoje (${hoje})`);
+    if (aprovacao?.perfil_sha256 !== esperado)
+      problemas.push(
+        `${caminho}: "aprovacao.perfil_sha256" não corresponde a esta revisão do perfil (esperado ${esperado}); o perfil mudou depois da aprovação ou não foi aprovado`,
+      );
+  }
 }
 
 export function relatorio({ problemas, avisos }) {
@@ -212,6 +268,16 @@ function lerArvore(raizProjeto) {
 }
 
 if (import.meta.main) {
+  const i = process.argv.indexOf("--hash");
+  if (i >= 0) {
+    try {
+      process.stdout.write(`${hashPerfil(JSON.parse(readFileSync(process.argv[i + 1], "utf8")))}\n`);
+    } catch (error) {
+      process.stderr.write(`[monetizacao] Não consegui calcular o hash: ${error.message}\n`);
+      process.exit(1);
+    }
+    process.exit(0);
+  }
   const raizProjeto = fileURLToPath(new URL("../../", import.meta.url));
   let texto;
   try {

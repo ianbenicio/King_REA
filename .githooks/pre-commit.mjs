@@ -74,7 +74,7 @@ if (allStaged.some((p) => p.startsWith(RAIZ) || p === CATALOGO)) {
   try {
     catalogo = lerCatalogo(execFileSync("git", ["show", `:${CATALOGO}`], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }));
   } catch {
-    catalogo = { versao: NaN, padroes: new Map(), erros: [`${CATALOGO}: ausente do índice (adicione ao commit)`] };
+    catalogo = { versao: NaN, padroes: new Map(), aliases: new Map(), erros: [`${CATALOGO}: ausente do índice (adicione ao commit)`] };
   }
   monetizacao = verificarProjetos({ catalogo, arquivos });
 }

@@ -5,7 +5,9 @@ data: 2026-10-20
 
 # Monetização por anúncios e dark patterns em jogos
 
-Levantamento de artigos, matérias, regulação e projetos open source sobre (1) como jogos ajustam mecânicas para vender anúncios e compras e (2) dark patterns (padrões enganosos). Serve de base para um possível protocolo de monetização no REA. Números de mercado são estimativas de terceiros, não dados auditados.
+Levantamento de artigos, matérias, regulação e projetos open source sobre (1) como jogos ajustam mecânicas para vender anúncios e compras e (2) dark patterns (padrões enganosos). Base do `protocolo-monetizacao` e do `docs/catalogo-monetizacao.md`. Números de mercado são estimativas de terceiros, não dados auditados. Métricas de detectores valem para o recorte avaliado pelos autores, não como precisão esperada em qualquer jogo, idioma ou criativo.
+
+**Correções de 20/10/2026** (revisão externa da proposta de evolução): @ayoships confirmado (seção 2); artigo do EOMM acrescentado (é pesquisa publicada, não só patente); "não há estudo público" trocado por "não encontrado nesta busca"; AdsDP, AppRay e a ontologia de Gray et al. acrescentados.
 
 ## 1. Pesquisa acadêmica
 
@@ -15,7 +17,10 @@ Levantamento de artigos, matérias, regulação e projetos open source sobre (1)
 | Chen et al. — *Unveiling the Tricks* (UIGuard, UIST) | 2023 | Detecção automática de dark patterns em telas de apps (visão computacional + regras). 6.352 telas, F1 0,79. Inclui exemplos de anúncio com botão de fechar pequeno ou disfarçado |
 | Di Geronimo et al. (CHI) | 2020 | 240 apps populares: 95 % têm pelo menos um dark pattern, média de 7 tipos por app; a maioria dos usuários não percebe |
 | Niknejad et al. — *Level Up or Game Over* (MUM '24) | 2024 | Como os dark patterns moldam jogos mobile |
-| AdsDP (IMWUT) | 2025 | Dataset em vídeo de anúncios dentro de apps iOS; 15 tipos de dark pattern em anúncios, 11 inéditos |
+| AdsDP (IMWUT) | 2025 | Dataset em vídeo de anúncios dentro de apps iOS; 15 tipos de dark pattern em anúncios, 11 inéditos. Segundo a revisão de 20/10 (números não conferidos no texto completo): 718 vídeos, 5.782 ocorrências em 485 apps, e detectores existentes caindo até micro-F1 0,11 nesse recorte — por isso anúncio se avalia por sequência de telas e toques, não por captura isolada |
+| Chen et al. — AppRay | 2024 | Exploração de app guiada por tarefas + detecção contextual entre telas e ações. Código dos autores publicado; reproduzir antes de integrar |
+| Gray et al. — ontologia de dark patterns | 2023 | Harmoniza dez taxonomias em 65 tipos; referência para nomear padrões sem reinventar |
+| Chen et al. — EOMM (WWW) | 2017 | Pareamento otimizado por engajamento, avaliado por simulação com dados de um jogo da EA. Não prova uso em produto específico nem relação entre dificuldade e anúncios |
 | Chen, Wang e Xiao (DiGRA) | 2025 | Os 50 F2P mobile de maior receita no Google Play (EUA): prevalência e coocorrência dos padrões |
 | Dahlan e Susanty | 2025 | Avaliação heurística de jogos casuais: pay-to-skip, grinding e jogar com hora marcada são os mais comuns |
 | Gutiérrez-Manjón et al. (Tripodos) | 2026 | Taxonomia em jogos-serviço de maior receita (dimensões temporal, monetária e social) |
@@ -27,10 +32,11 @@ Levantamento de artigos, matérias, regulação e projetos open source sobre (1)
 - **Posicionamento:** intersticial antes da tela de vitória (e não depois de um rewarded pulado) aumentou impressões por DAU, mas só venceu em 55 % dos grupos.
 - **Canibalização:** rewarded em excesso derruba compras dentro do app.
 - **Subgênero:** puzzle aguenta carga de anúncio menor que runner (retenção longa).
-- **Block Blast (Hungry Studio):** receita quase toda de anúncios (compras irrisórias); intersticial entre partidas e rewarded para reviver (um por sessão). Estimativas de US$ 0,6–1 milhão por dia em anúncios; parceria com AdMob creditada com +8 % de retenção. Números de analistas, não da empresa.
-- **Patentes da EA:** dificuldade dinâmica (DDA) e *Engagement Optimized Matchmaking* (pareamento conforme risco de abandono, com objetivo trocável por tempo de jogo ou gasto). São patentes registradas; não há confirmação de uso em jogo lançado.
+- **Block Blast (Hungry Studio):** receita quase toda de anúncios (compras irrisórias); intersticial entre partidas e rewarded para reviver (um por sessão). Estimativas de US$ 0,6–1 milhão por dia em anúncios (analistas, não a empresa). Fonte primária comercial: estudo de caso do AdMob com +8 % de retenção — material do fornecedor, útil para levantar perguntas; não demonstra manipulação de dificuldade nem valida os valores de receita.
+- **@ayoships (Ayo Omolewa):** confirmado. O site oficial se apresenta como "decompila apps virais e expõe os dark patterns" e publica uma análise do Block Blast, com promessa de código. Sem pacote técnico reproduzível na página consultada: a existência do autor e a comprovação de cada alegação dele ficam separadas.
+- **EA — patentes e artigo:** dificuldade dinâmica (DDA) e *Engagement Optimized Matchmaking* (pareamento conforme risco de abandono, com objetivo trocável por tempo de jogo ou gasto). Além das patentes, o EOMM foi publicado como artigo (WWW 2017), com avaliação por simulação. Não há confirmação de uso em jogo lançado.
 
-**Lacuna:** não há estudo controlado público que ligue curva de dificuldade de puzzle à frequência de anúncio. Na prática, muito desses parâmetros fica no servidor (remote config, testes A/B), e não no binário.
+**Lacuna:** nesta busca não foi encontrado estudo controlado público que ligue curva de dificuldade de puzzle à frequência de anúncio. Na prática, muito desses parâmetros fica no servidor (remote config, testes A/B), e não no binário.
 
 ## 3. Regulação
 
@@ -52,7 +58,10 @@ Levantamento de artigos, matérias, regulação e projetos open source sobre (1)
 | [Exodus-Privacy/exodus-core](https://github.com/Exodus-Privacy/exodus-core) | 25 | Núcleo do Exodus (assinaturas de rastreadores) |
 | [reddr/LibScout](https://github.com/reddr/LibScout) | 309 | Detectar bibliotecas de terceiros em apps Android, inclusive com ofuscação (parado desde 2019) |
 | [pkumza/LibRadar](https://github.com/pkumza/LibRadar) | 281 | Idem, por assinatura de pacotes (parado desde 2020) |
-| [chenjshnn/UIST23-UIGuard](https://github.com/chenjshnn/UIST23-UIGuard) | 8 | Código do UIGuard: detectar dark patterns em capturas de tela |
+| [chenjshnn/UIST23-UIGuard](https://github.com/chenjshnn/UIST23-UIGuard) | 8 | Código do UIGuard: detectar dark patterns em capturas de tela ([dados e regras](https://zenodo.org/records/8126443)) |
+| [chenjshnn/AppRay](https://github.com/chenjshnn/AppRay) | 1 | Código do AppRay (detecção entre telas e ações); pesquisa a reproduzir, não ferramenta pronta |
+| [skylot/jadx](https://github.com/skylot/jadx) | 51 mil | Descompilar DEX para Java: chamadas, recursos e referências num APK (N1) |
+| [androguard/androguard](https://github.com/androguard/androguard) | 6,3 mil | Automação de análise de APK em Python (N1) |
 | [aruneshmathur/dark-patterns](https://github.com/aruneshmathur/dark-patterns) | 140 | Crawler e dados do estudo de Princeton (11 mil lojas web); referência de método |
 | [arrakh/ArrDDA](https://github.com/arrakh/ArrDDA) | 9 | Plugin Unity de dificuldade dinâmica (lado da criação) |
 | [Manavarya09/DarkLens-MCP-Server](https://github.com/Manavarya09/DarkLens-MCP-Server) | 7 | Servidor MCP de detecção de dark patterns (pequeno, não auditado) |
@@ -64,7 +73,13 @@ Os projetos de detecção com IA (BERT, Gemini) encontrados são pequenos, recen
 - Zagal, Björk, Lewis (2013): [Chalmers](https://research.chalmers.se/en/publication/177148), [PDF](https://gup.ub.gu.se/file/101018)
 - UIGuard: [arXiv 2308.05898](https://arxiv.org/html/2308.05898v2)
 - Level Up or Game Over: [arXiv 2412.05039](https://www.arxiv.org/abs/2412.05039)
-- AdsDP: [deceptive.design](https://deceptive.design/articles/adsdp-a-video-dataset-for-recognizing-and-examining-dark-patterns-in-ios-in-app-advertisements)
+- AdsDP: [deceptive.design](https://deceptive.design/articles/adsdp-a-video-dataset-for-recognizing-and-examining-dark-patterns-in-ios-in-app-advertisements), [artigo dos autores](https://shhaos.github.io/papers/imwut25_AdsDP.pdf), [dataset](https://zenodo.org/records/15316373)
+- AppRay: [arXiv 2411.18084](https://arxiv.org/html/2411.18084v2)
+- Ontologia de dark patterns (Gray et al.): [arXiv 2309.09640](https://arxiv.org/abs/2309.09640)
+- EOMM: [arXiv 1702.06820](https://arxiv.org/abs/1702.06820)
+- @ayoships: [site oficial](https://ayoships.com/)
+- Políticas de rewarded: [AdMob](https://support.google.com/admob/answer/7313578?hl=en)
+- ECA Digital, texto da lei: [Planalto](https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/lei/l15211.htm)
 - Chen, Wang, Xiao (DiGRA 2025): [DiGRA](https://dl.digra.org/index.php/dl/article/view/2765)
 - Dahlan e Susanty: [deceptive.design](https://www.deceptive.design/articles/finding-dark-patterns-in-casual-mobile-games-using-heuristic-evaluation)
 - Taxonomia GaaS: [deceptive.design](https://deceptive.design/articles/designing-for-monetization-a-taxonomy-of-dark-patterns-in-top-grossing-gaas-video-games)
