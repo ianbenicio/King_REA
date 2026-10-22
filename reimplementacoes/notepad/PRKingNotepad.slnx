@@ -5,5 +5,6 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/PRKingNotepad.Core.Tests/PRKingNotepad.Core.Tests.csproj" />
+    <Project Path="tests/PRKingNotepad.Ui.Tests/PRKingNotepad.Ui.Tests.csproj" />
   </Folder>
 </Solution>

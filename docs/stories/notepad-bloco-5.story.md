@@ -44,13 +44,13 @@ Sala limpa (valem para toda a story): o trabalho em `reimplementacoes/notepad/` 
 
 ### U3 — testes de interface em processo (@dev, sessão nova, ~180k)
 
-- [ ] **AC-U3.1 (projeto)** — projeto `tests/PRKingNotepad.Ui.Tests` (xUnit, `net10.0-windows`, WPF) na solução, com `packages.lock.json`, usando **só pacotes e versões já travados** em `PRKingNotepad.Core.Tests`. A janela roda numa thread STA própria com `Dispatcher`, criada por um auxiliar do projeto; nada de FlaUI, UI Automation externa ou outro pacote.
-- [ ] **AC-U3.2 (isolamento)** — nenhum teste grava no `%APPDATA%` real, nos documentos recentes do Windows nem abre processo; todos usam os substitutos do AC-U2.6 e pastas temporárias apagadas no fim.
-- [ ] **AC-U3.3 (cobertura)** — toda linha da matriz com "U3" em "Próximo" (61) tem teste de UI citado na coluna "Teste" e passa a **ok**; em especial: cada atalho da §2 enviado como tecla à janela (não só o comando); habilitação de Recortar/Copiar/Excluir/Desfazer/Colar (2.ae–2.ag); F3 sem termo abre Localizar; Substituir tudo desfeito com **um** Ctrl+Z (4.1.g); Ir para linha com linha inexistente mantém a caixa aberta (4.2.c); Ln/Col com quebra ligada (5.1.c); `.LOG` põe o cursor no fim e o asterisco no título (6.5.a); perda em ANSI: Cancelar não grava, OK grava e recarrega (6.3.d); Configurar página abre sem impressora (10.a).
-- [ ] **AC-U3.4 (itens de risco)** — *Dado* o teste de Alt+Backspace (2.i), Ctrl+Insert (2.k) e Colar com a área de transferência sem texto (2.ag), *quando* o comportamento do `TextBox` não bastar, *então* a correção mínima (`KeyBinding` ou `CanExecute` próprio) entra num commit `fix:` separado na própria U3, com o teste que a prova.
-- [ ] **AC-U3.5 (estabilidade)** — `dotnet test` do projeto de UI verde **duas vezes seguidas** sem mudar nada entre as execuções; nenhum teste depende de tempo de espera fixo (`Thread.Sleep`) para passar.
-- [ ] **AC-U3.6 (manuais)** — `CONFORMIDADE.md` ganha a seção "Teste manual" com as 11 linhas "manual" (e as partes manuais de linhas mistas), cada uma com passos curtos e campo de resultado, para o responsável executar antes do gate.
-- [ ] **AC-U3.7 (fechamento)** — commit `test:` local; handoff em `docs/handoffs/`.
+- [x] **AC-U3.1 (projeto)** — projeto `tests/PRKingNotepad.Ui.Tests` (xUnit, `net10.0-windows`, WPF) na solução, com `packages.lock.json`, usando **só pacotes e versões já travados** em `PRKingNotepad.Core.Tests`. A janela roda numa thread STA própria com `Dispatcher`, criada por um auxiliar do projeto; nada de FlaUI, UI Automation externa ou outro pacote.
+- [x] **AC-U3.2 (isolamento)** — nenhum teste grava no `%APPDATA%` real, nos documentos recentes do Windows nem abre processo; todos usam os substitutos do AC-U2.6 e pastas temporárias apagadas no fim.
+- [x] **AC-U3.3 (cobertura)** — toda linha da matriz com "U3" em "Próximo" (61) tem teste de UI citado na coluna "Teste" e passa a **ok**; em especial: cada atalho da §2 enviado como tecla à janela (não só o comando); habilitação de Recortar/Copiar/Excluir/Desfazer/Colar (2.ae–2.ag); F3 sem termo abre Localizar; Substituir tudo desfeito com **um** Ctrl+Z (4.1.g); Ir para linha com linha inexistente mantém a caixa aberta (4.2.c); Ln/Col com quebra ligada (5.1.c); `.LOG` põe o cursor no fim e o asterisco no título (6.5.a); perda em ANSI: Cancelar não grava, OK grava e recarrega (6.3.d); Configurar página abre sem impressora (10.a).
+- [x] **AC-U3.4 (itens de risco)** — *Dado* o teste de Alt+Backspace (2.i), Ctrl+Insert (2.k) e Colar com a área de transferência sem texto (2.ag), *quando* o comportamento do `TextBox` não bastar, *então* a correção mínima (`KeyBinding` ou `CanExecute` próprio) entra num commit `fix:` separado na própria U3, com o teste que a prova.
+- [x] **AC-U3.5 (estabilidade)** — `dotnet test` do projeto de UI verde **duas vezes seguidas** sem mudar nada entre as execuções; nenhum teste depende de tempo de espera fixo (`Thread.Sleep`) para passar.
+- [x] **AC-U3.6 (manuais)** — `CONFORMIDADE.md` ganha a seção "Teste manual" com as 11 linhas "manual" (e as partes manuais de linhas mistas), cada uma com passos curtos e campo de resultado, para o responsável executar antes do gate.
+- [x] **AC-U3.7 (fechamento)** — commit `test:` local; handoff em `docs/handoffs/`.
 
 ### U4 — QA gate (@qa → @dev pelo QA Loop, sessão nova, ~180k)
 
@@ -88,7 +88,7 @@ Fecha a v1 do PRKing Notepad com prova item a item e dá ao S3 do Harness quatro
 - [x] Responsável — preencher a folha de respostas do roteiro (2026-10-22)
 - [x] U2 — AC-U2.1, U2.2, U2.3, U2.5, U2.6
 - [x] U2b — AC-U2.4 e fechamento do AC-U2.7 (R1–R7 com status final)
-- [ ] U3 — AC-U3.1 a AC-U3.7
+- [x] U3 — AC-U3.1 a AC-U3.7
 - [ ] U4 — AC-U4.1 a AC-U4.5
 
 ## Validação @po (leve, checklist de 10 pontos)
@@ -132,6 +132,14 @@ Fecha a v1 do PRKing Notepad com prova item a item e dá ao S3 do Harness quatro
 - **R7, limite:** Desfazer de uma quebra apagada a traz no tipo do documento (Dif. 3). A semântica dos deslocamentos de `TextChangedEventArgs.Changes` com várias mudanças num evento só se prova pela janela (U3).
 - **AC-U2.7:** build sem avisos; 134 casos verdes (eram 125); matriz com 0 "a confirmar". O diff também toca o README e `docs/` (story e handoff).
 
+## Notas da U3 (@dev)
+
+- **AC-U3.2, pontos de troca novos:** a linha de comando do processo de teste (o executor do `dotnet test`) virava caminho de arquivo em `OpenFromCommandLine`, e a janela perguntaria se cria esse arquivo. `MainWindowServices` ganhou `CommandLineArguments`, `ChooseFileToOpen`, `ChooseFileToSave`, `DefaultPrintQueue` e `MaxFileBytes` (padrão = comportamento real), num commit `refactor:` separado. Sem eles, 6.7.d, 11.a, 6.3.a, 10.a ("sem impressora") e 11.c (arquivo de 1 GB) não teriam teste isolado.
+- **AC-U3.3, contagem:** 81 linhas tocadas, não 61: a U2 e a U2b acrescentaram partes de UI a linhas "ok" (5.4.d, 6.2.c, 11.d, 8.e e outras), e 2.b ganhou teste do atalho. Nenhuma linha fica com U3 em "Próximo".
+- **AC-U3.4:** Alt+Backspace, Ctrl+Insert e Colar sem texto funcionam pelo `TextBox`; nenhum `fix:` de atalho. O WPF só revalida a habilitação de um submenu quando ele abre: o teste abre o menu Editar para ler o estado.
+- **8.e, defeito achado:** o Desfazer do Substituir tudo trocava o texto inteiro e esquecia todas as quebras misturadas guardadas. Correção (`fix:`): a troca é feita ocorrência por ocorrência, do fim para o início, dentro de `BeginChange`/`EndChange` (uma unidade de desfazer). O teste prova digitar, Substituir tudo com quatro trocas entre quebras guardadas, Desfazer e Refazer, comparando os bytes gravados. O parâmetro `lineBreaks` de `TextFinder.ReplaceAll` ficou sem uso na janela (só nos testes do Core).
+- **Teclas:** os modificadores vão para o estado de teclado da própria thread de teste (`SetKeyboardState`), que é o que o WPF consulta ao comparar atalhos; nenhum outro programa vê. A área de transferência é usada por 2.j, 2.k, 2.l e 2.ag; o texto que estava nela volta no fim do teste.
+
 ## File List
 
 - `reimplementacoes/notepad/CONFORMIDADE.md` (novo, U1)
@@ -151,6 +159,11 @@ Fecha a v1 do PRKing Notepad com prova item a item e dá ao S3 do Harness quatro
 - `reimplementacoes/notepad/tests/PRKingNotepad.Core.Tests/LineEndingTests.cs` (U2b)
 - `reimplementacoes/notepad/CONFORMIDADE.md`, `README.md` (U2b)
 - `docs/handoffs/2026-10-22-notepad-b5-u2b.md` (novo, U2b)
+- `reimplementacoes/notepad/src/PRKingNotepad/MainWindowServices.cs`, `MainWindow.xaml.cs`, `MainWindow.Printing.cs` (pontos de troca, U3)
+- `reimplementacoes/notepad/src/PRKingNotepad.Core/TextFinder.cs`, `MainWindow.xaml.cs`, `tests/PRKingNotepad.Core.Tests/SearchTests.cs` (correção do Substituir tudo, U3)
+- `reimplementacoes/notepad/tests/PRKingNotepad.Ui.Tests/` (novo, U3: projeto, `packages.lock.json`, `Ui.cs`, `Input.cs`, `FakeDialogs.cs`, `Notepad.cs`, `ClipboardScope.cs`, `WindowAndShortcutTests.cs`, `SearchAndDisplayTests.cs`, `FileLifecycleTests.cs`)
+- `reimplementacoes/notepad/PRKingNotepad.slnx`, `CONFORMIDADE.md` (U3)
+- `docs/handoffs/2026-10-22-notepad-b5-u3.md` (novo, U3)
 
 ## QA Results
 
@@ -164,3 +177,4 @@ Fecha a v1 do PRKing Notepad com prova item a item e dá ao S3 do Harness quatro
 | 2026-10-21 | U1 | Validação leve @po: GO 10/10 — status Draft → Ready |
 | 2026-10-22 | U2 | Responsável aceitou D1–D3; AC-U2.1–U2.3, U2.5, U2.6 feitos; AC-U2.4 pendente (folha do roteiro) — status Ready → InProgress |
 | 2026-10-22 | U2b | Folha do roteiro aplicada: AC-U2.4 e AC-U2.7 feitos; R7 preserva as quebras; status segue InProgress (U3 e U4 pendentes) |
+| 2026-10-22 | U3 | AC-U3.1–U3.7 feitos: 76 testes de interface, 81 linhas da matriz para ok, seção "Teste manual"; Substituir tudo corrigido (Desfazer mantém quebras misturadas); status segue InProgress (U4 pendente) |
