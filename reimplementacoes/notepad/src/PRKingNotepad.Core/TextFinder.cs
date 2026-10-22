@@ -59,7 +59,9 @@ public static class TextFinder
         && text.AsSpan(selectionStart, selectionLength).Equals(term, Comparison(matchCase));
 
     /// <summary>Texto com todas as ocorrências trocadas e quantas foram.</summary>
-    public static (string Text, int Count) ReplaceAll(string text, string term, string replacement, bool matchCase)
+    /// <param name="lineBreaks">Se dado, acompanha cada troca (quebras fora das ocorrências ficam como estavam).</param>
+    public static (string Text, int Count) ReplaceAll(string text, string term, string replacement, bool matchCase,
+        LineBreakMap? lineBreaks = null)
     {
         if (term.Length == 0)
         {
@@ -73,6 +75,7 @@ public static class TextFinder
         int i;
         while ((i = text.IndexOf(term, from, comparison)) >= 0)
         {
+            lineBreaks?.Apply(sb.Length + (i - from), term.Length, replacement.Length);
             sb.Append(text, from, i - from).Append(replacement);
             from = i + term.Length;
             count++;

@@ -22,16 +22,18 @@ Caminhos de código relativos a `reimplementacoes/notepad/src/`; `MW` = `PRKingN
 
 | Status | Linhas |
 |---|---|
-| ok | 48 |
-| sem teste | 72 (61 para a U3, às vezes com U2 ou manual junto; 11 só manuais) |
+| ok | 53 |
+| sem teste | 74 (63 para a U3, às vezes com U2 ou manual junto; 11 só manuais) |
 | divergente | 0 (D1–D3 resolvidas na U2) |
-| a confirmar | 7 |
+| a confirmar | 0 (R1–R7 respondidos em 22/10) |
 | fora do escopo | 7 |
 | **Total** | **134** |
 
 Divergências (detalhe em [Divergências e destino](#divergências-e-destino)), aceitas pelo responsável e resolvidas na U2: **D1** botões da pergunta de salvar (código corrigido); **D2** tipo da mensagem de arquivo grande demais (código corrigido); **D3** fonte sem conjunto de caracteres e com peso só normal/negrito (README, Dif. 12).
 
 **Atualização da U2 (2026-10-22):** 14 linhas tocadas (5.2.c, 5.3.c, 5.4.d, 5.4.e, 6.1.a, 6.2.a, 6.2.c, 6.2.d, 6.8.a, 9.b, 9.e, 11.b, 11.c, 11.d). Testes: 125 casos (68 métodos) no `PRKingNotepad.Core.Tests`. Quatro linhas "ok" ainda têm parte de UI para a U3 (5.4.d, 5.4.e, 6.2.c, 11.d). Os 7 "a confirmar" esperam a folha de respostas do roteiro (AC-U2.4).
+
+**Atualização da U2b (2026-10-22):** folha do roteiro recebida; adendo na §14 da especificação. 9 linhas tocadas (2.ai, 4.1.d, 5.3.b, 7.3.c, 8.b, 8.c, 8.d, 8.e, 9.g). R7 mudou o código (`LineBreakMap`: quebras existentes preservadas); R1, R3, R4, R5 e R6 já batiam com o original; R2 mantém a Dif. 6. Testes: 134 casos no `PRKingNotepad.Core.Tests`.
 
 ---
 
@@ -84,7 +86,7 @@ Atalhos vêm de três fontes: gestos padrão dos `ApplicationCommands` do WPF (C
 | 2.af | Habilitação: Desfazer só quando há o que desfazer | `XAML`:60 (`CanExecute` do `TextBox`); `MW`:202–203 (abrir zera o histórico) | — | sem teste | U3 | |
 | 2.ag | Habilitação: Colar só com texto na área de transferência | `XAML`:64 (`CanExecute` do `TextBox`) | — | sem teste | U3 (risco) | Busca `Clipboard\|ContainsText\|CanPaste` em `src/`: nada. Depende do `TextBox`; a U3 testa com a área de transferência sem texto (só imagem) e, se Colar ficar habilitado, a U2 acrescenta `CanExecute` próprio. |
 | 2.ah | F3 / Shift+F3 sem termo abrem Localizar | `MW`:346–354 (`FindOrAsk`) | — | sem teste | U3 | |
-| 2.ai | Ir para linha disponível também com quebra automática | `MW`:448–459 (sem condição de quebra) | — | a confirmar | roteiro R1 | Hoje sempre disponível. |
+| 2.ai | Ir para linha disponível também com quebra automática | `PRKingNotepad/MainWindow.xaml`:23 (`CommandBinding` de `GoToLine` sem `CanExecute`) | — | ok | U3 (menu com quebra ligada) | R1 confirmado (§14): o original também deixa habilitado. Estrutural: sem `CanExecute`, o comando nunca é desabilitado. |
 
 Evidência das teclas Ctrl+N/O/S/P/F/H e F1: não há `KeyBinding` para elas em `XAML`:31–43; vêm dos `ApplicationCommands` ligados em `XAML`:11–26. A U3 confirma cada uma na janela.
 
@@ -107,7 +109,7 @@ Evidência das teclas Ctrl+N/O/S/P/F/H e F1: não há `KeyBinding` para elas em 
 | 4.1.a | Janelas não modais, uma de cada vez | `MW`:357–392 (`Show()`, fecha a do outro modo) | — | sem teste | U3 | |
 | 4.1.b | Opções: maiúsculas/minúsculas, direção, dar a volta | `PRKingNotepad/FindReplaceWindow.xaml`:28–37; `PRKingNotepad.Core/TextFinder.cs`:22 | `SearchTests.Match_case_skips_other_cases`, `SearchTests.Down_starts_after_the_current_selection`, `SearchTests.Up_ends_before_the_current_selection`, `SearchTests.Wrap_around_continues_from_the_other_end_and_says_so` | ok | U3 (caixas da janela) | Dif. 6: comparação ordinal; Substituir sempre para baixo (`FindReplaceWindow.xaml.cs`:44). |
 | 4.1.c | Termo, substituição, opções e direção lembrados | `MWD`:31–35, 42–50; `PRKingNotepad.Core/Settings.cs`:59 (`SearchSettings`) | `SettingsTests.Round_trip_keeps_every_preference`, `SettingsTests.Missing_file_gives_defaults` | ok | U3 (janela reabre com os valores) | |
-| 4.1.d | Ao abrir, a seleção vira o termo | `MW`:359–364, 386–389 | — | a confirmar | roteiro R2 | Hoje: só seleção de uma linha (Dif. 6). |
+| 4.1.d | Ao abrir, a seleção vira o termo | `MW`:369–375 (`ShowSearchWindow`) | — | sem teste | U3 | R2 confirmado (§14). Seleção de uma linha e Ctrl+H com seleção: igual ao original. Sem seleção o termo não muda (último buscado), igual. Várias linhas: o original emenda as linhas, aqui o termo não muda (Dif. 6, mantida pelo responsável em 22/10). |
 | 4.1.e | Não encontrado: mensagem | `MW`:398–403, 428–431 (`Inform`) | `SearchTests.Not_found_and_empty_term_return_null` | sem teste | U3 | Core cobre o "não achou"; a mensagem não. |
 | 4.1.f | Ao dar a volta, aviso na barra de status | `MW`:407–409 | `SearchTests.Wrap_around_continues_from_the_other_end_and_says_so` (`Wrapped`) | sem teste | U3 | Indicador coberto; texto na barra, não. |
 | 4.1.g | Substituir tudo numa única operação desfazível | `MW`:425–446 (`BeginChange`/`EndChange`); `PRKingNotepad.Core/TextFinder.cs`:62 | `SearchTests.Replace_all_counts_and_respects_case`, `SearchTests.Replace_all_does_not_rescan_inserted_text` | sem teste | U3 | Um Ctrl+Z desfazer tudo é o ponto a provar. |
@@ -145,7 +147,7 @@ Evidência das teclas Ctrl+N/O/S/P/F/H e F1: não há `KeyBinding` para elas em 
 | ID | Requisito (resumo) | Código | Teste | Status | Próximo | Evidência / observação |
 |---|---|---|---|---|---|---|
 | 5.3.a | 10 % a 500 %, passos de 10 %, padrão 100 % | `PRKingNotepad.Core/Settings.cs`:143–153 (`Zoom`); `MWD`:120–145 | `ZoomTests.Zoom_in_steps_by_ten_up_to_500`, `ZoomTests.Zoom_out_steps_by_ten_down_to_10` | ok | — | Dif. 7 (escala do tamanho da fonte). |
-| 5.3.b | Ctrl+roda do mouse também altera | `MWD`:126–133 | — | a confirmar | roteiro R3 | Hoje implementado (Dif. 7). |
+| 5.3.b | Ctrl+roda do mouse também altera | `MWD`:126–133 | `ZoomTests.Zoom_in_steps_by_ten_up_to_500`, `ZoomTests.Zoom_out_steps_by_ten_down_to_10` (passo) | sem teste | U3 (roda) | R3 confirmado (§14): 10 % por clique, para cima aumenta, igual ao nosso. Dif. 7 sem "a confirmar". |
 | 5.3.c | Não é gravado: volta a 100 % a cada execução | `MWD` (`_zoom` só em memória) | `SettingsTests.Zoom_is_not_saved` | ok | — | O JSON gravado não tem nenhum campo de zoom (teste da U2). |
 | 5.3.d | Zoom exibido na barra de status | `MWD`:144; `XAML`:119 | — | sem teste | U3 | |
 
@@ -253,17 +255,17 @@ Evidência das teclas Ctrl+N/O/S/P/F/H e F1: não há `KeyBinding` para elas em 
 |---|---|---|---|---|---|---|
 | 7.3.a | BOM por codificação (ANSI e UTF-8 sem; UTF-16 LE `FF FE`; BE `FE FF`; UTF-8 com BOM `EF BB BF`) | `PRKingNotepad.Core/TextCodec.cs`:50–77 | `EncodingTests.Encode_writes_bom_per_encoding` | ok | — | |
 | 7.3.b | ANSI = página de código do sistema, com aviso de perda | `PRKingNotepad.Core/TextCodec.cs`:55–65; `PRKingNotepad/NativeMethods.cs` (`GetACP`) | `EncodingTests.Ansi_reports_lost_characters_and_replaces_them` | ok | — | |
-| 7.3.c | Codificação de documento novo é preferência; padrão de fábrica UTF-8 sem BOM | `PRKingNotepad.Core/Settings.cs` (`DefaultEncoding = Utf8`) | `SettingsTests.Missing_file_gives_defaults` | a confirmar | roteiro R4 | |
+| 7.3.c | Codificação de documento novo é preferência; padrão de fábrica UTF-8 sem BOM | `PRKingNotepad.Core/Settings.cs`:24 (`DefaultEncoding = Utf8`) | `SettingsTests.Missing_file_gives_defaults` | ok | — | R4 confirmado (§14): o original grava UTF-8 sem BOM e mostra "UTF-8". |
 
 ## 8. Quebras de linha
 
 | ID | Requisito (resumo) | Código | Teste | Status | Próximo | Evidência / observação |
 |---|---|---|---|---|---|---|
 | 8.a | Detectadas do conteúdo (CRLF, LF, CR) e mostradas na barra | `PRKingNotepad.Core/LineEndings.cs`:38; `MW`:479 | `LineEndingTests.Detect_uses_first_line_break` | ok | U3 (barra) | |
-| 8.b | Enter insere o tipo do documento (CRLF em documento novo) | `PRKingNotepad.Core/LineEndings.cs`:80–82 (editor em CRLF, volta ao tipo do documento ao gravar) | `LineEndingTests.Editor_text_always_uses_crlf`, `LineEndingTests.Save_converts_back_to_document_line_ending` | ok | — | Mesmo resultado no arquivo; o editor trabalha sempre em CRLF. |
-| 8.c | Salvar preserva as quebras como estão | `PRKingNotepad.Core/LineEndings.cs`:49 | `LineEndingTests.Lf_file_round_trips_unchanged` | ok | — | Arquivo de um tipo só volta idêntico; misturado: Dif. 3 e 8.e. |
-| 8.d | Colar texto com outro tipo de quebra: converte para o do documento | `PRKingNotepad.Core/LineEndings.cs`:49 (na gravação) | `LineEndingTests.Pasted_lf_inside_crlf_document_is_normalized_on_save` | a confirmar | roteiro R5 | |
-| 8.e | Tipos misturados no mesmo arquivo (lacuna §13) | `PRKingNotepad.Core/LineEndings.cs`:38, 49 | `LineEndingTests.Detect_uses_first_line_break` | a confirmar | roteiro R7 | Hoje: tipo da primeira quebra e conversão de todas ao salvar (Dif. 3), diferente da proposta da spec ("preservar os demais"). |
+| 8.b | Enter insere o tipo do documento (CRLF em documento novo) | `PRKingNotepad.Core/LineEndings.cs`:90–227 (`LineBreakMap`: quebra sem registro sai no tipo do documento) | `LineEndingTests.Save_converts_back_to_document_line_ending`, `LineEndingTests.New_line_at_end_of_mixed_file_uses_document_type` | ok | — | Mesmo resultado no arquivo; o editor trabalha sempre em CRLF. |
+| 8.c | Salvar preserva as quebras como estão | `PRKingNotepad.Core/LineEndings.cs`:107–137, 172–211 (`FromFileText`, `ToFileText`) | `LineEndingTests.Lf_file_round_trips_unchanged`, `LineEndingTests.Mixed_file_round_trips_unchanged` | ok | — | Também em arquivo misturado (U2b, 8.e). |
+| 8.d | Colar texto com outro tipo de quebra: converte para o do documento | `PRKingNotepad.Core/LineEndings.cs`:172–211 (`ToFileText`, na gravação) | `LineEndingTests.Pasted_lf_inside_crlf_document_is_normalized_on_save`, `LineEndingTests.Pasted_lf_is_saved_in_document_type` | ok | — | R5 confirmado (§14): o original grava a quebra colada como CRLF e não muda o tipo na barra; igual ao nosso. |
+| 8.e | Tipos misturados no mesmo arquivo (lacuna §13) | `PRKingNotepad.Core/LineEndings.cs`:90–227 (`LineBreakMap`); `MW`:326–334 (`OnTextChanged`), 437–457 (`ReplaceAll`) | `LineEndingTests.Mixed_file_round_trips_unchanged`, `New_line_at_end_of_mixed_file_uses_document_type`, `Lf_first_file_keeps_its_crlf_break`, `Typing_before_a_preserved_break_moves_it_along`, `Deleted_break_typed_again_uses_document_type`, `Removing_text_across_a_preserved_break_forgets_it`, `Insert_between_cr_and_lf_of_a_preserved_break_forgets_it`, `Replace_all_keeps_breaks_outside_the_matches` | ok | U3 (edição na janela) | R7 confirmado (§14); responsável: "Copiar o original". Tipo = primeira quebra, existentes preservadas, novas no tipo do documento (U2b). Resto na Dif. 3 (Desfazer). |
 
 ## 9. Preferências persistentes
 
@@ -275,7 +277,7 @@ Evidência das teclas Ctrl+N/O/S/P/F/H e F1: não há `KeyBinding` para elas em 
 | 9.d | Barra de status visível (ligada) | idem (`StatusBarVisible`) | `SettingsTests.Missing_file_gives_defaults` | ok | — | |
 | 9.e | Janela: posição e tamanho (centro, tamanho padrão do sistema) | `XAML`:5–6 (900 × 600, `CenterScreen`); `MWD` (`RestorePlacement`, `CurrentPlacement`) | `SettingsTests.Round_trip_keeps_every_preference` | ok | — | Padrão "sugerido" pela spec; o tamanho inicial próprio está na Dif. 12 do README (U2). |
 | 9.f | Busca: termo, substituição, maiúsc., direção, dar a volta (vazio, não, baixo, não) | idem (`SearchSettings`) | `SettingsTests.Missing_file_gives_defaults`, `SettingsTests.Round_trip_keeps_every_preference`, `SettingsTests.Enums_are_stored_by_name` | ok | — | |
-| 9.g | Página: cabeçalho `&f`, rodapé `Página &p`, margens a confirmar | `PRKingNotepad.Core/Settings.cs`:72–97 (`PageSettings`) | `PageSettingsTests.Invalid_margins_fall_back_to_defaults`, `HeaderFooterTests.Defaults_resolve_file_name_and_page` | a confirmar | roteiro R6 | Margens próprias (Dif. 9); medidas do original são a lacuna §13. |
+| 9.g | Página: cabeçalho `&f`, rodapé `Página &p`, margens a confirmar | `PRKingNotepad.Core/Settings.cs`:72–97 (`PageSettings`) | `PageSettingsTests.Invalid_margins_fall_back_to_defaults`, `HeaderFooterTests.Defaults_resolve_file_name_and_page` | ok | — | R6 (§14): margens do original 20/20/25/25 mm, iguais às nossas (com a ressalva de ajuste anterior); cabeçalho e rodapé vazios não observáveis como padrão, ficam os da §9. Dif. 9 ajustada. |
 | 9.h | Codificação padrão de documento novo (UTF-8) | idem (`DefaultEncoding`) | `SettingsTests.Missing_file_gives_defaults`, `SettingsTests.Out_of_range_values_are_corrected` | ok | — | Valor de fábrica do original: 7.3.c. |
 | 9.i | Restaurar após reinício do Windows | nenhum | — | fora do escopo | — | Spec marca FORA; §12. |
 
@@ -317,15 +319,15 @@ Nenhuma divergência vai para adendo da especificação: adendo só recebe fato 
 
 ## Itens a confirmar
 
-| Roteiro | Linhas da matriz | Linha da spec | Efeito da resposta |
-|---|---|---|---|
-| R1 | 2.ai | §2, regras de habilitação | Se o original desabilita Ir para linha com quebra ligada: U2 decide (copiar ou registrar no README). |
-| R2 | 4.1.d | §4.1 | Se o original também usa seleção de várias linhas (ou nenhuma): U2 ajusta `ShowSearchWindow` ou mantém a Dif. 6. |
-| R3 | 5.3.b | §5.3 | Se o original não tem Ctrl+roda: Dif. 7 passa a dizer "a mais". |
-| R4 | 7.3.c | §7.3 | Se a fábrica for outra: U2 muda o padrão de `Settings.DefaultEncoding`. |
-| R5 | 8.d | §8 | Se o original não converte ao colar: U2 avalia, e a Dif. 3 ganha o caso. |
-| R6 | 9.g | §9 e §13 (margens) | Margens do original viram o padrão de `PageSettings` (U2) e a Dif. 9 encolhe. |
-| R7 | 8.e | §13 (fins misturados) | Se o original preserva os demais: U2 decide entre copiar (mudar `LineEndings`) e manter a Dif. 3. |
+| Roteiro | Linhas da matriz | Linha da spec | Efeito da resposta | Resposta e destino (U2b, 2026-10-22) |
+|---|---|---|---|---|
+| R1 | 2.ai | §2, regras de habilitação | Se o original desabilita Ir para linha com quebra ligada: U2 decide (copiar ou registrar no README). | confirmado: habilitado também no original; nada a mudar (2.ai ok) |
+| R2 | 4.1.d | §4.1 | Se o original também usa seleção de várias linhas (ou nenhuma): U2 ajusta `ShowSearchWindow` ou mantém a Dif. 6. | confirmado: várias linhas emendadas no original; Dif. 6 mantida (decisão do responsável) |
+| R3 | 5.3.b | §5.3 | Se o original não tem Ctrl+roda: Dif. 7 passa a dizer "a mais". | confirmado: 10 % por clique; Dif. 7 sem "a confirmar" |
+| R4 | 7.3.c | §7.3 | Se a fábrica for outra: U2 muda o padrão de `Settings.DefaultEncoding`. | confirmado: UTF-8 sem BOM, igual ao `Settings.DefaultEncoding` |
+| R5 | 8.d | §8 | Se o original não converte ao colar: U2 avalia, e a Dif. 3 ganha o caso. | confirmado: converte ao gravar, igual ao nosso; tipo na barra não muda |
+| R6 | 9.g | §9 e §13 (margens) | Margens do original viram o padrão de `PageSettings` (U2) e a Dif. 9 encolhe. | margens 20/20/25/25 mm iguais às nossas (com ressalva); cabeçalho e rodapé não observáveis; Dif. 9 ajustada |
+| R7 | 8.e | §13 (fins misturados) | Se o original preserva os demais: U2 decide entre copiar (mudar `LineEndings`) e manter a Dif. 3. | confirmado: preserva as existentes; código mudou (`LineBreakMap`), Dif. 3 encolheu |
 
 Os 6 "(a confirmar)" do texto da spec (§2, §4.1, §5.3, §7.3, §8, §9) e as 2 lacunas da §13 somam 7 itens distintos, porque a lacuna das margens é o mesmo assunto do "(a confirmar)" da §9.
 

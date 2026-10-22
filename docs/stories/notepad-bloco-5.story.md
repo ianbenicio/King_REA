@@ -37,10 +37,10 @@ Sala limpa (valem para toda a story): o trabalho em `reimplementacoes/notepad/` 
 - [x] **AC-U2.1 (D1)** — *Dado* um documento alterado, *quando* o usuário pede Novo, Abrir, solta um arquivo na janela ou fecha a janela, *então* aparece uma caixa própria (WPF) com o nome do documento e os botões **Salvar / Não salvar / Cancelar**; Cancelar (ou Salvar seguido de cancelar o Salvar como) mantém o documento e a janela como estavam; Não salvar segue sem gravar. Os quatro gatilhos passam pelo mesmo ponto (`ConfirmDiscard`). Matriz: 6.1.a, 6.2.a, 6.8.a, 11.b.
 - [x] **AC-U2.2 (D2)** — *Dado* um arquivo de 1 GiB ou mais, *quando* o usuário tenta abri-lo, *então* a mensagem sai como **aviso** (não erro), com o nome do arquivo, e o documento atual não muda. Matriz: 11.c.
 - [x] **AC-U2.3 (D3)** — "Diferenças" do README ganha o item 12: a fonte grava nome, tamanho, negrito e itálico; o conjunto de caracteres não é gravado (WPF em Unicode); pesos intermediários ficam no nome da família; tamanho inicial da janela 900 × 600 centralizado. Matriz: 5.2.c, 9.b, 9.e.
-- [ ] **AC-U2.4 (roteiro)** — *pendente: a folha de respostas ainda não chegou (U2, 2026-10-22).* — *Dada* a folha de respostas, *então* `registros/notepad-reimpl/especificacao.md` ganha um adendo datado (seção nova no fim, sem reescrever as anteriores) com R1–R7 em palavras próprias, cada um marcado "confirmado" ou "não observável"; e cada resposta tem destino aplicado conforme a tabela "Itens a confirmar" da matriz: mudança no código **com teste**, ou item de "Diferenças" no README. Nenhuma mudança de código sem resposta que a justifique.
+- [x] **AC-U2.4 (roteiro)** — *feito na U2b (2026-10-22), com a folha de respostas.* — *Dada* a folha de respostas, *então* `registros/notepad-reimpl/especificacao.md` ganha um adendo datado (seção nova no fim, sem reescrever as anteriores) com R1–R7 em palavras próprias, cada um marcado "confirmado" ou "não observável"; e cada resposta tem destino aplicado conforme a tabela "Itens a confirmar" da matriz: mudança no código **com teste**, ou item de "Diferenças" no README. Nenhuma mudança de código sem resposta que a justifique.
 - [x] **AC-U2.5 (testes do Core)** — testes novos no `PRKingNotepad.Core.Tests` para: nomes exibidos das quebras de linha e das codificações (5.4.d, 5.4.e); o JSON das preferências não tem campo de zoom (5.3.c); textos das mensagens de erro de arquivo com o nome (6.2.c, 11.d), depois de mover a montagem do texto (`DescribeFileError`) para o Core.
 - [x] **AC-U2.6 (pontos de troca para teste)** — a janela principal recebe, por construtor ou propriedade interna, substitutos para: perguntas e mensagens ao usuário; caminho do arquivo de preferências; registro nos documentos recentes; abertura de novo processo; hora atual. O app real usa os mesmos comportamentos de hoje. Nenhum pacote novo.
-- [ ] **AC-U2.7 (fechamento)** — `dotnet build PRKingNotepad.slnx` sem avisos; `dotnet test PRKingNotepad.slnx` verde com mais de 101 casos; matriz atualizada (D1–D3 e R1–R7 com status final); `git diff --stat` só em `reimplementacoes/notepad/` e no adendo da spec; commit `fix:`/`feat:` local; handoff em `docs/handoffs/`.
+- [x] **AC-U2.7 (fechamento)** — `dotnet build PRKingNotepad.slnx` sem avisos; `dotnet test PRKingNotepad.slnx` verde com mais de 101 casos; matriz atualizada (D1–D3 e R1–R7 com status final); `git diff --stat` só em `reimplementacoes/notepad/` e no adendo da spec; commit `fix:`/`feat:` local; handoff em `docs/handoffs/`.
 
 ### U3 — testes de interface em processo (@dev, sessão nova, ~180k)
 
@@ -85,9 +85,9 @@ Fecha a v1 do PRKing Notepad com prova item a item e dá ao S3 do Harness quatro
 - [x] U1 — roteiro de confirmação (`registros/notepad-reimpl/roteiro-confirmacao.md`)
 - [x] U1 — esta story e validação @po
 - [x] Responsável — aceitar os destinos de D1–D3 (2026-10-22)
-- [ ] Responsável — preencher a folha de respostas do roteiro
+- [x] Responsável — preencher a folha de respostas do roteiro (2026-10-22)
 - [x] U2 — AC-U2.1, U2.2, U2.3, U2.5, U2.6
-- [ ] U2 — AC-U2.4 (espera a folha) e fechamento do AC-U2.7 (R1–R7 com status final)
+- [x] U2b — AC-U2.4 e fechamento do AC-U2.7 (R1–R7 com status final)
 - [ ] U3 — AC-U3.1 a AC-U3.7
 - [ ] U4 — AC-U4.1 a AC-U4.5
 
@@ -116,6 +116,7 @@ Fecha a v1 do PRKing Notepad com prova item a item e dá ao S3 do Harness quatro
 | Data | Unidade | O quê | Palavras do responsável |
 |---|---|---|---|
 | 2026-10-22 | U2 | Destinos de D1–D3 aceitos como na matriz; U2 iniciada em sessão nova; folha do roteiro chega depois | "Aceito D1–D3 como estão. Pode iniciar a U2 em sessão nova; a folha do roteiro eu mando depois." |
+| 2026-10-22 | U2b | Folha do roteiro R1–R7 preenchida; R7: preservar as quebras como o original; R2: manter a Dif. 6; U2b antes da U3 | R7 = "Copiar o original"; R2 = "Manter Dif. 6"; ordem = "U2b antes da U3" |
 
 ## Notas da U2 (@dev)
 
@@ -123,6 +124,13 @@ Fecha a v1 do PRKing Notepad com prova item a item e dá ao S3 do Harness quatro
 - **AC-U2.6, interno:** `InternalsVisibleTo("PRKingNotepad.Ui.Tests")` em `AssemblyInfo.cs`, para a U3 usar o construtor interno `MainWindow(MainWindowServices)`.
 - **AC-U2.7, parcial:** build sem avisos e 125 casos verdes (68 métodos); D1–D3 com status final na matriz; R1–R7 seguem "a confirmar" até a folha. O diff também toca `docs/` (story e handoff), como na U1.
 - Não verificado na U2: a janela `SaveChangesWindow` na tela (só compilada). Fica para a U3 ou para o teste manual.
+
+## Notas da U2b (@dev)
+
+- **AC-U2.4:** adendo §14 na especificação (R1–R7 e a nota da versão: Windows 10 22H2, compilação 19045.6466, contra 10.0.19041.4522 da spec). Destinos: R7 mudou o código; R1, R3, R4, R5 e R6 já batiam com o original (conferido no código); R2 mantém a Dif. 6; README Dif. 3, 6, 7 e 9 ajustadas.
+- **R7, desenho:** o editor continua em CRLF. `LineBreakMap` (Core) guarda só as quebras do arquivo que diferem do tipo do documento, pela posição no texto do editor; `OnTextChanged` desloca as posições a cada edição; quebra apagada ou partida é esquecida; a gravação devolve as guardadas e põe as demais no tipo do documento. Substituir tudo acompanha troca por troca (`TextFinder.ReplaceAll` com o mapa), porque a troca do texto inteiro apagaria o mapa.
+- **R7, limite:** Desfazer de uma quebra apagada a traz no tipo do documento (Dif. 3). A semântica dos deslocamentos de `TextChangedEventArgs.Changes` com várias mudanças num evento só se prova pela janela (U3).
+- **AC-U2.7:** build sem avisos; 134 casos verdes (eram 125); matriz com 0 "a confirmar". O diff também toca o README e `docs/` (story e handoff).
 
 ## File List
 
@@ -137,6 +145,12 @@ Fecha a v1 do PRKing Notepad com prova item a item e dá ao S3 do Harness quatro
 - `reimplementacoes/notepad/tests/PRKingNotepad.Core.Tests/MessageTests.cs` (novo, U2), `SettingsTests.cs` (U2)
 - `reimplementacoes/notepad/CONFORMIDADE.md`, `README.md` (U2)
 - `docs/handoffs/2026-10-22-notepad-b5-u2.md` (novo, U2)
+- `registros/notepad-reimpl/especificacao.md` (adendo §14, U2b)
+- `reimplementacoes/notepad/src/PRKingNotepad.Core/LineEndings.cs`, `TextCodec.cs`, `TextFinder.cs` (U2b)
+- `reimplementacoes/notepad/src/PRKingNotepad/MainWindow.xaml.cs` (U2b)
+- `reimplementacoes/notepad/tests/PRKingNotepad.Core.Tests/LineEndingTests.cs` (U2b)
+- `reimplementacoes/notepad/CONFORMIDADE.md`, `README.md` (U2b)
+- `docs/handoffs/2026-10-22-notepad-b5-u2b.md` (novo, U2b)
 
 ## QA Results
 
@@ -149,3 +163,4 @@ Fecha a v1 do PRKing Notepad com prova item a item e dá ao S3 do Harness quatro
 | 2026-10-21 | U1 | Story criada (@sm) a partir da matriz — status Draft |
 | 2026-10-21 | U1 | Validação leve @po: GO 10/10 — status Draft → Ready |
 | 2026-10-22 | U2 | Responsável aceitou D1–D3; AC-U2.1–U2.3, U2.5, U2.6 feitos; AC-U2.4 pendente (folha do roteiro) — status Ready → InProgress |
+| 2026-10-22 | U2b | Folha do roteiro aplicada: AC-U2.4 e AC-U2.7 feitos; R7 preserva as quebras; status segue InProgress (U3 e U4 pendentes) |

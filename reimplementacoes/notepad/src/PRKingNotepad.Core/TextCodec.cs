@@ -3,7 +3,10 @@ using System.Text;
 namespace PRKingNotepad.Core;
 
 /// <summary>Texto pronto para o editor (quebras já em CRLF) e o que foi detectado do arquivo.</summary>
-public sealed record DecodedText(string EditorText, TextEncodingKind Encoding, LineEnding LineEnding);
+public sealed record DecodedText(string EditorText, TextEncodingKind Encoding, LineBreakMap LineBreaks)
+{
+    public LineEnding LineEnding => LineBreaks.DocumentEnding;
+}
 
 /// <summary>Bytes prontos para gravar; <see cref="LostCharacters"/> indica troca de caracteres em ANSI.</summary>
 public sealed record EncodedText(byte[] Bytes, bool LostCharacters);
@@ -44,12 +47,17 @@ public static class TextCodec
 
         string text = GetDecoding(kind, ansiCodePage).GetString(data[skip..]);
         text = text.Replace('\0', ' ');
-        return new DecodedText(LineEndings.ToEditor(text), kind, LineEndings.Detect(text));
+        return new DecodedText(LineEndings.ToEditor(text), kind, LineBreakMap.FromFileText(text));
     }
 
-    public static EncodedText Encode(string editorText, TextEncodingKind kind, LineEnding lineEnding, int ansiCodePage)
+    /// <summary>Todas as quebras no tipo <paramref name="lineEnding"/>.</summary>
+    public static EncodedText Encode(string editorText, TextEncodingKind kind, LineEnding lineEnding, int ansiCodePage) =>
+        Encode(editorText, kind, new LineBreakMap(lineEnding), ansiCodePage);
+
+    /// <summary>Quebras guardadas no mapa voltam como estavam; as demais vão no tipo do documento.</summary>
+    public static EncodedText Encode(string editorText, TextEncodingKind kind, LineBreakMap lineBreaks, int ansiCodePage)
     {
-        string text = LineEndings.FromEditor(editorText, lineEnding);
+        string text = lineBreaks.ToFileText(editorText);
         switch (kind)
         {
             case TextEncodingKind.Ansi:

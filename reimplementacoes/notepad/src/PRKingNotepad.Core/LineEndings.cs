@@ -12,7 +12,7 @@ public enum LineEnding
 
 /// <summary>
 /// Detecção e conversão de quebras de linha. O editor trabalha sempre com CRLF;
-/// na gravação o texto volta para o tipo do documento.
+/// na gravação o texto volta para o tipo do documento (ou para o mapa de quebras, <see cref="LineBreakMap"/>).
 /// </summary>
 public static class LineEndings
 {
@@ -80,4 +80,148 @@ public static class LineEndings
     public static string ToEditor(string text) => Normalize(text, EditorNewLine);
 
     public static string FromEditor(string editorText, LineEnding ending) => Normalize(editorText, ending.Sequence());
+}
+
+/// <summary>
+/// Quebras do arquivo que diferem do tipo do documento, guardadas pela posição no texto do editor (sempre CRLF)
+/// e deslocadas a cada edição. Na gravação voltam como estavam; quebra nova, ou tocada por uma edição, sai no
+/// tipo do documento (especificação, seção 14, R7).
+/// </summary>
+public sealed class LineBreakMap
+{
+    private readonly List<int> _offsets = [];
+    private readonly List<LineEnding> _endings = [];
+
+    public LineBreakMap(LineEnding documentEnding)
+    {
+        DocumentEnding = documentEnding;
+    }
+
+    /// <summary>Tipo do documento: o da primeira quebra do arquivo.</summary>
+    public LineEnding DocumentEnding { get; }
+
+    /// <summary>Quantas quebras guardadas diferem do tipo do documento.</summary>
+    public int Count => _offsets.Count;
+
+    /// <summary>Lê as quebras do texto do arquivo (antes de <see cref="LineEndings.ToEditor"/>).</summary>
+    public static LineBreakMap FromFileText(string fileText)
+    {
+        var map = new LineBreakMap(LineEndings.Detect(fileText));
+        int editorOffset = 0;
+        for (int i = 0; i < fileText.Length; i++)
+        {
+            char c = fileText[i];
+            if (c != '\r' && c != '\n')
+            {
+                editorOffset++;
+                continue;
+            }
+
+            LineEnding ending;
+            if (c == '\r' && i + 1 < fileText.Length && fileText[i + 1] == '\n')
+            {
+                ending = LineEnding.CrLf;
+                i++;
+            }
+            else
+            {
+                ending = c == '\n' ? LineEnding.Lf : LineEnding.Cr;
+            }
+            if (ending != map.DocumentEnding)
+            {
+                map._offsets.Add(editorOffset);
+                map._endings.Add(ending);
+            }
+            editorOffset += LineEndings.EditorNewLine.Length;
+        }
+        return map;
+    }
+
+    /// <summary>
+    /// Acompanha uma edição do texto do editor: quebra guardada que a edição apaga ou parte ao meio
+    /// é esquecida; as que vêm depois andam junto.
+    /// </summary>
+    public void Apply(int offset, int removedLength, int addedLength)
+    {
+        int end = offset + removedLength;
+        int delta = addedLength - removedLength;
+        int i = FirstAtOrAfter(offset - 1);
+        while (i < _offsets.Count)
+        {
+            int p = _offsets[i];
+            bool touched = removedLength > 0
+                ? p < end && offset < p + LineEndings.EditorNewLine.Length
+                : p < offset && offset < p + LineEndings.EditorNewLine.Length;
+            if (touched)
+            {
+                _offsets.RemoveAt(i);
+                _endings.RemoveAt(i);
+            }
+            else
+            {
+                if (p >= end)
+                {
+                    _offsets[i] = p + delta;
+                }
+                i++;
+            }
+        }
+    }
+
+    /// <summary>Texto do editor com cada quebra no tipo guardado para a posição dela, ou no tipo do documento.</summary>
+    public string ToFileText(string editorText)
+    {
+        if (editorText.AsSpan().IndexOfAny('\r', '\n') < 0)
+        {
+            return editorText;
+        }
+
+        string documentSequence = DocumentEnding.Sequence();
+        var sb = new StringBuilder(editorText.Length + editorText.Length / 16);
+        int next = 0;
+        for (int i = 0; i < editorText.Length; i++)
+        {
+            char c = editorText[i];
+            if (c != '\r' && c != '\n')
+            {
+                sb.Append(c);
+                continue;
+            }
+
+            bool crLf = c == '\r' && i + 1 < editorText.Length && editorText[i + 1] == '\n';
+            while (next < _offsets.Count && _offsets[next] < i)
+            {
+                next++;
+            }
+            if (crLf && next < _offsets.Count && _offsets[next] == i)
+            {
+                sb.Append(_endings[next].Sequence());
+                next++;
+            }
+            else
+            {
+                // Quebra nova, ou solta (colada sem conversão): vai no tipo do documento.
+                sb.Append(documentSequence);
+            }
+            if (crLf)
+            {
+                i++;
+            }
+        }
+        return sb.ToString();
+    }
+
+    public LineBreakMap Clone()
+    {
+        var copy = new LineBreakMap(DocumentEnding);
+        copy._offsets.AddRange(_offsets);
+        copy._endings.AddRange(_endings);
+        return copy;
+    }
+
+    private int FirstAtOrAfter(int offset)
+    {
+        int i = _offsets.BinarySearch(offset);
+        return i >= 0 ? i : ~i;
+    }
 }

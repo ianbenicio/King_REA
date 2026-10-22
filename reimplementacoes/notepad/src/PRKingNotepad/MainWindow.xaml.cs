@@ -17,7 +17,7 @@ public partial class MainWindow : Window
     private readonly int _ansiCodePage = (int)NativeMethods.GetACP();
     private string? _path;
     private TextEncodingKind _encoding;
-    private LineEnding _lineEnding = LineEnding.CrLf;
+    private LineBreakMap _lineBreaks = new(LineEnding.CrLf);
     private bool _dirty;
     private bool _loading;
     private readonly SearchState _search = new();
@@ -34,7 +34,7 @@ public partial class MainWindow : Window
         _settings = SettingsStore.Load(_settingsPath);
         InitializeComponent();
         ApplySettings();
-        SetDocument("", null, DefaultEncoding, LineEnding.CrLf);
+        SetDocument("", null, DefaultEncoding, new LineBreakMap(LineEnding.CrLf));
     }
 
     private string DocumentName => _path is null ? UntitledName : Path.GetFileName(_path);
@@ -96,7 +96,7 @@ public partial class MainWindow : Window
     {
         if (ConfirmDiscard())
         {
-            SetDocument("", null, DefaultEncoding, LineEnding.CrLf);
+            SetDocument("", null, DefaultEncoding, new LineBreakMap(LineEnding.CrLf));
         }
     }
 
@@ -182,7 +182,7 @@ public partial class MainWindow : Window
             return false;
         }
 
-        SetDocument(decoded.EditorText, path, decoded.Encoding, decoded.LineEnding);
+        SetDocument(decoded.EditorText, path, decoded.Encoding, decoded.LineBreaks);
         if (userOpen)
         {
             _services.AddToRecentDocuments(path);
@@ -195,7 +195,7 @@ public partial class MainWindow : Window
         return true;
     }
 
-    private void SetDocument(string editorText, string? path, TextEncodingKind encoding, LineEnding lineEnding)
+    private void SetDocument(string editorText, string? path, TextEncodingKind encoding, LineBreakMap lineBreaks)
     {
         _loading = true;
         try
@@ -214,7 +214,7 @@ public partial class MainWindow : Window
 
         _path = path;
         _encoding = encoding;
-        _lineEnding = lineEnding;
+        _lineBreaks = lineBreaks;
         _dirty = false;
         UpdateTitle();
         UpdateStatus();
@@ -234,7 +234,7 @@ public partial class MainWindow : Window
     /// <summary>Grava na codificação pedida; o documento só passa a usá-la se a gravação der certo.</summary>
     private bool SaveTo(string path, TextEncodingKind encoding)
     {
-        var encoded = TextCodec.Encode(Editor.Text, encoding, _lineEnding, _ansiCodePage);
+        var encoded = TextCodec.Encode(Editor.Text, encoding, _lineBreaks, _ansiCodePage);
         if (encoded.LostCharacters)
         {
             var answer = Ask(
@@ -328,6 +328,10 @@ public partial class MainWindow : Window
         if (_loading)
         {
             return;
+        }
+        foreach (var change in e.Changes)
+        {
+            _lineBreaks.Apply(change.Offset, change.RemovedLength, change.AddedLength);
         }
         StatusMessage.Text = "";
         if (!_dirty)
@@ -432,7 +436,8 @@ public partial class MainWindow : Window
     /// <summary>Substitui todas as ocorrências numa única edição desfazível.</summary>
     private void ReplaceAll()
     {
-        var (text, count) = TextFinder.ReplaceAll(Editor.Text, _search.Term, _search.Replacement, _search.MatchCase);
+        var lineBreaks = _lineBreaks.Clone();
+        var (text, count) = TextFinder.ReplaceAll(Editor.Text, _search.Term, _search.Replacement, _search.MatchCase, lineBreaks);
         if (count == 0)
         {
             Inform($"Não foi encontrado: “{_search.Term}”.");
@@ -448,6 +453,8 @@ public partial class MainWindow : Window
         {
             Editor.EndChange();
         }
+        // A troca do texto inteiro esquece as quebras guardadas; o mapa acompanhado troca por troca as devolve.
+        _lineBreaks = lineBreaks;
         Editor.Select(0, 0);
         Editor.ScrollToHome();
         StatusMessage.Text = count == 1 ? "1 ocorrência substituída." : $"{count} ocorrências substituídas.";
@@ -487,7 +494,7 @@ public partial class MainWindow : Window
 
     private void UpdateStatus()
     {
-        StatusLineEnding.Text = _lineEnding.DisplayName();
+        StatusLineEnding.Text = _lineBreaks.DocumentEnding.DisplayName();
         StatusEncoding.Text = _encoding.DisplayName();
         UpdatePosition();
     }

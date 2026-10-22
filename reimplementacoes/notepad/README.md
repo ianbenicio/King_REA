@@ -39,7 +39,7 @@ src\PRKingNotepad\bin\Debug\net10.0-windows\PRKingNotepad.exe [/A | /W] [arquivo
 | 2 | Localizar e substituir (janelas não modais, F3 / Shift+F3, dar a volta com aviso na barra de status, substituir tudo numa só edição desfazível); ir para linha (com aviso de linha inexistente); lista de codificação nas caixas Abrir/Salvar do Windows | Feito |
 | 3 | Fonte (caixa nativa do Windows), quebra automática, zoom 10–500 % (Ctrl+= / Ctrl+- / Ctrl+0 e Ctrl+roda do mouse), preferências persistentes (fonte, quebra, barra de status, busca, codificação padrão), posição e tamanho da janela | Feito |
 | 4 | Configurar página (papel, origem, orientação, margens, cabeçalho e rodapé, escolha da impressora); impressão com códigos `&f` `&p` `&d` `&t` `&l` `&c` `&r` `&&`, quebra das linhas longas, intervalo de páginas e janela de progresso com Cancelar; ajuda local (F1) e Sobre; registro nos documentos recentes do Windows | Feito |
-| 5 | Conformidade com a especificação item a item ([`CONFORMIDADE.md`](CONFORMIDADE.md)); pergunta de salvar em janela própria (Salvar / Não salvar / Cancelar); arquivo grande demais como aviso; pontos de troca para os testes de interface | Em andamento |
+| 5 | Conformidade com a especificação item a item ([`CONFORMIDADE.md`](CONFORMIDADE.md)); pergunta de salvar em janela própria (Salvar / Não salvar / Cancelar); arquivo grande demais como aviso; pontos de troca para os testes de interface; quebras de linha mistas preservadas na gravação (roteiro R7) | Em andamento |
 
 Fora desta versão (a especificação permite): impressão pela linha de comando (`/P`, `/PT`), pesquisar a seleção na web (Ctrl+E), enviar comentários, restauração após reinício do Windows, GB18030.
 
@@ -57,13 +57,13 @@ Decisões deliberadas, permitidas pela especificação ou tomadas onde ela deixa
 
 1. **Desfazer de vários níveis** (o controle de texto do WPF), em vez de um nível só.
 2. **Gravação segura:** grava num arquivo temporário na mesma pasta e só então substitui o destino; o original grava direto no arquivo.
-3. **Quebras de linha mistas:** o tipo do documento é o da primeira quebra, e ao salvar todas as quebras passam para esse tipo. Arquivos com um só tipo de quebra voltam idênticos.
+3. **Quebras de linha mistas:** como no original (especificação §14, R7), o tipo do documento é o da primeira quebra, as quebras do arquivo voltam como estavam e as novas saem no tipo do documento. Diferença que fica: quebra apagada e trazida de volta por Desfazer (ou retocada por uma edição) sai no tipo do documento; o original não foi observado nesse caso.
 4. **UTF-16 sem BOM:** heurística própria (bytes zero em posições ímpares), só para texto de alfabeto latino e a partir de 100 bytes.
 5. **Linha de comando:** nome sem extensão que não existe passa a ser `nome.txt`.
-6. **Busca:** comparação ordinal (com ou sem diferenciar maiúsculas), sem regras de idioma; a seleção de uma linha vira o termo ao abrir Localizar ou Substituir; Substituir sempre anda para baixo.
-7. **Zoom:** aplicado como escala do tamanho da fonte; Ctrl+roda do mouse também altera (no original, a confirmar).
+6. **Busca:** comparação ordinal (com ou sem diferenciar maiúsculas), sem regras de idioma; a seleção de uma linha vira o termo ao abrir Localizar ou Substituir, e sem seleção fica o último termo, como no original; seleção de várias linhas não muda o termo (o original a põe no campo com as linhas emendadas, sem a quebra: §14, R2); Substituir sempre anda para baixo.
+7. **Zoom:** aplicado como escala do tamanho da fonte. Ctrl+roda do mouse altera 10 % por clique, para cima aumenta, como no original (§14, R3).
 8. **Posição da janela:** só é restaurada se a barra de título cair numa área visível da tela (monitor desconectado não "perde" a janela).
-9. **Impressão:** cabeçalho na primeira linha da área útil e rodapé na última, cada um separado do texto por uma linha em branco; sem código de alinhamento, o texto fica centralizado. Margens padrão próprias (20 mm laterais, 25 mm em cima e embaixo), porque as do original ficaram "a confirmar". Papel, origem e orientação valem só para a sessão; margens, cabeçalho e rodapé são lembrados.
+9. **Impressão:** cabeçalho na primeira linha da área útil e rodapé na última, cada um separado do texto por uma linha em branco; sem código de alinhamento, o texto fica centralizado. As margens padrão (20 mm laterais, 25 mm em cima e embaixo) são as vistas no original, com a ressalva de que ele talvez já tivesse sido ajustado antes (§14, R6); cabeçalho `&f` e rodapé `Página &p` seguem a §9, porque os campos vazios vistos no original não contam como padrão. Papel, origem e orientação vêm da impressora e valem só para a sessão; margens, cabeçalho e rodapé são lembrados.
 10. **Ajuda:** janela local com o resumo e os atalhos, em vez de uma página na internet.
 11. **Documentos recentes:** como no Windows em geral, arquivos dentro da pasta temporária não entram na lista.
 12. **Fonte e janela:** a fonte grava nome, tamanho, negrito e itálico. O conjunto de caracteres não é gravado, porque o WPF desenha em Unicode e ele não muda nada na tela; pesos intermediários (por exemplo, "Segoe UI Light") ficam no nome da família, como a caixa de fonte do Windows os mostra. O tamanho inicial da janela é 900 × 600, centralizada na tela.

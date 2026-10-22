@@ -265,3 +265,21 @@ Itens marcados "(a confirmar)" acima, e:
 
 - Comportamento com fins de linha misturados no mesmo arquivo.
 - Medidas exatas das margens padrão de impressão nesta versão.
+
+## 14. Adendo — confirmação por observação (2026-10-22)
+
+Respostas do [roteiro de confirmação](roteiro-confirmacao.md) R1–R7, observadas pelo responsável com o programa em uso normal (sem ferramentas de RE); os bytes vêm de `Format-Hex` sobre os arquivos que ele salvou. As seções 1–13 ficam como estão; onde este adendo fecha um "(a confirmar)", vale o que está aqui.
+
+**Versão observada:** a caixa Sobre mostrou "Windows 10 Pro, Versão 22H2 (Compilação 19045.6466)", sem número próprio do programa. A especificação foi feita sobre o `notepad.exe` 10.0.19041.4522: a compilação do Windows é outra (19045.6466 contra 19041.4522). As respostas valem para a compilação observada.
+
+| Item | Seção | Resultado | O que se viu |
+|---|---|---|---|
+| R1 | §2 | confirmado | Com a quebra automática ligada, Ir para linha continua habilitado no menu, e Ctrl+G abre a caixa e leva à linha pedida. |
+| R2 | §4.1 | confirmado | Seleção dentro de uma linha vai inteira para o campo do termo, em Localizar e em Substituir (Ctrl+H). Seleção de duas linhas vai para o campo com as linhas coladas uma na outra, sem a quebra ("linha4linha5"). Sem seleção, com o cursor no meio de uma palavra, o campo mostra o último termo buscado, e não a palavra. |
+| R3 | §5.3 | confirmado | Ctrl + roda do mouse altera o zoom: 10 % por clique, roda para cima aumenta. |
+| R4 | §7.3 | confirmado | Documento novo, nunca salvo antes, sai em UTF-8 sem BOM ("ação" gravou `61 C3 A7 C3 A3 6F`); a barra de status e a lista da caixa Salvar como mostram UTF-8. |
+| R5 | §8 | confirmado | Texto com LF colado num documento CRLF é gravado com CRLF (`0D 0A`) no lugar da quebra colada; o tipo mostrado na barra não muda. |
+| R6 | §9, §13 | confirmado (margens, com ressalva); não observável (cabeçalho e rodapé como padrão) | Configurar página mostrou margens esquerda/direita/superior/inferior de 20/20/25/25 mm, papel A4 e orientação retrato, com cabeçalho e rodapé vazios. O responsável não sabe se já tinha mudado essas opções antes: as margens valem como padrão com essa ressalva; cabeçalho e rodapé vazios não contam como padrão de fábrica, e o padrão da tabela da §9 (`&f` e `Página &p`) fica como está. |
+| R7 | §8, §13 | confirmado | Arquivo com CRLF, LF e CR (nessa ordem) entre quatro linhas abre com as 4 linhas e a barra em Windows (CRLF). Ao salvar depois de acrescentar uma linha, cada quebra original volta com os mesmos bytes, e a quebra nova sai em CRLF. Arquivo cuja primeira quebra é LF (e a segunda CRLF) abre com a barra em Unix (LF). Regra: o tipo do documento é o da primeira quebra, as quebras existentes são preservadas como estão, e as novas usam o tipo do documento. |
+
+Com isso a lacuna "fins de linha misturados" da §13 fica fechada pela linha R7, e a lacuna das margens fica fechada com a ressalva da linha R6.
