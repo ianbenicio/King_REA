@@ -1,4 +1,5 @@
 {
+  "autoCompactWindow": 300000,
   "env": {
     "ECC_DISABLED_HOOKS": "pre:edit-write:gateguard-fact-force",
     "MCP_TIMEOUT": "90000"
