@@ -1,4 +1,4 @@
-# Conformidade — PRKing Notepad × especificação (§1–§11)
+| ok por código e teste: `FileMessages.OutOfMemory` com o nome do arquivo, chamado em `MainWindow.xaml.cs`:174–176; `MessageTests.cs`:72 || não executado: sem impressora física (o M3 cobriu a impressão pela Microsoft Print to PDF) || ok || ok — pede confirmação e sobrescreve || ok — grava `teste.txt` || ok || ok || ok || ok (Microsoft Print to PDF; Cancelar na janela de progresso) || ok || ok — pergunta de salvar com Salvar / Não salvar / Cancelar; um e dois arquivos como esperado |# Conformidade — PRKing Notepad × especificação (§1–§11)
 
 **Data:** 2026-10-21 · **Unidade:** U1 do bloco 5 (S3 do Harness) · **Base:** `main` @ `f28204a` · **Fonte única:** [`registros/notepad-reimpl/especificacao.md`](../../registros/notepad-reimpl/especificacao.md)
 
@@ -322,6 +322,8 @@ Para o responsável executar antes do gate (U4), no programa compilado (`dotnet 
 | M9 | 6.2.e | Abrir um arquivo pela caixa Abrir; olhar os recentes do Windows (Explorer > Acesso rápido, ou a lista de atalhos do programa). Repetir com um arquivo da pasta temporária. | O arquivo aparece nos recentes; o da pasta temporária não (Dif. 11). | |
 | M10 | 10.a | Com impressora instalada: Arquivo > Configurar página; trocar papel, origem e orientação; imprimir. | A caixa lista as opções da impressora; a impressão usa o que foi escolhido (Dif. 9: só na sessão). | |
 | M11 | 11.h | Não reproduzível sem injetar falha. Conferir no código a mensagem (`FileMessages.OutOfMemory`, chamada em `MW` `LoadFile`). | Mensagem de erro com o nome do arquivo. | |
+
+Resultados de 2026-10-22, executados pelo responsável no PRKing Notepad compilado (build Debug de `60f3c26`). Uma primeira rodada foi feita por engano no Bloco de Notas do Windows e foi descartada; ela só confirma o original.
 
 ---
 
