@@ -164,9 +164,10 @@ internal sealed class Notepad : IDisposable
         {
             Directory.Delete(Folder, recursive: true);
         }
-        catch (IOException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            // Um arquivo ainda aberto por um teste que falhou: a pasta temporária fica para o sistema limpar.
+            // Um arquivo ainda aberto (ou somente leitura) por um teste que falhou: a pasta temporária fica
+            // para o sistema limpar, e a falha que aparece é a do teste.
         }
     }
 }

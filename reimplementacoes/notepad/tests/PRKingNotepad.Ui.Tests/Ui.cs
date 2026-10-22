@@ -21,9 +21,11 @@ internal static class Ui
     public static void Run(Action body)
     {
         ExceptionDispatchInfo? failure = null;
+        Dispatcher? running = null;
         var thread = new Thread(() =>
         {
             var dispatcher = Dispatcher.CurrentDispatcher;
+            running = dispatcher;
             SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(dispatcher));
             try
             {
@@ -41,8 +43,14 @@ internal static class Ui
         thread.SetApartmentState(ApartmentState.STA);
         thread.IsBackground = true;
         thread.Start();
-        // Uma caixa modal que ninguém fecha vira falha, não um teste parado para sempre.
-        Assert.True(thread.Join(Limit), $"O teste de interface passou de {Limit.TotalSeconds} s (caixa modal aberta?).");
+        // Uma caixa modal que ninguém fecha vira falha, não um teste parado para sempre. O dispatcher é encerrado
+        // (o laço da caixa termina com ele) para a janela não seguir aberta durante os testes seguintes.
+        if (!thread.Join(Limit))
+        {
+            running?.BeginInvokeShutdown(DispatcherPriority.Send);
+            thread.Join(TimeSpan.FromSeconds(5));
+            Assert.Fail($"O teste de interface passou de {Limit.TotalSeconds} s (caixa modal aberta?).");
+        }
         failure?.Throw();
     }
 
