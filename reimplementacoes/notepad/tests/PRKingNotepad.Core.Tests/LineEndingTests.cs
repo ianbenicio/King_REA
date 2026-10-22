@@ -133,11 +133,32 @@ public class LineEndingTests
     }
 
     [Fact]
+    public void Touches_is_true_only_for_spans_that_overlap_a_kept_break()
+    {
+        // "ab" CRLF "cd" LF "ef", documento em CRLF: a LF guardada ocupa [6, 8) no editor.
+        var map = Open("ab\r\ncd\nef").LineBreaks;
+        Assert.Equal(1, map.Count);
+        Assert.False(map.Touches(5, 6));
+        Assert.True(map.Touches(5, 7));
+        Assert.True(map.Touches(7, 9));
+        Assert.False(map.Touches(8, 10));
+        Assert.False(map.Touches(6, 6));
+        Assert.False(map.Touches(0, 4));
+    }
+
+    [Fact]
     public void Replace_all_keeps_breaks_outside_the_matches()
     {
         var decoded = Open(Mixed);
-        var (text, count) = TextFinder.ReplaceAll(decoded.EditorText, "linha", "L", matchCase: true, decoded.LineBreaks);
+        var (edits, count) = TextFinder.ReplaceAllEdits(decoded.EditorText, "linha", "L", matchCase: true, decoded.LineBreaks);
         Assert.Equal(4, count);
+        string text = decoded.EditorText;
+        for (int k = edits.Count - 1; k >= 0; k--)
+        {
+            var edit = edits[k];
+            text = text[..edit.Start] + edit.Text + text[(edit.Start + edit.Length)..];
+            decoded.LineBreaks.Apply(edit.Start, edit.Length, edit.Text.Length);
+        }
         Assert.Equal("L1\r\nL2\nL3\rL4", Save(decoded, text));
     }
 }

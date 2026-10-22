@@ -11,6 +11,9 @@ public sealed record SearchOptions(bool MatchCase, SearchDirection Direction, bo
 /// <summary>Trecho encontrado; <see cref="Wrapped"/> = a busca recomeçou do outro extremo.</summary>
 public sealed record SearchMatch(int Index, int Length, bool Wrapped);
 
+/// <summary>Troca de <see cref="Length"/> caracteres a partir de <see cref="Start"/> por <see cref="Text"/>.</summary>
+public readonly record struct TextEdit(int Start, int Length, string Text);
+
 /// <summary>Localizar e substituir (especificação, 4.1).</summary>
 public static class TextFinder
 {
@@ -59,9 +62,7 @@ public static class TextFinder
         && text.AsSpan(selectionStart, selectionLength).Equals(term, Comparison(matchCase));
 
     /// <summary>Texto com todas as ocorrências trocadas e quantas foram.</summary>
-    /// <param name="lineBreaks">Se dado, acompanha cada troca (quebras fora das ocorrências ficam como estavam).</param>
-    public static (string Text, int Count) ReplaceAll(string text, string term, string replacement, bool matchCase,
-        LineBreakMap? lineBreaks = null)
+    public static (string Text, int Count) ReplaceAll(string text, string term, string replacement, bool matchCase)
     {
         if (term.Length == 0)
         {
@@ -75,7 +76,6 @@ public static class TextFinder
         int i;
         while ((i = text.IndexOf(term, from, comparison)) >= 0)
         {
-            lineBreaks?.Apply(sb.Length + (i - from), term.Length, replacement.Length);
             sb.Append(text, from, i - from).Append(replacement);
             from = i + term.Length;
             count++;
@@ -88,22 +88,51 @@ public static class TextFinder
         return (sb.ToString(), count);
     }
 
-    /// <summary>Posições das ocorrências, sem sobreposição e na ordem do texto: as mesmas que <see cref="ReplaceAll"/> troca.</summary>
-    public static List<int> FindAll(string text, string term, bool matchCase)
+    /// <summary>
+    /// As mesmas trocas de <see cref="ReplaceAll"/>, juntas no menor número de edições que não encostam
+    /// em nenhuma quebra guardada no mapa: sem quebras guardadas, uma edição só. Na ordem do texto; aplicadas
+    /// do fim para o início, as posições continuam valendo e o mapa acompanha cada edição sem perder quebras.
+    /// </summary>
+    public static (List<TextEdit> Edits, int Count) ReplaceAllEdits(string text, string term, string replacement,
+        bool matchCase, LineBreakMap lineBreaks)
     {
-        var positions = new List<int>();
+        var edits = new List<TextEdit>();
         if (term.Length == 0)
         {
-            return positions;
+            return (edits, 0);
         }
+
         var comparison = Comparison(matchCase);
-        int i = 0;
-        while ((i = text.IndexOf(term, i, comparison)) >= 0)
+        var sb = new System.Text.StringBuilder();
+        int count = 0;
+        int start = -1;
+        int end = 0;
+        int i;
+        while ((i = text.IndexOf(term, end, comparison)) >= 0)
         {
-            positions.Add(i);
-            i += term.Length;
+            if (start >= 0 && lineBreaks.Touches(end, i))
+            {
+                edits.Add(new TextEdit(start, end - start, sb.ToString()));
+                start = -1;
+            }
+            if (start < 0)
+            {
+                start = i;
+                sb.Clear();
+            }
+            else
+            {
+                sb.Append(text, end, i - end);
+            }
+            sb.Append(replacement);
+            end = i + term.Length;
+            count++;
         }
-        return positions;
+        if (start >= 0)
+        {
+            edits.Add(new TextEdit(start, end - start, sb.ToString()));
+        }
+        return (edits, count);
     }
 
     private static StringComparison Comparison(bool matchCase) =>

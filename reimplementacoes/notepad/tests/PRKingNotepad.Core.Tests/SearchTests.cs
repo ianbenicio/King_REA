@@ -67,12 +67,39 @@ public class SearchTests
     }
 
     [Fact]
-    public void Find_all_lists_the_occurrences_replace_all_swaps()
+    public void Replace_all_edits_without_kept_breaks_are_a_single_edit()
     {
-        Assert.Equal([0, 5, 10], TextFinder.FindAll(Text, "gato", matchCase: false));
-        Assert.Equal([5], TextFinder.FindAll(Text, "gato", matchCase: true));
-        Assert.Equal([0, 2], TextFinder.FindAll("aaaaa", "aa", matchCase: true));
-        Assert.Empty(TextFinder.FindAll(Text, "", matchCase: false));
+        var none = new LineBreakMap(LineEnding.CrLf);
+        AssertEdits([new TextEdit(0, 14, "rato rato rato")], 3, TextFinder.ReplaceAllEdits(Text, "gato", "rato", matchCase: false, none));
+        AssertEdits([new TextEdit(5, 4, "rato")], 1, TextFinder.ReplaceAllEdits(Text, "gato", "rato", matchCase: true, none));
+        AssertEdits([new TextEdit(0, 4, "bb")], 2, TextFinder.ReplaceAllEdits("aaaaa", "aa", "b", matchCase: true, none));
+        AssertEdits([], 0, TextFinder.ReplaceAllEdits(Text, "", "x", matchCase: false, none));
+        AssertEdits([], 0, TextFinder.ReplaceAllEdits(Text, "rato", "x", matchCase: false, none));
+    }
+
+    private static void AssertEdits(List<TextEdit> edits, int count, (List<TextEdit> Edits, int Count) actual)
+    {
+        Assert.Equal(edits, actual.Edits);
+        Assert.Equal(count, actual.Count);
+    }
+
+    [Fact]
+    public void Replace_all_edits_split_at_kept_breaks_and_match_replace_all()
+    {
+        // "a1" CRLF "a2" LF "a3" LF "a4" CRLF "a5", documento em CRLF: guardadas as duas LF (posições 6 e 10).
+        var decoded = TextCodec.Decode(System.Text.Encoding.UTF8.GetBytes("a1\r\na2\na3\na4\r\na5"), null, 1252);
+        var map = decoded.LineBreaks;
+        var (edits, count) = TextFinder.ReplaceAllEdits(decoded.EditorText, "a", "bb", matchCase: true, map);
+
+        Assert.Equal(5, count);
+        Assert.Equal([new TextEdit(0, 5, "bb1\r\nbb"), new TextEdit(8, 1, "bb"), new TextEdit(12, 5, "bb4\r\nbb")], edits);
+        Assert.All(edits, e => Assert.False(map.Touches(e.Start, e.Start + e.Length)));
+        string text = decoded.EditorText;
+        for (int k = edits.Count - 1; k >= 0; k--)
+        {
+            text = text[..edits[k].Start] + edits[k].Text + text[(edits[k].Start + edits[k].Length)..];
+        }
+        Assert.Equal(TextFinder.ReplaceAll(decoded.EditorText, "a", "bb", matchCase: true).Text, text);
     }
 }
 

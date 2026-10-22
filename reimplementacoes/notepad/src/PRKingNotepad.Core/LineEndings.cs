@@ -168,6 +168,17 @@ public sealed class LineBreakMap
         }
     }
 
+    /// <summary>Verdadeiro se apagar o trecho [<paramref name="start"/>, <paramref name="end"/>) esqueceria alguma quebra guardada.</summary>
+    public bool Touches(int start, int end)
+    {
+        if (start >= end)
+        {
+            return false;
+        }
+        int i = FirstAtOrAfter(start - LineEndings.EditorNewLine.Length + 1);
+        return i < _offsets.Count && _offsets[i] < end;
+    }
+
     /// <summary>Texto do editor com cada quebra no tipo guardado para a posição dela, ou no tipo do documento.</summary>
     public string ToFileText(string editorText)
     {
