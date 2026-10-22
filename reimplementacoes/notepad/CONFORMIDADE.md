@@ -1,4 +1,4 @@
-| ok por código e teste: `FileMessages.OutOfMemory` com o nome do arquivo, chamado em `MainWindow.xaml.cs`:174–176; `MessageTests.cs`:72 || não executado: sem impressora física (o M3 cobriu a impressão pela Microsoft Print to PDF) || ok || ok — pede confirmação e sobrescreve || ok — grava `teste.txt` || ok || ok || ok || ok (Microsoft Print to PDF; Cancelar na janela de progresso) || ok || ok — pergunta de salvar com Salvar / Não salvar / Cancelar; um e dois arquivos como esperado |# Conformidade — PRKing Notepad × especificação (§1–§11)
+# Conformidade — PRKing Notepad × especificação (§1–§11)
 
 **Data:** 2026-10-21 · **Unidade:** U1 do bloco 5 (S3 do Harness) · **Base:** `main` @ `f28204a` · **Fonte única:** [`registros/notepad-reimpl/especificacao.md`](../../registros/notepad-reimpl/especificacao.md)
 
@@ -311,17 +311,17 @@ Para o responsável executar antes do gate (U4), no programa compilado (`dotnet 
 
 | # | Linhas | Passos | Esperado | Resultado |
 |---|---|---|---|---|
-| M1 | 1.d, 6.6.a | Digitar algo; arrastar um `.txt` do Explorer para a janela; responder "Não salvar". Depois arrastar dois arquivos de uma vez. | Pergunta de salvar antes; o arquivo abre. Com dois, só o primeiro abre. | |
-| M2 | 2.b | Ctrl+Shift+N. | Abre outra janela do programa (processo novo), com documento vazio. | |
-| M3 | 2.g, 10.c | Documento de 3 ou mais páginas; Ctrl+P; escolher "Microsoft Print to PDF" e imprimir. Repetir e clicar Cancelar na janela de progresso. | Caixa Imprimir padrão; progresso "Página n de N"; Cancelar para a impressão. | |
-| M4 | 2.w, 5.2.a | Formatar > Fonte…; trocar nome, estilo e tamanho; OK. Fechar e abrir o programa. | Caixa nativa; o documento inteiro muda; a fonte volta igual na próxima execução. | |
-| M5 | 6.2.b | Ctrl+O; abrir a lista de tipos e a de codificação; abrir um arquivo UTF-16 com a codificação em detecção automática. | Filtros "Arquivos de texto" e "Todos os arquivos"; lista na ordem da spec; barra mostra UTF-16 LE. | |
-| M6 | 6.4.a | Documento sem nome, Ctrl+Shift+S. | Nome sugerido `*.txt`; filtros; lista de codificação sem detecção, com a atual marcada. | |
-| M7 | 6.4.b | Salvar como `teste` (sem extensão) com o filtro de texto; repetir com "Todos os arquivos". | Com o filtro de texto grava `teste.txt`; anotar o que acontece com "Todos os arquivos". | |
-| M8 | 6.4.c | Salvar como sobre um arquivo que já existe. | Pede confirmação antes de sobrescrever. | |
-| M9 | 6.2.e | Abrir um arquivo pela caixa Abrir; olhar os recentes do Windows (Explorer > Acesso rápido, ou a lista de atalhos do programa). Repetir com um arquivo da pasta temporária. | O arquivo aparece nos recentes; o da pasta temporária não (Dif. 11). | |
-| M10 | 10.a | Com impressora instalada: Arquivo > Configurar página; trocar papel, origem e orientação; imprimir. | A caixa lista as opções da impressora; a impressão usa o que foi escolhido (Dif. 9: só na sessão). | |
-| M11 | 11.h | Não reproduzível sem injetar falha. Conferir no código a mensagem (`FileMessages.OutOfMemory`, chamada em `MW` `LoadFile`). | Mensagem de erro com o nome do arquivo. | |
+| M1 | 1.d, 6.6.a | Digitar algo; arrastar um `.txt` do Explorer para a janela; responder "Não salvar". Depois arrastar dois arquivos de uma vez. | Pergunta de salvar antes; o arquivo abre. Com dois, só o primeiro abre. |  ok — pergunta de salvar com Salvar / Não salvar / Cancelar; um e dois arquivos como esperado |
+| M2 | 2.b | Ctrl+Shift+N. | Abre outra janela do programa (processo novo), com documento vazio. |  ok |
+| M3 | 2.g, 10.c | Documento de 3 ou mais páginas; Ctrl+P; escolher "Microsoft Print to PDF" e imprimir. Repetir e clicar Cancelar na janela de progresso. | Caixa Imprimir padrão; progresso "Página n de N"; Cancelar para a impressão. |  ok (Microsoft Print to PDF; Cancelar na janela de progresso) |
+| M4 | 2.w, 5.2.a | Formatar > Fonte…; trocar nome, estilo e tamanho; OK. Fechar e abrir o programa. | Caixa nativa; o documento inteiro muda; a fonte volta igual na próxima execução. |  ok |
+| M5 | 6.2.b | Ctrl+O; abrir a lista de tipos e a de codificação; abrir um arquivo UTF-16 com a codificação em detecção automática. | Filtros "Arquivos de texto" e "Todos os arquivos"; lista na ordem da spec; barra mostra UTF-16 LE. |  ok |
+| M6 | 6.4.a | Documento sem nome, Ctrl+Shift+S. | Nome sugerido `*.txt`; filtros; lista de codificação sem detecção, com a atual marcada. |  ok |
+| M7 | 6.4.b | Salvar como `teste` (sem extensão) com o filtro de texto; repetir com "Todos os arquivos". | Com o filtro de texto grava `teste.txt`; anotar o que acontece com "Todos os arquivos". |  ok — grava `teste.txt` |
+| M8 | 6.4.c | Salvar como sobre um arquivo que já existe. | Pede confirmação antes de sobrescrever. |  ok — pede confirmação e sobrescreve |
+| M9 | 6.2.e | Abrir um arquivo pela caixa Abrir; olhar os recentes do Windows (Explorer > Acesso rápido, ou a lista de atalhos do programa). Repetir com um arquivo da pasta temporária. | O arquivo aparece nos recentes; o da pasta temporária não (Dif. 11). |  ok |
+| M10 | 10.a | Com impressora instalada: Arquivo > Configurar página; trocar papel, origem e orientação; imprimir. | A caixa lista as opções da impressora; a impressão usa o que foi escolhido (Dif. 9: só na sessão). |  não executado: sem impressora física (o M3 cobriu a impressão pela Microsoft Print to PDF) |
+| M11 | 11.h | Não reproduzível sem injetar falha. Conferir no código a mensagem (`FileMessages.OutOfMemory`, chamada em `MW` `LoadFile`). | Mensagem de erro com o nome do arquivo. |  ok por código e teste: `FileMessages.OutOfMemory` com o nome do arquivo, chamado em `MainWindow.xaml.cs`:174–176; `MessageTests.cs`:72 |
 
 Resultados de 2026-10-22, executados pelo responsável no PRKing Notepad compilado (build Debug de `60f3c26`). Uma primeira rodada foi feita por engano no Bloco de Notas do Windows e foi descartada; ela só confirma o original.
 
