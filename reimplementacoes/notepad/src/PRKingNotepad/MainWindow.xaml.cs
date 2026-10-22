@@ -436,25 +436,28 @@ public partial class MainWindow : Window
     /// <summary>Substitui todas as ocorrências numa única edição desfazível.</summary>
     private void ReplaceAll()
     {
-        var lineBreaks = _lineBreaks.Clone();
-        var (text, count) = TextFinder.ReplaceAll(Editor.Text, _search.Term, _search.Replacement, _search.MatchCase, lineBreaks);
+        var positions = TextFinder.FindAll(Editor.Text, _search.Term, _search.MatchCase);
+        int count = positions.Count;
         if (count == 0)
         {
             Inform($"Não foi encontrado: “{_search.Term}”.");
             return;
         }
+        // Troca por troca, do fim para o início (as posições de antes continuam valendo), e não o texto inteiro:
+        // assim o mapa de quebras acompanha cada troca em OnTextChanged, também no Desfazer e no Refazer.
         Editor.BeginChange();
         try
         {
-            Editor.SelectAll();
-            Editor.SelectedText = text;
+            for (int k = count - 1; k >= 0; k--)
+            {
+                Editor.Select(positions[k], _search.Term.Length);
+                Editor.SelectedText = _search.Replacement;
+            }
         }
         finally
         {
             Editor.EndChange();
         }
-        // A troca do texto inteiro esquece as quebras guardadas; o mapa acompanhado troca por troca as devolve.
-        _lineBreaks = lineBreaks;
         Editor.Select(0, 0);
         Editor.ScrollToHome();
         StatusMessage.Text = count == 1 ? "1 ocorrência substituída." : $"{count} ocorrências substituídas.";

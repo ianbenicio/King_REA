@@ -65,6 +65,15 @@ public class SearchTests
     {
         Assert.Equal(("aa aa", 2), TextFinder.ReplaceAll("a a", "a", "aa", matchCase: true));
     }
+
+    [Fact]
+    public void Find_all_lists_the_occurrences_replace_all_swaps()
+    {
+        Assert.Equal([0, 5, 10], TextFinder.FindAll(Text, "gato", matchCase: false));
+        Assert.Equal([5], TextFinder.FindAll(Text, "gato", matchCase: true));
+        Assert.Equal([0, 2], TextFinder.FindAll("aaaaa", "aa", matchCase: true));
+        Assert.Empty(TextFinder.FindAll(Text, "", matchCase: false));
+    }
 }
 
 public class TextLinesTests

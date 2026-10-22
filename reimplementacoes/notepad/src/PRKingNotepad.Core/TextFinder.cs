@@ -88,6 +88,24 @@ public static class TextFinder
         return (sb.ToString(), count);
     }
 
+    /// <summary>Posições das ocorrências, sem sobreposição e na ordem do texto: as mesmas que <see cref="ReplaceAll"/> troca.</summary>
+    public static List<int> FindAll(string text, string term, bool matchCase)
+    {
+        var positions = new List<int>();
+        if (term.Length == 0)
+        {
+            return positions;
+        }
+        var comparison = Comparison(matchCase);
+        int i = 0;
+        while ((i = text.IndexOf(term, i, comparison)) >= 0)
+        {
+            positions.Add(i);
+            i += term.Length;
+        }
+        return positions;
+    }
+
     private static StringComparison Comparison(bool matchCase) =>
         matchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 }
