@@ -22,7 +22,7 @@ public partial class MainWindow
     private void OnPageSetup(object sender, RoutedEventArgs e)
     {
         EnsureDefaultPrinter();
-        var dialog = new PageSetupWindow(_printQueue, _printTicket, _settings.Page) { Owner = this };
+        var dialog = new PageSetupWindow(_printQueue, _printTicket, _settings.Page, _services.Dialogs) { Owner = this };
         if (dialog.ShowDialog() == true)
         {
             _printQueue = dialog.Queue;
@@ -93,7 +93,7 @@ public partial class MainWindow
             _settings.FontBold ? FontWeights.Bold : FontWeights.Normal,
             FontStretches.Normal);
         return new PrintPaginator(Editor.Text, DocumentName, typeface, _settings.FontSize * DipPerPoint, pageSize,
-            margins, page.Header, page.Footer, DateTime.Now, CultureInfo.CurrentCulture,
+            margins, page.Header, page.Footer, _services.Now(), CultureInfo.CurrentCulture,
             VisualTreeHelper.GetDpi(this).PixelsPerDip);
     }
 

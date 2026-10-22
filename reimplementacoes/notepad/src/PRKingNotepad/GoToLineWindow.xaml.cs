@@ -8,11 +8,13 @@ namespace PRKingNotepad;
 public partial class GoToLineWindow : Window
 {
     private readonly int _lineCount;
+    private readonly IUserDialogs _dialogs;
 
-    public GoToLineWindow(int currentLine, int lineCount)
+    internal GoToLineWindow(int currentLine, int lineCount, IUserDialogs dialogs)
     {
         InitializeComponent();
         _lineCount = lineCount;
+        _dialogs = dialogs;
         LineBox.Text = currentLine.ToString(CultureInfo.InvariantCulture);
         Loaded += (_, _) =>
         {
@@ -46,7 +48,7 @@ public partial class GoToLineWindow : Window
 
     private void Warn(string message)
     {
-        MessageBox.Show(this, message, Title, MessageBoxButton.OK, MessageBoxImage.Warning);
+        _dialogs.Show(this, Title, message, MessageBoxImage.Warning);
         LineBox.Focus();
         LineBox.SelectAll();
     }

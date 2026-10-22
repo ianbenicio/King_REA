@@ -22,14 +22,16 @@ Caminhos de código relativos a `reimplementacoes/notepad/src/`; `MW` = `PRKingN
 
 | Status | Linhas |
 |---|---|
-| ok | 42 |
+| ok | 48 |
 | sem teste | 72 (61 para a U3, às vezes com U2 ou manual junto; 11 só manuais) |
-| divergente | 6 (3 divergências: D1 em 3 linhas, D3 em 2, D2 em 1) |
+| divergente | 0 (D1–D3 resolvidas na U2) |
 | a confirmar | 7 |
 | fora do escopo | 7 |
 | **Total** | **134** |
 
-Divergências (detalhe em [Divergências e destino](#divergências-e-destino)): **D1** botões da pergunta de salvar (corrigir o código); **D2** tipo da mensagem de arquivo grande demais (corrigir o código); **D3** fonte sem conjunto de caracteres e com peso só normal/negrito (README).
+Divergências (detalhe em [Divergências e destino](#divergências-e-destino)), aceitas pelo responsável e resolvidas na U2: **D1** botões da pergunta de salvar (código corrigido); **D2** tipo da mensagem de arquivo grande demais (código corrigido); **D3** fonte sem conjunto de caracteres e com peso só normal/negrito (README, Dif. 12).
+
+**Atualização da U2 (2026-10-22):** 14 linhas tocadas (5.2.c, 5.3.c, 5.4.d, 5.4.e, 6.1.a, 6.2.a, 6.2.c, 6.2.d, 6.8.a, 9.b, 9.e, 11.b, 11.c, 11.d). Testes: 125 casos (68 métodos) no `PRKingNotepad.Core.Tests`. Quatro linhas "ok" ainda têm parte de UI para a U3 (5.4.d, 5.4.e, 6.2.c, 11.d). Os 7 "a confirmar" esperam a folha de respostas do roteiro (AC-U2.4).
 
 ---
 
@@ -136,7 +138,7 @@ Evidência das teclas Ctrl+N/O/S/P/F/H e F1: não há `KeyBinding` para elas em 
 |---|---|---|---|---|---|---|
 | 5.2.a | Caixa de fonte (nome, estilo, tamanho), aplicada ao documento inteiro | `MWD`:63–95 | — | sem teste | manual | Caixa nativa; a U3 cobre só `ApplyFont`. |
 | 5.2.b | Padrão monoespaçada (Consolas 11 pt) | `PRKingNotepad.Core/Settings.cs` (`FontFamily`, `FontSize`) | `SettingsTests.Missing_file_gives_defaults` | ok | — | |
-| 5.2.c | Lembrada: nome, tamanho, peso, itálico, conjunto de caracteres | `PRKingNotepad.Core/Settings.cs` (`FontFamily`, `FontSize`, `FontBold`, `FontItalic`) | `SettingsTests.Round_trip_keeps_every_preference` | divergente | **D3** → README | Busca `charset\|GdiCharSet` em `src/`: só `CharSet.Unicode` de `DllImport`. Conjunto de caracteres não é gravado; peso só normal/negrito. |
+| 5.2.c | Lembrada: nome, tamanho, peso, itálico, conjunto de caracteres | `PRKingNotepad.Core/Settings.cs` (`FontFamily`, `FontSize`, `FontBold`, `FontItalic`) | `SettingsTests.Round_trip_keeps_every_preference` | ok | — | **D3** resolvida na U2 pela Dif. 12 do README: conjunto de caracteres não gravado (WPF em Unicode); pesos intermediários pelo nome da família. Busca `charset|GdiCharSet` em `src/`: só `CharSet.Unicode` de `DllImport`. |
 
 ### 5.3 Zoom
 
@@ -144,7 +146,7 @@ Evidência das teclas Ctrl+N/O/S/P/F/H e F1: não há `KeyBinding` para elas em 
 |---|---|---|---|---|---|---|
 | 5.3.a | 10 % a 500 %, passos de 10 %, padrão 100 % | `PRKingNotepad.Core/Settings.cs`:143–153 (`Zoom`); `MWD`:120–145 | `ZoomTests.Zoom_in_steps_by_ten_up_to_500`, `ZoomTests.Zoom_out_steps_by_ten_down_to_10` | ok | — | Dif. 7 (escala do tamanho da fonte). |
 | 5.3.b | Ctrl+roda do mouse também altera | `MWD`:126–133 | — | a confirmar | roteiro R3 | Hoje implementado (Dif. 7). |
-| 5.3.c | Não é gravado: volta a 100 % a cada execução | `MWD`:21 (`_zoom` só em memória) | — | ok | U2 (teste de ausência no JSON) | Busca `Zoom` em `src/` e `tests/`: nenhum campo de zoom em `Settings`; só a classe estática `Zoom` e `MWD`. |
+| 5.3.c | Não é gravado: volta a 100 % a cada execução | `MWD` (`_zoom` só em memória) | `SettingsTests.Zoom_is_not_saved` | ok | — | O JSON gravado não tem nenhum campo de zoom (teste da U2). |
 | 5.3.d | Zoom exibido na barra de status | `MWD`:144; `XAML`:119 | — | sem teste | U3 | |
 
 ### 5.4 Barra de status
@@ -154,8 +156,8 @@ Evidência das teclas Ctrl+N/O/S/P/F/H e F1: não há `KeyBinding` para elas em 
 | 5.4.a | Parte 1: vazia / mensagens | `XAML`:115; `MW`:324, 407–409, 445 | — | sem teste | U3 | |
 | 5.4.b | Parte 2: `Ln <linha>, Col <coluna>` (1-based) | `MW`:484–488; `PRKingNotepad.Core/CaretPosition.cs`:10 | `CaretPositionTests.Line_and_column_are_one_based` | ok | U3 (texto na barra) | |
 | 5.4.c | Parte 3: zoom `<n>%` | `MWD`:144 | — | sem teste | U3 | |
-| 5.4.d | Parte 4: Windows (CRLF), Unix (LF), Macintosh (CR) | `MW`:479; `PRKingNotepad.Core/LineEndings.cs`:29 (`DisplayName`) | — | sem teste | U2 (Core) + U3 | Busca `DisplayName` em `tests/`: nada. |
-| 5.4.e | Parte 5: ANSI, UTF-16 LE, UTF-16 BE, UTF-8, UTF-8 com BOM | `MW`:480; `PRKingNotepad.Core/TextEncodingKind.cs`:15 | — | sem teste | U2 (Core) + U3 | GB18030: ver 7.2.b. |
+| 5.4.d | Parte 4: Windows (CRLF), Unix (LF), Macintosh (CR) | `MW` (`UpdateStatus`); `PRKingNotepad.Core/LineEndings.cs` (`DisplayName`) | `DisplayNameTests.Line_ending_names_match_the_status_bar` | ok | U3 (barra de status) | Nomes testados no Core (U2). |
+| 5.4.e | Parte 5: ANSI, UTF-16 LE, UTF-16 BE, UTF-8, UTF-8 com BOM | `MW` (`UpdateStatus`); `PRKingNotepad.Core/TextEncodingKind.cs` (`DisplayName`) | `DisplayNameTests.Encoding_names_match_the_status_bar`, `DisplayNameTests.Every_encoding_has_a_name` | ok | U3 (barra de status) | GB18030: ver 7.2.b. |
 | 5.4.f | Visibilidade lembrada | `MWD`:149–159; `PRKingNotepad.Core/Settings.cs` (`StatusBarVisible`) | `SettingsTests.Round_trip_keeps_every_preference`, `SettingsTests.Missing_file_gives_defaults` | ok | U3 (alternar) | |
 
 ## 6. Ciclo de vida do arquivo
@@ -164,17 +166,17 @@ Evidência das teclas Ctrl+N/O/S/P/F/H e F1: não há `KeyBinding` para elas em 
 
 | ID | Requisito (resumo) | Código | Teste | Status | Próximo | Evidência / observação |
 |---|---|---|---|---|---|---|
-| 6.1.a | Com alterações, pergunta Salvar / Não salvar / Cancelar; Cancelar aborta | `MW`:88–94, 137–151 | — | divergente | **D1** → U2 | `MessageBoxButton.YesNoCancel` (`MW`:144): botões Sim / Não / Cancelar, não Salvar / Não salvar / Cancelar. Lógica de cancelar correta. |
+| 6.1.a | Com alterações, pergunta Salvar / Não salvar / Cancelar; Cancelar aborta | `MW` (`OnNew`, `ConfirmDiscard`); `PRKingNotepad/SaveChangesWindow.xaml(.cs)` | — | sem teste | U3 | **D1** corrigida na U2: janela WPF própria com Salvar / Não salvar / Cancelar, por `IUserDialogs.AskToSave`; fechar pelo X ou Esc conta como Cancelar. Na U3, `MainWindowServices.Dialogs` dá a resposta. |
 | 6.1.b | Esvazia, sem arquivo, codificação padrão, CRLF | `MW`:92, 190–213 | — | sem teste | U3 | |
 
 ### 6.2 Abrir
 
 | ID | Requisito (resumo) | Código | Teste | Status | Próximo | Evidência / observação |
 |---|---|---|---|---|---|---|
-| 6.2.a | Pergunta sobre alterações antes | `MW`:98–101 | — | sem teste | U3 | Mesma pergunta de 6.1.a (D1). |
+| 6.2.a | Pergunta sobre alterações antes | `MW` (`OnOpen`, `ConfirmDiscard`) | — | sem teste | U3 | Mesma pergunta de 6.1.a (D1, corrigida). |
 | 6.2.b | Caixa Abrir: filtros texto / todos, lista de codificação com detecção automática | `PRKingNotepad/FileDialogs.cs`:26–51, 81–92, 109–121 | — | sem teste | manual | Caixa nativa do shell. Ordem da lista = ordem da spec (`TextEncodingKind`). Rótulo próprio "Arquivos de texto". |
-| 6.2.c | Erros (inexistente, acesso negado, nome inválido) com o nome do arquivo | `MW`:171–175, 504–519 | — | sem teste | U2 (extrair texto) + U3 | `DescribeFileError` é privada da janela; testável só pela UI, ou movendo para o Core. |
-| 6.2.d | 1 GiB ou mais: recusa com "grande demais" | `PRKingNotepad.Core/TextFileStore.cs`:14–27; `MW`:161–165 | `TextFileStoreTests.Read_refuses_files_at_or_above_the_limit` | ok | — | Tipo da mensagem: ver 11.c (D2). |
+| 6.2.c | Erros (inexistente, acesso negado, nome inválido) com o nome do arquivo | `PRKingNotepad.Core/FileMessages.cs` (`Describe`, `IsFileError`); `MW` (`LoadFile`) | `FileMessageTests` (7 métodos) | ok | U3 (mensagem exibida) | Texto movido da janela para o Core na U2. |
+| 6.2.d | 1 GiB ou mais: recusa com "grande demais" | `PRKingNotepad.Core/TextFileStore.cs`:14–27; `MW` (`LoadFile`) | `TextFileStoreTests.Read_refuses_files_at_or_above_the_limit` | ok | — | Sai como aviso desde a U2: ver 11.c (D2, corrigida). |
 | 6.2.e | Após abrir: documentos recentes; cursor no início (exceto .LOG) | `MW`:178–181 (`AddToRecentDocuments`), 204–205 | — | sem teste | U3 (cursor) + manual (recentes) | Dif. 11 (pasta temporária fora da lista). |
 
 ### 6.3 Salvar
@@ -223,7 +225,7 @@ Evidência das teclas Ctrl+N/O/S/P/F/H e F1: não há `KeyBinding` para elas em 
 
 | ID | Requisito (resumo) | Código | Teste | Status | Próximo | Evidência / observação |
 |---|---|---|---|---|---|---|
-| 6.8.a | Com alterações: Salvar / Não salvar / Cancelar, citando o nome | `MW`:126–151 | — | divergente | **D1** → U2 | Nome citado (`MW`:143); botões Sim / Não / Cancelar. |
+| 6.8.a | Com alterações: Salvar / Não salvar / Cancelar, citando o nome | `MW` (`OnClosing`, `ConfirmDiscard`); `PRKingNotepad/SaveChangesWindow.xaml(.cs)` | — | sem teste | U3 | **D1** corrigida na U2: nome do documento na pergunta; botões Salvar / Não salvar / Cancelar. |
 | 6.8.b | Salva preferências ao fechar | `MW`:133; `MWD`:40–59 | `SettingsTests.Round_trip_keeps_every_preference` | sem teste | U3 | Gravação coberta; o gatilho no fechamento, não. |
 
 ## 7. Codificação
@@ -268,10 +270,10 @@ Evidência das teclas Ctrl+N/O/S/P/F/H e F1: não há `KeyBinding` para elas em 
 | ID | Requisito (resumo) | Código | Teste | Status | Próximo | Evidência / observação |
 |---|---|---|---|---|---|---|
 | 9.a | Arquivo próprio (`%APPDATA%\PRKing_Notepad\config.json`), nunca o registro | `PRKingNotepad.Core/Settings.cs`:118–119 (`DefaultPath`), 122–139 | `SettingsTests.Missing_file_gives_defaults`, `SettingsTests.Corrupt_file_gives_defaults`, `SettingsTests.Partial_file_keeps_defaults_for_missing_fields` | ok | — | Busca `Registry\|Microsoft.Win32` em `src/`: nada. |
-| 9.b | Fonte: nome, tamanho, peso, itálico, conjunto (Consolas 11 normal) | `PRKingNotepad.Core/Settings.cs` | `SettingsTests.Round_trip_keeps_every_preference` | divergente | **D3** → README | Mesmo item de 5.2.c. |
+| 9.b | Fonte: nome, tamanho, peso, itálico, conjunto (Consolas 11 normal) | `PRKingNotepad.Core/Settings.cs` | `SettingsTests.Round_trip_keeps_every_preference` | ok | — | Mesmo item de 5.2.c (D3 → Dif. 12 do README). |
 | 9.c | Quebra automática (desligada) | idem (`WordWrap`) | `SettingsTests.Missing_file_gives_defaults` | ok | — | |
 | 9.d | Barra de status visível (ligada) | idem (`StatusBarVisible`) | `SettingsTests.Missing_file_gives_defaults` | ok | — | |
-| 9.e | Janela: posição e tamanho (centro, tamanho padrão do sistema) | `XAML`:5–6 (900 × 600, `CenterScreen`); `MWD`:163–192 | `SettingsTests.Round_trip_keeps_every_preference` | ok | — | Padrão "sugerido" pela spec; o tamanho inicial próprio entra no README junto com D3. |
+| 9.e | Janela: posição e tamanho (centro, tamanho padrão do sistema) | `XAML`:5–6 (900 × 600, `CenterScreen`); `MWD` (`RestorePlacement`, `CurrentPlacement`) | `SettingsTests.Round_trip_keeps_every_preference` | ok | — | Padrão "sugerido" pela spec; o tamanho inicial próprio está na Dif. 12 do README (U2). |
 | 9.f | Busca: termo, substituição, maiúsc., direção, dar a volta (vazio, não, baixo, não) | idem (`SearchSettings`) | `SettingsTests.Missing_file_gives_defaults`, `SettingsTests.Round_trip_keeps_every_preference`, `SettingsTests.Enums_are_stored_by_name` | ok | — | |
 | 9.g | Página: cabeçalho `&f`, rodapé `Página &p`, margens a confirmar | `PRKingNotepad.Core/Settings.cs`:72–97 (`PageSettings`) | `PageSettingsTests.Invalid_margins_fall_back_to_defaults`, `HeaderFooterTests.Defaults_resolve_file_name_and_page` | a confirmar | roteiro R6 | Margens próprias (Dif. 9); medidas do original são a lacuna §13. |
 | 9.h | Codificação padrão de documento novo (UTF-8) | idem (`DefaultEncoding`) | `SettingsTests.Missing_file_gives_defaults`, `SettingsTests.Out_of_range_values_are_corrected` | ok | — | Valor de fábrica do original: 7.3.c. |
@@ -291,9 +293,9 @@ Evidência das teclas Ctrl+N/O/S/P/F/H e F1: não há `KeyBinding` para elas em 
 | ID | Requisito (resumo) | Código | Teste | Status | Próximo | Evidência / observação |
 |---|---|---|---|---|---|---|
 | 11.a | Arquivo não encontrado (linha de comando): criar? Sim / Não / Cancelar | `MW`:64–65 | — | sem teste | U3 | `YesNoCancel`, ícone de pergunta. |
-| 11.b | Salvar alterações em `<arquivo>`? Salvar / Não salvar / Cancelar | `MW`:143–144 | — | divergente | **D1** → U2 | Botões Sim / Não / Cancelar. |
-| 11.c | Arquivo grande demais: aviso | `MW`:161–165 (`ShowError`) | — | divergente | **D2** → U2 | Sai como erro (`MessageBoxImage.Error`, `MW`:502); a spec diz aviso. |
-| 11.d | Nome inválido / não foi possível criar / acesso negado: erro com o nome | `MW`:504–519; `MW`:79–83 (criar pela linha de comando) | — | sem teste | U2 (extrair texto) + U3 | |
+| 11.b | Salvar alterações em `<arquivo>`? Salvar / Não salvar / Cancelar | `PRKingNotepad/SaveChangesWindow.xaml(.cs)`; `MW` (`ConfirmDiscard`) | — | sem teste | U3 | **D1** corrigida na U2: "Deseja salvar as alterações em “<arquivo>”?", botões Salvar / Não salvar / Cancelar. |
+| 11.c | Arquivo grande demais: aviso | `MW` (`LoadFile`, `MessageBoxImage.Warning`); `PRKingNotepad.Core/FileMessages.cs` (`TooLarge`) | `FileMessageTests.Too_large_and_out_of_memory_name_the_file` | sem teste | U3 (tipo aviso) | **D2** corrigida na U2: sai como aviso, com o nome do arquivo, e o documento não muda. Texto testado no Core; o tipo da caixa só pela UI. |
+| 11.d | Nome inválido / não foi possível criar / acesso negado: erro com o nome | `PRKingNotepad.Core/FileMessages.cs` (`Describe`); `MW` (`OpenFromCommandLine`, `SaveTo`) | `FileMessageTests` (7 métodos) | ok | U3 (mensagem exibida) | Texto movido para o Core na U2. |
 | 11.e | Caracteres perdidos em ANSI: OK / Cancelar | `MW`:232–235 | — | sem teste | U3 | |
 | 11.f | Texto não encontrado: informação | `MW`:401, 430, 496–500 | — | sem teste | U3 | |
 | 11.g | Linha além do total: aviso, caixa aberta | `PRKingNotepad/GoToLineWindow.xaml.cs`:37–41, 47–51 | — | sem teste | U3 | |
@@ -303,13 +305,13 @@ Evidência das teclas Ctrl+N/O/S/P/F/H e F1: não há `KeyBinding` para elas em 
 
 ## Divergências e destino
 
-"Diferenças" do README conferida antes (11 itens): nenhuma das três abaixo está lá.
+"Diferenças" do README conferida antes (11 itens): nenhuma das três abaixo estava lá. Destinos aceitos pelo responsável em 2026-10-22 ("Aceito D1–D3 como estão").
 
-| ID | Linhas | O que difere | Destino | Motivo |
-|---|---|---|---|---|
-| **D1** | 6.1.a, 6.2.a, 6.8.a, 11.b | Pergunta de salvar usa `MessageBox` com Sim / Não / Cancelar; a spec pede Salvar / Não salvar / Cancelar | **Corrigir o código (U2):** caixa WPF própria com os três botões, chamada por um ponto único (`ConfirmDiscard`) | O rótulo "Sim" para "salvar" é ambíguo, e a caixa nativa (`MessageBox`) trava a thread de teste: com uma janela WPF própria a U3 consegue clicar no botão em processo, sem FlaUI. |
-| **D2** | 11.c, 6.2.d | "Grande demais" sai como erro; a spec diz aviso | **Corrigir o código (U2):** ícone de aviso | Troca de uma linha; sem motivo para divergir. |
-| **D3** | 5.2.c, 9.b, 9.e | Fonte grava nome, tamanho, negrito e itálico; não grava conjunto de caracteres e reduz o peso a normal/negrito. Tamanho inicial da janela é 900 × 600 centralizado | **README, novo item 12 de "Diferenças"** | O WPF desenha em Unicode: o conjunto de caracteres do GDI não muda nada na tela; pesos intermediários aparecem como famílias próprias na caixa de fonte do Windows (por exemplo, "Segoe UI Light") e são gravados pelo nome. O tamanho de janela é "sugerido" pela spec. |
+| ID | Linhas | O que difere | Destino | Motivo | Estado |
+|---|---|---|---|---|---|
+| **D1** | 6.1.a, 6.2.a, 6.8.a, 11.b | Pergunta de salvar usa `MessageBox` com Sim / Não / Cancelar; a spec pede Salvar / Não salvar / Cancelar | **Corrigir o código (U2):** caixa WPF própria com os três botões, chamada por um ponto único (`ConfirmDiscard`) | O rótulo "Sim" para "salvar" é ambíguo, e a caixa nativa (`MessageBox`) trava a thread de teste: com uma janela WPF própria a U3 consegue clicar no botão em processo, sem FlaUI. | Corrigida na U2 (`SaveChangesWindow`, `ConfirmDiscard`) |
+| **D2** | 11.c, 6.2.d | "Grande demais" sai como erro; a spec diz aviso | **Corrigir o código (U2):** ícone de aviso | Troca de uma linha; sem motivo para divergir. | Corrigida na U2 (`MessageBoxImage.Warning`) |
+| **D3** | 5.2.c, 9.b, 9.e | Fonte grava nome, tamanho, negrito e itálico; não grava conjunto de caracteres e reduz o peso a normal/negrito. Tamanho inicial da janela é 900 × 600 centralizado | **README, novo item 12 de "Diferenças"** | O WPF desenha em Unicode: o conjunto de caracteres do GDI não muda nada na tela; pesos intermediários aparecem como famílias próprias na caixa de fonte do Windows (por exemplo, "Segoe UI Light") e são gravados pelo nome. O tamanho de janela é "sugerido" pela spec. | Resolvida na U2 (README, Dif. 12) |
 
 Nenhuma divergência vai para adendo da especificação: adendo só recebe fato confirmado do original (roteiro).
 

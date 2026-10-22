@@ -39,6 +39,7 @@ src\PRKingNotepad\bin\Debug\net10.0-windows\PRKingNotepad.exe [/A | /W] [arquivo
 | 2 | Localizar e substituir (janelas não modais, F3 / Shift+F3, dar a volta com aviso na barra de status, substituir tudo numa só edição desfazível); ir para linha (com aviso de linha inexistente); lista de codificação nas caixas Abrir/Salvar do Windows | Feito |
 | 3 | Fonte (caixa nativa do Windows), quebra automática, zoom 10–500 % (Ctrl+= / Ctrl+- / Ctrl+0 e Ctrl+roda do mouse), preferências persistentes (fonte, quebra, barra de status, busca, codificação padrão), posição e tamanho da janela | Feito |
 | 4 | Configurar página (papel, origem, orientação, margens, cabeçalho e rodapé, escolha da impressora); impressão com códigos `&f` `&p` `&d` `&t` `&l` `&c` `&r` `&&`, quebra das linhas longas, intervalo de páginas e janela de progresso com Cancelar; ajuda local (F1) e Sobre; registro nos documentos recentes do Windows | Feito |
+| 5 | Conformidade com a especificação item a item ([`CONFORMIDADE.md`](CONFORMIDADE.md)); pergunta de salvar em janela própria (Salvar / Não salvar / Cancelar); arquivo grande demais como aviso; pontos de troca para os testes de interface | Em andamento |
 
 Fora desta versão (a especificação permite): impressão pela linha de comando (`/P`, `/PT`), pesquisar a seleção na web (Ctrl+E), enviar comentários, restauração após reinício do Windows, GB18030.
 
@@ -65,3 +66,4 @@ Decisões deliberadas, permitidas pela especificação ou tomadas onde ela deixa
 9. **Impressão:** cabeçalho na primeira linha da área útil e rodapé na última, cada um separado do texto por uma linha em branco; sem código de alinhamento, o texto fica centralizado. Margens padrão próprias (20 mm laterais, 25 mm em cima e embaixo), porque as do original ficaram "a confirmar". Papel, origem e orientação valem só para a sessão; margens, cabeçalho e rodapé são lembrados.
 10. **Ajuda:** janela local com o resumo e os atalhos, em vez de uma página na internet.
 11. **Documentos recentes:** como no Windows em geral, arquivos dentro da pasta temporária não entram na lista.
+12. **Fonte e janela:** a fonte grava nome, tamanho, negrito e itálico. O conjunto de caracteres não é gravado, porque o WPF desenha em Unicode e ele não muda nada na tela; pesos intermediários (por exemplo, "Segoe UI Light") ficam no nome da família, como a caixa de fonte do Windows os mostra. O tamanho inicial da janela é 900 × 600, centralizada na tela.

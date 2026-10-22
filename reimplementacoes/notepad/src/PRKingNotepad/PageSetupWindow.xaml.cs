@@ -18,9 +18,12 @@ public partial class PageSetupWindow : Window
     private PrintTicket? _ticket;
     private PrintCapabilities? _capabilities;
 
-    public PageSetupWindow(PrintQueue? queue, PrintTicket? ticket, PageSettings page)
+    private readonly IUserDialogs _dialogs;
+
+    internal PageSetupWindow(PrintQueue? queue, PrintTicket? ticket, PageSettings page, IUserDialogs dialogs)
     {
         InitializeComponent();
+        _dialogs = dialogs;
         Queue = queue;
         _ticket = ticket?.Clone();
         LeftBox.Text = Format(page.MarginLeftMm);
@@ -206,5 +209,5 @@ public partial class PageSetupWindow : Window
         return ok;
     }
 
-    private void Warn(string message) => MessageBox.Show(this, message, Title, MessageBoxButton.OK, MessageBoxImage.Warning);
+    private void Warn(string message) => _dialogs.Show(this, Title, message, MessageBoxImage.Warning);
 }

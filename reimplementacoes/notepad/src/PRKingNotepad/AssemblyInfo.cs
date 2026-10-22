@@ -8,3 +8,6 @@ using System.Windows;
                                                 //(used if a resource is not found in the page,
                                                 // app, or any theme specific resource dictionaries)
 )]
+
+// Os testes de interface em processo usam o construtor interno da janela e os substitutos de MainWindowServices.
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("PRKingNotepad.Ui.Tests")]

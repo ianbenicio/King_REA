@@ -96,6 +96,14 @@ public class SettingsTests : IDisposable
         Assert.NotNull(s.Search);
         Assert.Null(s.Window);
     }
+
+    [Fact]
+    public void Zoom_is_not_saved()
+    {
+        string path = PathIn("config.json");
+        SettingsStore.Save(path, new Settings());
+        Assert.DoesNotContain("zoom", File.ReadAllText(path), StringComparison.OrdinalIgnoreCase);
+    }
 }
 
 public class ZoomTests

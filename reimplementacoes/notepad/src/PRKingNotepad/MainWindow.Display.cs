@@ -16,8 +16,8 @@ public partial class MainWindow
 {
     private const double DipPerPoint = 96.0 / 72.0;
 
-    private readonly string _settingsPath = SettingsStore.DefaultPath;
-    private readonly Settings _settings = SettingsStore.Load(SettingsStore.DefaultPath);
+    private readonly string _settingsPath;
+    private readonly Settings _settings;
     private int _zoom = Zoom.Default;
 
     private TextEncodingKind DefaultEncoding => _settings.DefaultEncoding;

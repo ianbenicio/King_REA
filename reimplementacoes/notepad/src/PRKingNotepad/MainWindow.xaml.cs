@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Windows;
@@ -14,6 +13,7 @@ public partial class MainWindow : Window
     private const string AppName = "PRKing Notepad";
     private const string UntitledName = "Documento sem nome";
 
+    private readonly MainWindowServices _services;
     private readonly int _ansiCodePage = (int)NativeMethods.GetACP();
     private string? _path;
     private TextEncodingKind _encoding;
@@ -23,8 +23,15 @@ public partial class MainWindow : Window
     private readonly SearchState _search = new();
     private FindReplaceWindow? _searchWindow;
 
-    public MainWindow()
+    public MainWindow() : this(new MainWindowServices())
     {
+    }
+
+    internal MainWindow(MainWindowServices services)
+    {
+        _services = services;
+        _settingsPath = services.SettingsPath;
+        _settings = SettingsStore.Load(_settingsPath);
         InitializeComponent();
         ApplySettings();
         SetDocument("", null, DefaultEncoding, LineEnding.CrLf);
@@ -53,9 +60,9 @@ public partial class MainWindow : Window
         {
             path = CommandLine.ResolvePath(request.Path, Environment.CurrentDirectory, File.Exists);
         }
-        catch (Exception ex) when (IsFileError(ex))
+        catch (Exception ex) when (FileMessages.IsFileError(ex))
         {
-            ShowError(DescribeFileError(ex, request.Path, opening: true));
+            ShowError(FileMessages.Describe(ex, request.Path, opening: true));
             return;
         }
 
@@ -76,9 +83,9 @@ public partial class MainWindow : Window
             {
                 File.WriteAllBytes(path, []);
             }
-            catch (Exception ex) when (IsFileError(ex))
+            catch (Exception ex) when (FileMessages.IsFileError(ex))
             {
-                ShowError(DescribeFileError(ex, path, opening: false));
+                ShowError(FileMessages.Describe(ex, path, opening: false));
                 return;
             }
         }
@@ -113,7 +120,7 @@ public partial class MainWindow : Window
     {
         try
         {
-            Process.Start(new ProcessStartInfo(Environment.ProcessPath!) { UseShellExecute = false });
+            _services.StartNewInstance();
         }
         catch (Win32Exception ex)
         {
@@ -133,19 +140,20 @@ public partial class MainWindow : Window
         SaveSettings();
     }
 
-    /// <summary>Pergunta se salva as alterações. Falso = o usuário cancelou a operação.</summary>
+    /// <summary>
+    /// Pergunta se salva as alterações; ponto único de Novo, Abrir, soltar arquivo e fechar.
+    /// Falso = o usuário cancelou (na pergunta ou no Salvar como).
+    /// </summary>
     private bool ConfirmDiscard()
     {
         if (!_dirty)
         {
             return true;
         }
-        var answer = Ask($"Há alterações não salvas em “{DocumentName}”.\n\nSalvar antes de continuar?",
-            MessageBoxButton.YesNoCancel, MessageBoxImage.Warning);
-        return answer switch
+        return _services.Dialogs.AskToSave(this, DocumentName) switch
         {
-            MessageBoxResult.Yes => Save(),
-            MessageBoxResult.No => true,
+            SaveChoice.Save => Save(),
+            SaveChoice.DontSave => true,
             _ => false,
         };
     }
@@ -160,24 +168,24 @@ public partial class MainWindow : Window
         }
         catch (FileTooLargeException)
         {
-            ShowError($"O arquivo “{Path.GetFileName(path)}” é grande demais para abrir (limite de 1 GiB).");
+            _services.Dialogs.Show(this, AppName, FileMessages.TooLarge(path), MessageBoxImage.Warning);
             return false;
         }
         catch (OutOfMemoryException)
         {
-            ShowError($"Não há memória suficiente para abrir “{Path.GetFileName(path)}”.");
+            ShowError(FileMessages.OutOfMemory(path));
             return false;
         }
-        catch (Exception ex) when (IsFileError(ex))
+        catch (Exception ex) when (FileMessages.IsFileError(ex))
         {
-            ShowError(DescribeFileError(ex, path, opening: true));
+            ShowError(FileMessages.Describe(ex, path, opening: true));
             return false;
         }
 
         SetDocument(decoded.EditorText, path, decoded.Encoding, decoded.LineEnding);
         if (userOpen)
         {
-            NativeMethods.AddToRecentDocuments(path);
+            _services.AddToRecentDocuments(path);
         }
         if (userOpen && TimeStamp.StartsWithLogMarker(decoded.EditorText))
         {
@@ -243,9 +251,9 @@ public partial class MainWindow : Window
         {
             TextFileStore.WriteAtomic(path, encoded.Bytes);
         }
-        catch (Exception ex) when (IsFileError(ex))
+        catch (Exception ex) when (FileMessages.IsFileError(ex))
         {
-            ShowError(DescribeFileError(ex, path, opening: false));
+            ShowError(FileMessages.Describe(ex, path, opening: false));
             return false;
         }
 
@@ -260,7 +268,7 @@ public partial class MainWindow : Window
             return true;
         }
 
-        NativeMethods.AddToRecentDocuments(path);
+        _services.AddToRecentDocuments(path);
         _path = path;
         _encoding = encoding;
         _dirty = false;
@@ -313,7 +321,7 @@ public partial class MainWindow : Window
         Editor.Select(Editor.SelectionStart + Editor.SelectionLength, 0);
     }
 
-    private static string Now() => TimeStamp.Format(DateTime.Now, CultureInfo.CurrentCulture);
+    private string Now() => TimeStamp.Format(_services.Now(), CultureInfo.CurrentCulture);
 
     private void OnTextChanged(object sender, TextChangedEventArgs e)
     {
@@ -448,7 +456,10 @@ public partial class MainWindow : Window
     private void OnGoToLine(object sender, ExecutedRoutedEventArgs e)
     {
         string text = Editor.Text;
-        var dialog = new GoToLineWindow(CaretPosition.At(text, Editor.CaretIndex).Line, TextLines.Count(text)) { Owner = this };
+        var dialog = new GoToLineWindow(CaretPosition.At(text, Editor.CaretIndex).Line, TextLines.Count(text), _services.Dialogs)
+        {
+            Owner = this,
+        };
         if (dialog.ShowDialog() == true)
         {
             int index = TextLines.StartOf(text, dialog.Line);
@@ -490,31 +501,14 @@ public partial class MainWindow : Window
     // ---- Mensagens (seção 11) ----
 
     private MessageBoxResult Ask(string message, MessageBoxButton buttons, MessageBoxImage icon) =>
-        MessageBox.Show(this, message, AppName, buttons, icon);
+        _services.Dialogs.Ask(this, AppName, message, buttons, icon);
 
     /// <summary>Informação; com a janela de busca aberta, aparece sobre ela.</summary>
     private void Inform(string message)
     {
         Window owner = _searchWindow is { IsActive: true } ? _searchWindow : this;
-        MessageBox.Show(owner, message, AppName, MessageBoxButton.OK, MessageBoxImage.Information);
+        _services.Dialogs.Show(owner, AppName, message, MessageBoxImage.Information);
     }
 
-    private void ShowError(string message) => MessageBox.Show(this, message, AppName, MessageBoxButton.OK, MessageBoxImage.Error);
-
-    private static bool IsFileError(Exception ex) =>
-        ex is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException;
-
-    private static string DescribeFileError(Exception ex, string path, bool opening)
-    {
-        string action = opening ? "abrir" : "gravar";
-        return ex switch
-        {
-            FileNotFoundException or DirectoryNotFoundException =>
-                $"Não foi possível encontrar “{path}”.\n\nConfira o nome e a pasta.",
-            UnauthorizedAccessException => $"Sem permissão para {action} “{path}”.",
-            ArgumentException or NotSupportedException or PathTooLongException =>
-                $"O nome de arquivo “{path}” não é válido.",
-            _ => $"Não foi possível {action} “{path}”.\n\n{ex.Message}",
-        };
-    }
+    private void ShowError(string message) => _services.Dialogs.Show(this, AppName, message, MessageBoxImage.Error);
 }
