@@ -1,0 +1,20 @@
+<Window x:Class="PRKingNotepad.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Sobre o PRKing Notepad" SizeToContent="WidthAndHeight" ResizeMode="NoResize"
+        ShowInTaskbar="False" WindowStartupLocation="CenterOwner">
+    <StackPanel Margin="16" MaxWidth="420">
+        <TextBlock Text="PRKing Notepad" FontSize="20" FontWeight="SemiBold" />
+        <TextBlock x:Name="VersionText" Margin="0,2,0,10" Foreground="Gray" />
+        <TextBlock TextWrapping="Wrap">
+            Editor de texto simples, escrito do zero em C# e WPF a partir de uma especificação de
+            comportamento em palavras próprias (reimplementação em sala limpa).
+        </TextBlock>
+        <TextBlock TextWrapping="Wrap" Margin="0,8,0,0">
+            Projeto independente, sem vínculo com a Microsoft. Não contém código, ícones nem textos
+            do Bloco de Notas do Windows.
+        </TextBlock>
+        <Button Content="OK" IsDefault="True" IsCancel="True" HorizontalAlignment="Right" MinWidth="80"
+                Padding="8,3" Margin="0,14,0,0" Click="OnOk" />
+    </StackPanel>
+</Window>

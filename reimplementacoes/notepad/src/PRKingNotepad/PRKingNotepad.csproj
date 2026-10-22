@@ -10,6 +10,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <Version>1.0.0</Version>
     <!-- Só para a caixa de fonte nativa (ChooseFont); sem os usings globais do WinForms, que colidem com o WPF -->
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>

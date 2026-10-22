@@ -175,6 +175,10 @@ public partial class MainWindow : Window
         }
 
         SetDocument(decoded.EditorText, path, decoded.Encoding, decoded.LineEnding);
+        if (userOpen)
+        {
+            NativeMethods.AddToRecentDocuments(path);
+        }
         if (userOpen && TimeStamp.StartsWithLogMarker(decoded.EditorText))
         {
             Editor.Select(Editor.Text.Length, 0);
@@ -256,6 +260,7 @@ public partial class MainWindow : Window
             return true;
         }
 
+        NativeMethods.AddToRecentDocuments(path);
         _path = path;
         _encoding = encoding;
         _dirty = false;

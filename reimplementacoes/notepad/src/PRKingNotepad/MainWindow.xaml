@@ -22,6 +22,8 @@
         <CommandBinding Command="local:AppCommands.FindPrevious" Executed="OnFindPrevious" />
         <CommandBinding Command="local:AppCommands.GoToLine" Executed="OnGoToLine" />
         <CommandBinding Command="local:AppCommands.ZoomIn" Executed="OnZoomIn" />
+        <CommandBinding Command="ApplicationCommands.Print" Executed="OnPrint" />
+        <CommandBinding Command="ApplicationCommands.Help" Executed="OnHelp" />
         <CommandBinding Command="local:AppCommands.ZoomOut" Executed="OnZoomOut" />
         <CommandBinding Command="local:AppCommands.ZoomReset" Executed="OnZoomReset" />
     </Window.CommandBindings>
@@ -48,6 +50,9 @@
                 <MenuItem Header="_Abrir..." Command="ApplicationCommands.Open" />
                 <MenuItem Header="_Salvar" Command="ApplicationCommands.Save" />
                 <MenuItem Header="Salvar _como..." Command="ApplicationCommands.SaveAs" InputGestureText="Ctrl+Shift+S" />
+                <Separator />
+                <MenuItem Header="Configurar pá_gina..." Click="OnPageSetup" />
+                <MenuItem Header="_Imprimir..." Command="ApplicationCommands.Print" />
                 <Separator />
                 <MenuItem Header="Sa_ir" Click="OnExit" />
             </MenuItem>
@@ -81,6 +86,11 @@
                 </MenuItem>
                 <MenuItem x:Name="StatusBarMenuItem" Header="_Barra de status" IsCheckable="True" IsChecked="True"
                           Click="OnToggleStatusBar" />
+            </MenuItem>
+            <MenuItem Header="Aj_uda">
+                <MenuItem Header="_Exibir ajuda" Command="ApplicationCommands.Help" />
+                <Separator />
+                <MenuItem Header="_Sobre o PRKing Notepad" Click="OnAbout" />
             </MenuItem>
         </Menu>
 

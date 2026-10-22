@@ -1,0 +1,23 @@
+<Window x:Class="PRKingNotepad.HelpWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Ajuda do PRKing Notepad" Width="520" Height="560" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+    <DockPanel Margin="12">
+        <Button DockPanel.Dock="Bottom" Content="Fechar" IsCancel="True" IsDefault="True" HorizontalAlignment="Right"
+                MinWidth="80" Padding="8,3" Margin="0,10,0,0" Click="OnClose" />
+        <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Margin="0,0,0,10">
+            Editor de texto simples. Abre e salva arquivos em ANSI, UTF-8 (com ou sem BOM) e UTF-16,
+            preservando a quebra de linha do arquivo (Windows, Unix ou Macintosh). Um arquivo que
+            começa com <Bold>.LOG</Bold> ganha uma linha com a hora e a data a cada abertura.
+        </TextBlock>
+        <ListView x:Name="Shortcuts" BorderThickness="1">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Atalho" Width="150" DisplayMemberBinding="{Binding Key}" />
+                    <GridViewColumn Header="Ação" Width="320" DisplayMemberBinding="{Binding Value}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </DockPanel>
+</Window>

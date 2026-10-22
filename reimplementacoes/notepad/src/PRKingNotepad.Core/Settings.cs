@@ -22,10 +22,13 @@ public sealed class Settings
     public WindowPlacement? Window { get; set; }
     public SearchSettings Search { get; set; } = new();
     public TextEncodingKind DefaultEncoding { get; set; } = TextEncodingKind.Utf8;
+    public PageSettings Page { get; set; } = new();
 
     /// <summary>Corrige valores fora do intervalo vindos de um arquivo editado à mão.</summary>
     public Settings Normalize()
     {
+        Page ??= new PageSettings();
+        Page.Normalize();
         if (string.IsNullOrWhiteSpace(FontFamily))
         {
             FontFamily = "Consolas";
@@ -60,6 +63,37 @@ public sealed class SearchSettings
     public bool MatchCase { get; set; }
     public bool WrapAround { get; set; }
     public SearchDirection Direction { get; set; } = SearchDirection.Down;
+}
+
+/// <summary>
+/// Configuração de página lembrada entre execuções (especificação, 9 e 10): cabeçalho, rodapé
+/// e margens em milímetros. Papel, origem e orientação valem só para a sessão.
+/// </summary>
+public sealed class PageSettings
+{
+    public const string DefaultHeader = "&f";
+    public const string DefaultFooter = "Página &p";
+    public const double MaxMarginMm = 100;
+
+    public string Header { get; set; } = DefaultHeader;
+    public string Footer { get; set; } = DefaultFooter;
+    public double MarginTopMm { get; set; } = 25;
+    public double MarginBottomMm { get; set; } = 25;
+    public double MarginLeftMm { get; set; } = 20;
+    public double MarginRightMm { get; set; } = 20;
+
+    public void Normalize()
+    {
+        Header ??= DefaultHeader;
+        Footer ??= DefaultFooter;
+        MarginTopMm = ValidMargin(MarginTopMm, 25);
+        MarginBottomMm = ValidMargin(MarginBottomMm, 25);
+        MarginLeftMm = ValidMargin(MarginLeftMm, 20);
+        MarginRightMm = ValidMargin(MarginRightMm, 20);
+    }
+
+    private static double ValidMargin(double value, double fallback) =>
+        double.IsFinite(value) && value >= 0 && value <= MaxMarginMm ? value : fallback;
 }
 
 /// <summary>Posição e tamanho da janela em unidades independentes de DPI.</summary>
