@@ -49,7 +49,7 @@ public partial class MainWindow : Window
 
     private void OpenFromCommandLine()
     {
-        var request = CommandLine.Parse(CommandLine.ArgumentsOf(Environment.CommandLine));
+        var request = CommandLine.Parse(_services.CommandLineArguments);
         if (request.Path is null)
         {
             return;
@@ -106,7 +106,7 @@ public partial class MainWindow : Window
         {
             return;
         }
-        if (FileDialogs.Open(this, CurrentDirectory()) is { } choice)
+        if (_services.ChooseFileToOpen(this, CurrentDirectory()) is { } choice)
         {
             LoadFile(choice.Path, choice.Encoding, userOpen: true);
         }
@@ -164,7 +164,7 @@ public partial class MainWindow : Window
         DecodedText decoded;
         try
         {
-            decoded = TextCodec.Decode(TextFileStore.ReadAll(path), forced, _ansiCodePage, DefaultEncoding);
+            decoded = TextCodec.Decode(TextFileStore.ReadAll(path, _services.MaxFileBytes), forced, _ansiCodePage, DefaultEncoding);
         }
         catch (FileTooLargeException)
         {
@@ -225,7 +225,7 @@ public partial class MainWindow : Window
     private bool SaveAs()
     {
         string fileName = _path is null ? "*.txt" : Path.GetFileName(_path);
-        return FileDialogs.Save(this, CurrentDirectory(), fileName, _encoding) is { } choice
+        return _services.ChooseFileToSave(this, CurrentDirectory(), fileName, _encoding) is { } choice
             && SaveTo(choice.Path, choice.Encoding);
     }
 

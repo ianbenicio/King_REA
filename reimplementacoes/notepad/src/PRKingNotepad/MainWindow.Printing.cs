@@ -69,8 +69,8 @@ public partial class MainWindow
         }
         try
         {
-            _printQueue = LocalPrintServer.GetDefaultPrintQueue();
-            _printTicket = _printQueue.UserPrintTicket ?? _printQueue.DefaultPrintTicket;
+            _printQueue = _services.DefaultPrintQueue();
+            _printTicket = _printQueue is null ? null : _printQueue.UserPrintTicket ?? _printQueue.DefaultPrintTicket;
         }
         catch (Exception ex) when (ex is PrintQueueException or PrintSystemException or InvalidOperationException)
         {
