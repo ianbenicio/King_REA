@@ -21,6 +21,9 @@
         <CommandBinding Command="local:AppCommands.FindNext" Executed="OnFindNext" />
         <CommandBinding Command="local:AppCommands.FindPrevious" Executed="OnFindPrevious" />
         <CommandBinding Command="local:AppCommands.GoToLine" Executed="OnGoToLine" />
+        <CommandBinding Command="local:AppCommands.ZoomIn" Executed="OnZoomIn" />
+        <CommandBinding Command="local:AppCommands.ZoomOut" Executed="OnZoomOut" />
+        <CommandBinding Command="local:AppCommands.ZoomReset" Executed="OnZoomReset" />
     </Window.CommandBindings>
 
     <Window.InputBindings>
@@ -30,6 +33,11 @@
         <KeyBinding Command="local:AppCommands.FindNext" Gesture="F3" />
         <KeyBinding Command="local:AppCommands.FindPrevious" Gesture="Shift+F3" />
         <KeyBinding Command="local:AppCommands.GoToLine" Gesture="Ctrl+G" />
+        <KeyBinding Command="local:AppCommands.ZoomIn" Gesture="Ctrl+OemPlus" />
+        <KeyBinding Command="local:AppCommands.ZoomIn" Gesture="Ctrl+Add" />
+        <KeyBinding Command="local:AppCommands.ZoomOut" Gesture="Ctrl+OemMinus" />
+        <KeyBinding Command="local:AppCommands.ZoomOut" Gesture="Ctrl+Subtract" />
+        <KeyBinding Command="local:AppCommands.ZoomReset" Gesture="Ctrl+D0" />
     </Window.InputBindings>
 
     <DockPanel>
@@ -60,7 +68,17 @@
                 <MenuItem Header="Selecionar _tudo" Command="ApplicationCommands.SelectAll" CommandTarget="{Binding ElementName=Editor}" />
                 <MenuItem Header="_Hora e data" Command="local:AppCommands.InsertDateTime" InputGestureText="F5" />
             </MenuItem>
+            <MenuItem Header="_Formatar">
+                <MenuItem x:Name="WordWrapMenuItem" Header="_Quebra automática de linha" IsCheckable="True"
+                          Click="OnToggleWordWrap" />
+                <MenuItem Header="_Fonte..." Click="OnChooseFont" />
+            </MenuItem>
             <MenuItem Header="E_xibir">
+                <MenuItem Header="_Zoom">
+                    <MenuItem Header="_Ampliar" Command="local:AppCommands.ZoomIn" InputGestureText="Ctrl+=" />
+                    <MenuItem Header="_Reduzir" Command="local:AppCommands.ZoomOut" InputGestureText="Ctrl+-" />
+                    <MenuItem Header="Restaurar _zoom padrão" Command="local:AppCommands.ZoomReset" InputGestureText="Ctrl+0" />
+                </MenuItem>
                 <MenuItem x:Name="StatusBarMenuItem" Header="_Barra de status" IsCheckable="True" IsChecked="True"
                           Click="OnToggleStatusBar" />
             </MenuItem>
@@ -99,9 +117,9 @@
                  AcceptsReturn="True" AcceptsTab="True"
                  TextWrapping="NoWrap"
                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-                 FontFamily="Consolas" FontSize="14.667"
                  BorderThickness="0"
                  IsInactiveSelectionHighlightEnabled="True"
-                 TextChanged="OnTextChanged" SelectionChanged="OnSelectionChanged" />
+                 TextChanged="OnTextChanged" SelectionChanged="OnSelectionChanged"
+                 PreviewMouseWheel="OnEditorMouseWheel" />
     </DockPanel>
 </Window>

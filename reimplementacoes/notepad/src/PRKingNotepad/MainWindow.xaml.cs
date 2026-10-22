@@ -13,11 +13,10 @@ public partial class MainWindow : Window
 {
     private const string AppName = "PRKing Notepad";
     private const string UntitledName = "Documento sem nome";
-    private const TextEncodingKind DefaultEncoding = TextEncodingKind.Utf8;
 
     private readonly int _ansiCodePage = (int)NativeMethods.GetACP();
     private string? _path;
-    private TextEncodingKind _encoding = DefaultEncoding;
+    private TextEncodingKind _encoding;
     private LineEnding _lineEnding = LineEnding.CrLf;
     private bool _dirty;
     private bool _loading;
@@ -27,6 +26,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        ApplySettings();
         SetDocument("", null, DefaultEncoding, LineEnding.CrLf);
     }
 
@@ -128,7 +128,9 @@ public partial class MainWindow : Window
         if (!ConfirmDiscard())
         {
             e.Cancel = true;
+            return;
         }
+        SaveSettings();
     }
 
     /// <summary>Pergunta se salva as alterações. Falso = o usuário cancelou a operação.</summary>
@@ -464,9 +466,6 @@ public partial class MainWindow : Window
     }
 
     // ---- Exibição (seção 5) ----
-
-    private void OnToggleStatusBar(object sender, RoutedEventArgs e) =>
-        StatusBar.Visibility = StatusBarMenuItem.IsChecked ? Visibility.Visible : Visibility.Collapsed;
 
     private void UpdateTitle() => Title = $"{(_dirty ? "*" : "")}{DocumentName} - {AppName}";
 

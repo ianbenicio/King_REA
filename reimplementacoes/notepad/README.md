@@ -37,12 +37,16 @@ src\PRKingNotepad\bin\Debug\net10.0-windows\PRKingNotepad.exe [/A | /W] [arquivo
 |---|---|---|
 | 1 | Leitura e gravação (detecção de codificação, BOM, perda em ANSI com recarga, quebras de linha, ".LOG", limite de 1 GiB, gravação segura); janela com menus Arquivo/Editar/Exibir, barra de status, título com asterisco, pergunta ao descartar, arrastar e soltar, linha de comando `/A` `/W` | Feito |
 | 2 | Localizar e substituir (janelas não modais, F3 / Shift+F3, dar a volta com aviso na barra de status, substituir tudo numa só edição desfazível); ir para linha (com aviso de linha inexistente); lista de codificação nas caixas Abrir/Salvar do Windows | Feito |
-| 3 | Fonte, quebra automática, zoom, preferências persistentes, posição da janela | A fazer |
+| 3 | Fonte (caixa nativa do Windows), quebra automática, zoom 10–500 % (Ctrl+= / Ctrl+- / Ctrl+0 e Ctrl+roda do mouse), preferências persistentes (fonte, quebra, barra de status, busca, codificação padrão), posição e tamanho da janela | Feito |
 | 4 | Configurar página e impressão; ajuda e sobre; documentos recentes | A fazer |
 
 ## Requisitos de build
 
 - .NET SDK 10 (LTS, suporte até 11/2028), versão fixada 10.0.401, em `C:\tools\dotnet`. Instalação sem administrador, com hash conferido: `powershell -ExecutionPolicy Bypass -File scripts\instalar-dotnet.ps1`.
+
+## Preferências
+
+Ficam em `%APPDATA%\PRKing_Notepad\config.json` (JSON, gravado ao fechar a janela; nunca no registro do Windows). Arquivo ausente, corrompido ou com valores fora do intervalo volta ao padrão sem erro. A codificação de documento novo (`DefaultEncoding`) só se muda editando esse arquivo, como no original. O zoom não é gravado.
 
 ## Diferenças em relação ao original
 
@@ -54,3 +58,5 @@ Decisões deliberadas, permitidas pela especificação ou tomadas onde ela deixa
 4. **UTF-16 sem BOM:** heurística própria (bytes zero em posições ímpares), só para texto de alfabeto latino e a partir de 100 bytes.
 5. **Linha de comando:** nome sem extensão que não existe passa a ser `nome.txt`.
 6. **Busca:** comparação ordinal (com ou sem diferenciar maiúsculas), sem regras de idioma; a seleção de uma linha vira o termo ao abrir Localizar ou Substituir; Substituir sempre anda para baixo.
+7. **Zoom:** aplicado como escala do tamanho da fonte; Ctrl+roda do mouse também altera (no original, a confirmar).
+8. **Posição da janela:** só é restaurada se a barra de título cair numa área visível da tela (monitor desconectado não "perde" a janela).
