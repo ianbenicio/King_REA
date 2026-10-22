@@ -1,6 +1,6 @@
 # Story NB5 — PRKing Notepad, bloco 5: conformidade e lacunas
 
-**Status:** InProgress (U2 em 2026-10-22; validada por @po em 2026-10-21, ver "Validação @po")
+**Status:** Done (QA gate PASS na U4, 2026-10-22; validada por @po em 2026-10-21, ver "Validação @po" e "QA Results")
 **Workflow:** SDC + QA Loop (máx. 2 iterações) · **Plano:** [`docs/plano-de-execucao.md`](../plano-de-execucao.md) §3 · **Matriz:** [`reimplementacoes/notepad/CONFORMIDADE.md`](../../reimplementacoes/notepad/CONFORMIDADE.md) · **Roteiro:** [`registros/notepad-reimpl/roteiro-confirmacao.md`](../../registros/notepad-reimpl/roteiro-confirmacao.md)
 **Complexidade:** STANDARD · estimativa M (8 pontos): muitos itens pequenos, um risco técnico (testes de UI WPF em processo)
 
@@ -54,11 +54,11 @@ Sala limpa (valem para toda a story): o trabalho em `reimplementacoes/notepad/` 
 
 ### U4 — QA gate (@qa → @dev pelo QA Loop, sessão nova, ~180k)
 
-- [ ] **AC-U4.1** — `/code-review` do diff U2–U3 executado; cada achado corrigido ou aceito pelo responsável, com registro na seção "QA Results".
-- [ ] **AC-U4.2 (sala limpa)** — `git diff --stat` das unidades U2–U4 só em `reimplementacoes/notepad/`, `docs/` e no adendo da spec; busca nos transcripts das sessões U1–U4 sem `Read`/`Grep` em `alvos/` ou `saidas/` e sem chamada a tool `mcp__rea__*` ou `mcp__ghidra__*`.
-- [ ] **AC-U4.3 (matriz final)** — nenhuma linha "divergente"; nenhuma "sem teste" fora das manuais; "a confirmar" só onde o adendo disser "não observável"; contagem de títulos §1–§11 ainda 28/28.
-- [ ] **AC-U4.4 (manuais)** — seção "Teste manual" preenchida pelo responsável, ou pendência aceita por ele (veredito CONCERNS/WAIVED registrado).
-- [ ] **AC-U4.5 (fechamento)** — veredito PASS, ou CONCERNS aceito pelo responsável; story `Done`; handoff final com as métricas do `sessao.js` das quatro sessões; nota curta no Engram apontando o handoff (sem conteúdo do alvo).
+- [x] **AC-U4.1** — `/code-review` do diff U2–U3 executado; cada achado corrigido ou aceito pelo responsável, com registro na seção "QA Results".
+- [x] **AC-U4.2 (sala limpa)** — `git diff --stat` das unidades U2–U4 só em `reimplementacoes/notepad/`, `docs/` e no adendo da spec; busca nos transcripts das sessões U1–U4 sem `Read`/`Grep` em `alvos/` ou `saidas/` e sem chamada a tool `mcp__rea__*` ou `mcp__ghidra__*`.
+- [x] **AC-U4.3 (matriz final)** — nenhuma linha "divergente"; nenhuma "sem teste" fora das manuais; "a confirmar" só onde o adendo disser "não observável"; contagem de títulos §1–§11 ainda 28/28.
+- [x] **AC-U4.4 (manuais)** — seção "Teste manual" preenchida pelo responsável, ou pendência aceita por ele (veredito CONCERNS/WAIVED registrado).
+- [x] **AC-U4.5 (fechamento)** — veredito PASS, ou CONCERNS aceito pelo responsável; story `Done`; handoff final com as métricas do `sessao.js` das quatro sessões; nota curta no Engram apontando o handoff (sem conteúdo do alvo).
 
 ## Critério de pronto (story inteira)
 
@@ -89,7 +89,7 @@ Fecha a v1 do PRKing Notepad com prova item a item e dá ao S3 do Harness quatro
 - [x] U2 — AC-U2.1, U2.2, U2.3, U2.5, U2.6
 - [x] U2b — AC-U2.4 e fechamento do AC-U2.7 (R1–R7 com status final)
 - [x] U3 — AC-U3.1 a AC-U3.7
-- [ ] U4 — AC-U4.1 a AC-U4.5
+- [x] U4 — AC-U4.1 a AC-U4.5
 
 ## Validação @po (leve, checklist de 10 pontos)
 
@@ -117,6 +117,8 @@ Fecha a v1 do PRKing Notepad com prova item a item e dá ao S3 do Harness quatro
 |---|---|---|---|
 | 2026-10-22 | U2 | Destinos de D1–D3 aceitos como na matriz; U2 iniciada em sessão nova; folha do roteiro chega depois | "Aceito D1–D3 como estão. Pode iniciar a U2 em sessão nova; a folha do roteiro eu mando depois." |
 | 2026-10-22 | U2b | Folha do roteiro R1–R7 preenchida; R7: preservar as quebras como o original; R2: manter a Dif. 6; U2b antes da U3 | R7 = "Copiar o original"; R2 = "Manter Dif. 6"; ordem = "U2b antes da U3" |
+| 2026-10-22 | U3/U4 | Teste manual M1–M9 e M11 executados (commit `12411d2`); M10 executado na U4 com a Microsoft Print to PDF | M10 = "Executo com Print to PDF"; resultado "ok" |
+| 2026-10-22 | U4 | Achado 3 do code review (`LineBreakMap.Apply` O(k) por edição) aceito como dívida técnica; gate PASS | "Aceito como dívida" |
 
 ## Notas da U2 (@dev)
 
@@ -164,10 +166,37 @@ Fecha a v1 do PRKing Notepad com prova item a item e dá ao S3 do Harness quatro
 - `reimplementacoes/notepad/tests/PRKingNotepad.Ui.Tests/` (novo, U3: projeto, `packages.lock.json`, `Ui.cs`, `Input.cs`, `FakeDialogs.cs`, `Notepad.cs`, `ClipboardScope.cs`, `WindowAndShortcutTests.cs`, `SearchAndDisplayTests.cs`, `FileLifecycleTests.cs`)
 - `reimplementacoes/notepad/PRKingNotepad.slnx`, `CONFORMIDADE.md` (U3)
 - `docs/handoffs/2026-10-22-notepad-b5-u3.md` (novo, U3)
+- `reimplementacoes/notepad/src/PRKingNotepad.Core/TextFinder.cs`, `LineEndings.cs`, `src/PRKingNotepad/MainWindow.xaml.cs`, `tests/PRKingNotepad.Core.Tests/SearchTests.cs`, `LineEndingTests.cs` (Substituir tudo por trechos, U4)
+- `reimplementacoes/notepad/tests/PRKingNotepad.Ui.Tests/ClipboardScope.cs`, `Ui.cs`, `Notepad.cs` (auxiliares de teste, U4)
+- `reimplementacoes/notepad/CONFORMIDADE.md` (4.1.g, 8.e, M10, resumo da U4)
+- `docs/handoffs/2026-10-22-notepad-b5-u4.md` (novo, U4, handoff final)
 
 ## QA Results
 
-(U4)
+### QA gate — U4 (@qa → @dev, QA Loop: 1 iteração de correção), 2026-10-22
+
+**Veredito: PASS.** Achado 3 aceito pelo responsável como dívida técnica.
+
+**AC-U4.1 — `/code-review` (nível high) de `ad56963^..HEAD -- reimplementacoes/notepad`:** 6 achados.
+
+| # | Arquivo | Achado | Destino |
+|---|---|---|---|
+| 1 | `MainWindow.xaml.cs` (`ReplaceAll`) | Troca por troca (U3) deixava Substituir tudo e Desfazer quadráticos: medido 1k 93 ms, 10k 4,3 s, 20k 12,7 s, 50k > 60 s (texto inteiro: 0,13 s). | Corrigido (`5c5e386`): `TextFinder.ReplaceAllEdits` junta as trocas no menor número de edições que não encostam em quebra guardada; sem quebras misturadas, uma edição. Medido depois: 100k trocas 0,87 s (Desfazer 0,56 s); 100k com 1 mil trechos 1,5 s; 10k com 5 mil trechos 2,3 s. Byte a byte com Desfazer/Refazer continua provado pelo teste de UI da 8.e. |
+| 2 | `ClipboardScope.cs` | Só guardava texto puro: imagem, arquivos ou formato rico da área de transferência do usuário eram apagados pelos testes. | Corrigido (`9fb0281`): guarda e devolve todo formato legível. |
+| 3 | `LineEndings.cs` (`LineBreakMap.Apply`) | Desloca uma a uma as quebras guardadas depois da edição: O(k) por tecla; Substituir tudo O(trechos·k). | **Aceito como dívida** pelo responsável ("Aceito como dívida"). Só pesa em arquivo com muitas quebras misturadas. |
+| 4 | `TextFinder.cs` | Parâmetro `lineBreaks` de `ReplaceAll` sem uso no app; `FindAll` também. | Corrigido (`5c5e386`): os dois saem; `ReplaceAll` fica como oráculo dos testes. Decisão pedida pela U3: `TextFinder.ReplaceAll(…, lineBreaks)` sai. |
+| 5 | `Ui.cs` (`Ui.Run`) | Teste que passa do limite de 60 s deixava a thread STA viva; na medição, testes seguintes falharam em cascata. | Corrigido (`9fb0281`): encerra o dispatcher da thread presa antes de falhar. |
+| 6 | `Notepad.cs` (`Dispose`) | `UnauthorizedAccessException` ao apagar a pasta temporária mascararia a falha do teste. | Corrigido (`9fb0281`). |
+
+**AC-U4.2 — sala limpa:** `git diff --stat ad56963^..HEAD` fora de `reimplementacoes/notepad/`: só `docs/handoffs/` (U2, U2b, U3), a story e `registros/notepad-reimpl/especificacao.md` (+18, só acréscimo: adendo §14); 0 arquivos em `alvos/` ou `saidas/`. Transcripts de U1 (`e33453b2-57cc-4977-8a4d-28da313ea4c8`), U2 (`d94ed5ff-31ab-44b3-9ce0-cabb17f4c87d`), U2b (`e74a3881-5253-48c0-bb3c-a6a4f982d8ec`), U3 (`c4cdf0e6-eced-4fc0-b23b-fcac9fa45e28`) e U4 (`3922557d-8acc-43ad-82ed-de8c14816538`), varridos por script: 0 chamadas `mcp__rea__*`/`mcp__ghidra__*`; 0 chamadas com `alvos/` ou `saidas/` em caminho, padrão ou comando; as ocorrências são só menção (texto de documento escrito, mensagens, resultados de tool como o `CLAUDE.md`). Nenhum Grep/Glob partiu da raiz do repositório; os `grep -r` das cinco sessões rodaram dentro de `reimplementacoes/notepad/`.
+
+**AC-U4.3 — matriz final:** 117 ok, 10 sem teste (todas "manual"), 7 fora do escopo, 0 divergente, 0 a confirmar; total 134 (`awk` na coluna de status). Títulos §1–§11: 28 na spec e 28 na matriz, texto idêntico (`diff` vazio).
+
+**AC-U4.4 — teste manual:** M1–M11 ok. M10 executado na U4 pelo responsável com a Microsoft Print to PDF (sem impressora física; origem do papel não se aplica a essa impressora).
+
+**Verificações:** `dotnet build PRKingNotepad.slnx --no-incremental` 0 avisos, 0 erros; `dotnet test PRKingNotepad.slnx` duas vezes seguidas, verde: Core 137, UI 76. Build e testes com `--artifacts-path` fora do repositório, porque o PRKing Notepad do responsável estava aberto e travava `src/PRKingNotepad/bin/`. `pre-commit` nos commits da U4, sem `--no-verify`.
+
+**Dívida técnica:** achado 3 (acima). **Riscos residuais:** Substituir tudo em arquivo com dezenas de milhares de trechos entre quebras misturadas continua lento (cresce com o quadrado do número de trechos).
 
 ## Change Log
 
@@ -178,3 +207,4 @@ Fecha a v1 do PRKing Notepad com prova item a item e dá ao S3 do Harness quatro
 | 2026-10-22 | U2 | Responsável aceitou D1–D3; AC-U2.1–U2.3, U2.5, U2.6 feitos; AC-U2.4 pendente (folha do roteiro) — status Ready → InProgress |
 | 2026-10-22 | U2b | Folha do roteiro aplicada: AC-U2.4 e AC-U2.7 feitos; R7 preserva as quebras; status segue InProgress (U3 e U4 pendentes) |
 | 2026-10-22 | U3 | AC-U3.1–U3.7 feitos: 76 testes de interface, 81 linhas da matriz para ok, seção "Teste manual"; Substituir tudo corrigido (Desfazer mantém quebras misturadas); status segue InProgress (U4 pendente) |
+| 2026-10-22 | U4 | QA gate: code review (6 achados: 5 corrigidos, 1 aceito como dívida), Substituir tudo por trechos (`5c5e386`), auxiliares de teste (`9fb0281`), sala limpa conferida nos cinco transcripts, matriz final, M10 executado; veredito PASS — status InProgress → Done |
