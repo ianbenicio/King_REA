@@ -7,6 +7,7 @@
     "rea": "rea",
     "doctor": "rea mcp doctor",
     "test": "node --test .claude/hooks/rea-gate.test.mjs .claude/hooks/cli-gate.test.mjs scripts/assets/organizar-assets.test.mjs scripts/monetizacao/verificar-perfis.test.mjs reimplementacoes/puzzle-piloto/tests/prng-pecas-dificuldade.test.mjs reimplementacoes/puzzle-piloto/tests/jogo.test.mjs reimplementacoes/puzzle-piloto/tests/simulacao.test.mjs reimplementacoes/puzzle-piloto/tests/monetizacao.test.mjs reimplementacoes/puzzle-piloto/tests/sessao.test.mjs reimplementacoes/puzzle-piloto/tests/invariancia.test.mjs",
+    "test:notepad": "dotnet test reimplementacoes/notepad/PRKingNotepad.slnx",
     "check:monetizacao": "node scripts/monetizacao/verificar-perfis.mjs",
     "semgrep": "node scripts/semgrep/rodar.mjs scan reimplementacoes/puzzle-piloto/semgrep reimplementacoes/puzzle-piloto/src",
     "semgrep:test": "node scripts/semgrep/rodar.mjs test reimplementacoes/puzzle-piloto/semgrep",

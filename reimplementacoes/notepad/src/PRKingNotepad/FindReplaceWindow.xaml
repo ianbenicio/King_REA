@@ -1,0 +1,48 @@
+<Window x:Class="PRKingNotepad.FindReplaceWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Localizar" SizeToContent="WidthAndHeight" ResizeMode="NoResize"
+        ShowInTaskbar="False" WindowStartupLocation="CenterOwner">
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="240" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Label Grid.Row="0" Grid.Column="0" Content="_Localizar:" Target="{Binding ElementName=TermBox}" />
+        <TextBox Grid.Row="0" Grid.Column="1" x:Name="TermBox" VerticalContentAlignment="Center" Margin="0,2"
+                 TextChanged="OnInputChanged" />
+
+        <Label Grid.Row="1" Grid.Column="0" x:Name="ReplaceLabel" Content="Substituir _por:"
+               Target="{Binding ElementName=ReplaceBox}" />
+        <TextBox Grid.Row="1" Grid.Column="1" x:Name="ReplaceBox" VerticalContentAlignment="Center" Margin="0,2"
+                 TextChanged="OnInputChanged" />
+
+        <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,8,0,0">
+            <CheckBox x:Name="MatchCaseBox" Content="_Diferenciar maiúsculas e minúsculas" Margin="0,2"
+                      Click="OnInputChanged" />
+            <CheckBox x:Name="WrapBox" Content="Dar a _volta (continuar do outro extremo)" Margin="0,2"
+                      Click="OnInputChanged" />
+            <GroupBox x:Name="DirectionGroup" Header="Direção" Margin="0,6,0,0">
+                <StackPanel Orientation="Horizontal" Margin="4">
+                    <RadioButton x:Name="UpRadio" Content="Para _cima" Margin="0,0,16,0" Click="OnInputChanged" />
+                    <RadioButton x:Name="DownRadio" Content="Para _baixo" Click="OnInputChanged" />
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+
+        <StackPanel Grid.Row="0" Grid.Column="2" Grid.RowSpan="3" Margin="10,2,0,0" MinWidth="130">
+            <Button x:Name="FindNextButton" Content="Localizar _próxima" IsDefault="True" Margin="0,0,0,6" Padding="8,3"
+                    Click="OnFindNext" />
+            <Button x:Name="ReplaceButton" Content="_Substituir" Margin="0,0,0,6" Padding="8,3" Click="OnReplace" />
+            <Button x:Name="ReplaceAllButton" Content="Substituir _tudo" Margin="0,0,0,6" Padding="8,3" Click="OnReplaceAll" />
+            <Button Content="Cancelar" IsCancel="True" Padding="8,3" Click="OnCancel" />
+        </StackPanel>
+    </Grid>
+</Window>

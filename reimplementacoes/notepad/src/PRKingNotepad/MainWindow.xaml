@@ -16,12 +16,20 @@
         <CommandBinding Command="local:AppCommands.InsertDateTime" Executed="OnInsertDateTime" />
         <CommandBinding Command="local:AppCommands.DeleteSelection" Executed="OnDeleteSelection"
                         CanExecute="CanDeleteSelection" />
+        <CommandBinding Command="ApplicationCommands.Find" Executed="OnFind" />
+        <CommandBinding Command="ApplicationCommands.Replace" Executed="OnReplace" />
+        <CommandBinding Command="local:AppCommands.FindNext" Executed="OnFindNext" />
+        <CommandBinding Command="local:AppCommands.FindPrevious" Executed="OnFindPrevious" />
+        <CommandBinding Command="local:AppCommands.GoToLine" Executed="OnGoToLine" />
     </Window.CommandBindings>
 
     <Window.InputBindings>
         <KeyBinding Command="ApplicationCommands.SaveAs" Gesture="Ctrl+Shift+S" />
         <KeyBinding Command="local:AppCommands.NewWindow" Gesture="Ctrl+Shift+N" />
         <KeyBinding Command="local:AppCommands.InsertDateTime" Gesture="F5" />
+        <KeyBinding Command="local:AppCommands.FindNext" Gesture="F3" />
+        <KeyBinding Command="local:AppCommands.FindPrevious" Gesture="Shift+F3" />
+        <KeyBinding Command="local:AppCommands.GoToLine" Gesture="Ctrl+G" />
     </Window.InputBindings>
 
     <DockPanel>
@@ -32,7 +40,6 @@
                 <MenuItem Header="_Abrir..." Command="ApplicationCommands.Open" />
                 <MenuItem Header="_Salvar" Command="ApplicationCommands.Save" />
                 <MenuItem Header="Salvar _como..." Command="ApplicationCommands.SaveAs" InputGestureText="Ctrl+Shift+S" />
-                <MenuItem x:Name="EncodingMenu" Header="Codificação ao sal_var" />
                 <Separator />
                 <MenuItem Header="Sa_ir" Click="OnExit" />
             </MenuItem>
@@ -43,6 +50,12 @@
                 <MenuItem Header="_Copiar" Command="ApplicationCommands.Copy" CommandTarget="{Binding ElementName=Editor}" />
                 <MenuItem Header="Co_lar" Command="ApplicationCommands.Paste" CommandTarget="{Binding ElementName=Editor}" />
                 <MenuItem Header="_Excluir" Command="local:AppCommands.DeleteSelection" InputGestureText="Del" />
+                <Separator />
+                <MenuItem Header="_Localizar..." Command="ApplicationCommands.Find" />
+                <MenuItem Header="Localizar _próxima" Command="local:AppCommands.FindNext" InputGestureText="F3" />
+                <MenuItem Header="Localizar a_nterior" Command="local:AppCommands.FindPrevious" InputGestureText="Shift+F3" />
+                <MenuItem Header="_Substituir..." Command="ApplicationCommands.Replace" />
+                <MenuItem Header="_Ir para linha..." Command="local:AppCommands.GoToLine" InputGestureText="Ctrl+G" />
                 <Separator />
                 <MenuItem Header="Selecionar _tudo" Command="ApplicationCommands.SelectAll" CommandTarget="{Binding ElementName=Editor}" />
                 <MenuItem Header="_Hora e data" Command="local:AppCommands.InsertDateTime" InputGestureText="F5" />
@@ -71,7 +84,7 @@
                     </Grid>
                 </ItemsPanelTemplate>
             </StatusBar.ItemsPanel>
-            <StatusBarItem Grid.Column="0" />
+            <StatusBarItem Grid.Column="0"><TextBlock x:Name="StatusMessage" TextTrimming="CharacterEllipsis" /></StatusBarItem>
             <Separator Grid.Column="1" />
             <StatusBarItem Grid.Column="2"><TextBlock x:Name="StatusPosition" /></StatusBarItem>
             <Separator Grid.Column="3" />
@@ -88,6 +101,7 @@
                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                  FontFamily="Consolas" FontSize="14.667"
                  BorderThickness="0"
+                 IsInactiveSelectionHighlightEnabled="True"
                  TextChanged="OnTextChanged" SelectionChanged="OnSelectionChanged" />
     </DockPanel>
 </Window>

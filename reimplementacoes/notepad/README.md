@@ -36,7 +36,7 @@ src\PRKingNotepad\bin\Debug\net10.0-windows\PRKingNotepad.exe [/A | /W] [arquivo
 | Bloco | Conteúdo | Situação |
 |---|---|---|
 | 1 | Leitura e gravação (detecção de codificação, BOM, perda em ANSI com recarga, quebras de linha, ".LOG", limite de 1 GiB, gravação segura); janela com menus Arquivo/Editar/Exibir, barra de status, título com asterisco, pergunta ao descartar, arrastar e soltar, linha de comando `/A` `/W` | Feito |
-| 2 | Localizar, substituir, ir para linha; lista de codificação nas caixas Abrir/Salvar | A fazer |
+| 2 | Localizar e substituir (janelas não modais, F3 / Shift+F3, dar a volta com aviso na barra de status, substituir tudo numa só edição desfazível); ir para linha (com aviso de linha inexistente); lista de codificação nas caixas Abrir/Salvar do Windows | Feito |
 | 3 | Fonte, quebra automática, zoom, preferências persistentes, posição da janela | A fazer |
 | 4 | Configurar página e impressão; ajuda e sobre; documentos recentes | A fazer |
 
@@ -52,5 +52,5 @@ Decisões deliberadas, permitidas pela especificação ou tomadas onde ela deixa
 2. **Gravação segura:** grava num arquivo temporário na mesma pasta e só então substitui o destino; o original grava direto no arquivo.
 3. **Quebras de linha mistas:** o tipo do documento é o da primeira quebra, e ao salvar todas as quebras passam para esse tipo. Arquivos com um só tipo de quebra voltam idênticos.
 4. **UTF-16 sem BOM:** heurística própria (bytes zero em posições ímpares), só para texto de alfabeto latino e a partir de 100 bytes.
-5. **Escolha de codificação (provisório até o bloco 2):** em Arquivo > Codificação ao salvar. Abrir forçando uma codificação, por enquanto, só pela linha de comando (`/A`, `/W`).
-6. **Linha de comando:** nome sem extensão que não existe passa a ser `nome.txt`.
+5. **Linha de comando:** nome sem extensão que não existe passa a ser `nome.txt`.
+6. **Busca:** comparação ordinal (com ou sem diferenciar maiúsculas), sem regras de idioma; a seleção de uma linha vira o termo ao abrir Localizar ou Substituir; Substituir sempre anda para baixo.

@@ -8,4 +8,7 @@ public static class AppCommands
     public static readonly RoutedUICommand NewWindow = new("Nova janela", nameof(NewWindow), typeof(AppCommands));
     public static readonly RoutedUICommand InsertDateTime = new("Hora e data", nameof(InsertDateTime), typeof(AppCommands));
     public static readonly RoutedUICommand DeleteSelection = new("Excluir", nameof(DeleteSelection), typeof(AppCommands));
+    public static readonly RoutedUICommand FindNext = new("Localizar próxima", nameof(FindNext), typeof(AppCommands));
+    public static readonly RoutedUICommand FindPrevious = new("Localizar anterior", nameof(FindPrevious), typeof(AppCommands));
+    public static readonly RoutedUICommand GoToLine = new("Ir para linha", nameof(GoToLine), typeof(AppCommands));
 }

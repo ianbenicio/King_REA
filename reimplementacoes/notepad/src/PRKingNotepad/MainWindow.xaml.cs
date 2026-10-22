@@ -5,7 +5,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.Win32;
 using PRKingNotepad.Core;
 
 namespace PRKingNotepad;
@@ -14,7 +13,6 @@ public partial class MainWindow : Window
 {
     private const string AppName = "PRKing Notepad";
     private const string UntitledName = "Documento sem nome";
-    private const string FileFilter = "Arquivos de texto (*.txt)|*.txt|Todos os arquivos (*.*)|*.*";
     private const TextEncodingKind DefaultEncoding = TextEncodingKind.Utf8;
 
     private readonly int _ansiCodePage = (int)NativeMethods.GetACP();
@@ -23,11 +21,12 @@ public partial class MainWindow : Window
     private LineEnding _lineEnding = LineEnding.CrLf;
     private bool _dirty;
     private bool _loading;
+    private readonly SearchState _search = new();
+    private FindReplaceWindow? _searchWindow;
 
     public MainWindow()
     {
         InitializeComponent();
-        BuildEncodingMenu();
         SetDocument("", null, DefaultEncoding, LineEnding.CrLf);
     }
 
@@ -100,14 +99,9 @@ public partial class MainWindow : Window
         {
             return;
         }
-        var dialog = new OpenFileDialog { Filter = FileFilter, CheckFileExists = true };
-        if (_path is not null)
+        if (FileDialogs.Open(this, CurrentDirectory()) is { } choice)
         {
-            dialog.InitialDirectory = Path.GetDirectoryName(_path);
-        }
-        if (dialog.ShowDialog(this) == true)
-        {
-            LoadFile(dialog.FileName, forced: null, userOpen: true);
+            LoadFile(choice.Path, choice.Encoding, userOpen: true);
         }
     }
 
@@ -212,28 +206,21 @@ public partial class MainWindow : Window
         UpdateStatus();
     }
 
-    private bool Save() => _path is null ? SaveAs() : SaveTo(_path);
+    private bool Save() => _path is null ? SaveAs() : SaveTo(_path, _encoding);
 
     private bool SaveAs()
     {
-        var dialog = new SaveFileDialog
-        {
-            Filter = FileFilter,
-            DefaultExt = ".txt",
-            AddExtension = true,
-            OverwritePrompt = true,
-            FileName = _path is null ? "*.txt" : Path.GetFileName(_path),
-        };
-        if (_path is not null)
-        {
-            dialog.InitialDirectory = Path.GetDirectoryName(_path);
-        }
-        return dialog.ShowDialog(this) == true && SaveTo(dialog.FileName);
+        string fileName = _path is null ? "*.txt" : Path.GetFileName(_path);
+        return FileDialogs.Save(this, CurrentDirectory(), fileName, _encoding) is { } choice
+            && SaveTo(choice.Path, choice.Encoding);
     }
 
-    private bool SaveTo(string path)
+    private string? CurrentDirectory() => _path is null ? null : Path.GetDirectoryName(_path);
+
+    /// <summary>Grava na codificação pedida; o documento só passa a usá-la se a gravação der certo.</summary>
+    private bool SaveTo(string path, TextEncodingKind encoding)
     {
-        var encoded = TextCodec.Encode(Editor.Text, _encoding, _lineEnding, _ansiCodePage);
+        var encoded = TextCodec.Encode(Editor.Text, encoding, _lineEnding, _ansiCodePage);
         if (encoded.LostCharacters)
         {
             var answer = Ask(
@@ -268,6 +255,7 @@ public partial class MainWindow : Window
         }
 
         _path = path;
+        _encoding = encoding;
         _dirty = false;
         UpdateTitle();
         UpdateStatus();
@@ -326,6 +314,7 @@ public partial class MainWindow : Window
         {
             return;
         }
+        StatusMessage.Text = "";
         if (!_dirty)
         {
             _dirty = true;
@@ -336,24 +325,141 @@ public partial class MainWindow : Window
 
     private void OnSelectionChanged(object sender, RoutedEventArgs e) => UpdatePosition();
 
-    // ---- Codificação de gravação ----
+    // ---- Localizar, substituir e ir para (seção 4) ----
 
-    private void BuildEncodingMenu()
+    private void OnFind(object sender, ExecutedRoutedEventArgs e) => ShowSearchWindow(replaceMode: false);
+
+    private void OnReplace(object sender, ExecutedRoutedEventArgs e) => ShowSearchWindow(replaceMode: true);
+
+    private void OnFindNext(object sender, ExecutedRoutedEventArgs e) => FindOrAsk(SearchDirection.Down);
+
+    private void OnFindPrevious(object sender, ExecutedRoutedEventArgs e) => FindOrAsk(SearchDirection.Up);
+
+    /// <summary>F3 / Shift+F3: sem termo de busca, abre a caixa Localizar.</summary>
+    private void FindOrAsk(SearchDirection direction)
     {
-        foreach (var kind in Enum.GetValues<TextEncodingKind>())
+        if (_search.Term.Length == 0)
         {
-            var item = new MenuItem { Header = kind.DisplayName(), Tag = kind, IsCheckable = true };
-            item.Click += (_, _) =>
+            ShowSearchWindow(replaceMode: false);
+            return;
+        }
+        FindNext(direction);
+    }
+
+    /// <summary>Uma janela de busca por vez; a seleção atual (de uma linha) vira o termo.</summary>
+    private void ShowSearchWindow(bool replaceMode)
+    {
+        string selection = Editor.SelectedText;
+        bool useSelection = selection.Length > 0 && selection.AsSpan().IndexOfAny('\r', '\n') < 0;
+        if (useSelection)
+        {
+            _search.Term = selection;
+        }
+
+        if (_searchWindow is not null && _searchWindow.ReplaceMode != replaceMode)
+        {
+            _searchWindow.Close();
+        }
+        if (_searchWindow is null)
+        {
+            var window = new FindReplaceWindow(_search, replaceMode) { Owner = this };
+            window.FindNextRequested += (_, _) => FindNext(replaceMode ? SearchDirection.Down : _search.Direction);
+            window.ReplaceRequested += (_, _) => ReplaceOne();
+            window.ReplaceAllRequested += (_, _) => ReplaceAll();
+            window.Closed += (_, _) =>
             {
-                if (_encoding != kind)
-                {
-                    _encoding = kind;
-                    _dirty = true;
-                    UpdateTitle();
-                }
-                UpdateStatus();
+                _searchWindow = null;
+                Activate();
             };
-            EncodingMenu.Items.Add(item);
+            _searchWindow = window;
+            window.Show();
+        }
+        else
+        {
+            if (useSelection)
+            {
+                _searchWindow.SetTerm(selection);
+            }
+            _searchWindow.Activate();
+        }
+    }
+
+    private bool FindNext(SearchDirection direction)
+    {
+        var options = new SearchOptions(_search.MatchCase, direction, _search.WrapAround);
+        var match = TextFinder.FindNext(Editor.Text, _search.Term, Editor.SelectionStart, Editor.SelectionLength, options);
+        if (match is null)
+        {
+            StatusMessage.Text = "";
+            Inform($"Não foi encontrado: “{_search.Term}”.");
+            return false;
+        }
+
+        Editor.Select(match.Index, match.Length);
+        ScrollIntoView(match.Index);
+        StatusMessage.Text = !match.Wrapped ? ""
+            : direction == SearchDirection.Down ? "A busca chegou ao fim e recomeçou do início."
+            : "A busca chegou ao início e recomeçou do fim.";
+        return true;
+    }
+
+    /// <summary>Troca a seleção se ela for o termo e segue para a próxima ocorrência.</summary>
+    private void ReplaceOne()
+    {
+        if (TextFinder.SelectionMatches(Editor.Text, Editor.SelectionStart, Editor.SelectionLength, _search.Term, _search.MatchCase))
+        {
+            Editor.SelectedText = _search.Replacement;
+            Editor.Select(Editor.SelectionStart + Editor.SelectionLength, 0);
+        }
+        FindNext(SearchDirection.Down);
+    }
+
+    /// <summary>Substitui todas as ocorrências numa única edição desfazível.</summary>
+    private void ReplaceAll()
+    {
+        var (text, count) = TextFinder.ReplaceAll(Editor.Text, _search.Term, _search.Replacement, _search.MatchCase);
+        if (count == 0)
+        {
+            Inform($"Não foi encontrado: “{_search.Term}”.");
+            return;
+        }
+        Editor.BeginChange();
+        try
+        {
+            Editor.SelectAll();
+            Editor.SelectedText = text;
+        }
+        finally
+        {
+            Editor.EndChange();
+        }
+        Editor.Select(0, 0);
+        Editor.ScrollToHome();
+        StatusMessage.Text = count == 1 ? "1 ocorrência substituída." : $"{count} ocorrências substituídas.";
+    }
+
+    private void OnGoToLine(object sender, ExecutedRoutedEventArgs e)
+    {
+        string text = Editor.Text;
+        var dialog = new GoToLineWindow(CaretPosition.At(text, Editor.CaretIndex).Line, TextLines.Count(text)) { Owner = this };
+        if (dialog.ShowDialog() == true)
+        {
+            int index = TextLines.StartOf(text, dialog.Line);
+            Editor.Select(index, 0);
+            ScrollIntoView(index);
+            Editor.Focus();
+        }
+    }
+
+    /// <summary>Rola o editor até o caractere, também na horizontal (sem quebra automática).</summary>
+    private void ScrollIntoView(int index)
+    {
+        Editor.ScrollToLine(Editor.GetLineIndexFromCharacterIndex(index));
+        Editor.UpdateLayout();
+        var rect = Editor.GetRectFromCharacterIndex(index);
+        if (!rect.IsEmpty && (rect.Left < 0 || rect.Left > Editor.ViewportWidth - 20))
+        {
+            Editor.ScrollToHorizontalOffset(Math.Max(0, Editor.HorizontalOffset + rect.Left - Editor.ViewportWidth / 3));
         }
     }
 
@@ -368,10 +474,6 @@ public partial class MainWindow : Window
     {
         StatusLineEnding.Text = _lineEnding.DisplayName();
         StatusEncoding.Text = _encoding.DisplayName();
-        foreach (MenuItem item in EncodingMenu.Items)
-        {
-            item.IsChecked = (TextEncodingKind)item.Tag == _encoding;
-        }
         UpdatePosition();
     }
 
@@ -385,6 +487,13 @@ public partial class MainWindow : Window
 
     private MessageBoxResult Ask(string message, MessageBoxButton buttons, MessageBoxImage icon) =>
         MessageBox.Show(this, message, AppName, buttons, icon);
+
+    /// <summary>Informação; com a janela de busca aberta, aparece sobre ela.</summary>
+    private void Inform(string message)
+    {
+        Window owner = _searchWindow is { IsActive: true } ? _searchWindow : this;
+        MessageBox.Show(owner, message, AppName, MessageBoxButton.OK, MessageBoxImage.Information);
+    }
 
     private void ShowError(string message) => MessageBox.Show(this, message, AppName, MessageBoxButton.OK, MessageBoxImage.Error);
 
