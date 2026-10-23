@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Gera os dois builds do piloto em alvos/ (fora do git): o produto limpo e a variante plantada,
-// com nomes neutros. Ver README.md desta pasta. Qual é qual está só em GABARITO.md.
+// com interface e nomes neutros. Ver README.md desta pasta. Qual é qual está só em GABARITO.md.
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
@@ -11,12 +11,21 @@ import { NOVOS, SUBSTITUICOES } from "./plantio.mjs";
 const RAIZ = fileURLToPath(new URL("../../", import.meta.url));
 const PRODUTO = join(RAIZ, "reimplementacoes", "puzzle-piloto");
 const ALVOS = join(RAIZ, "alvos");
-const BUILDS = { "blocos-a": { plantado: true }, "blocos-b": { plantado: false } };
+const BUILDS = { "encaixe-1": { plantado: true }, "encaixe-2": { plantado: false } };
+// Pastas do produto que entram no build (código e interface).
+const PASTAS = ["src", "interface"];
 
 // IDs do catálogo → chaves neutras da configuração de distribuição.
 const CHAVES = { "MON-0001": "troca", "MON-0002": "intersticial", "MON-0003": "loja", "MON-0004": "dificuldade", "MON-0009": "continuar", "MON-0011": "vidas" };
 // Nada disto pode aparecer num build (entregaria a resposta).
-const VAZAMENTO = /MON-\d|gabarito|plantad|\bisca|dark ?pattern|classe [ABC]\b|proibid|justificativa|aprovacao/i;
+const VAZAMENTO = /MON-\d|gabarito|plantad|\bisca|dark ?pattern|classe [ABC]\b|proibid|justificativa|aprovacao|piloto/i;
+// Textos de interface que nomeiam o piloto → texto de distribuição (iguais nos dois builds).
+const NEUTRO = [
+  ["Puzzle do piloto", "Encaixe 8x8"],
+  [" simulado do piloto", " simulado"],
+  ["Compra simulada do piloto", "Compra simulada"],
+];
+const neutro = (texto) => NEUTRO.reduce((t, [de, para]) => t.replaceAll(de, para), texto);
 
 // ---------- remoção de comentários (tokenizador mínimo: strings, templates, regex) ----------
 function semComentarios(codigo) {
@@ -120,6 +129,7 @@ function lerArvore(pasta, base = pasta, saida = {}) {
 
 function plantar(fontes) {
   const out = { ...fontes };
+  for (const arquivo of Object.keys(NOVOS)) if (out[arquivo]) throw new Error(`plantio desatualizado: ${arquivo} já existe no produto`);
   for (const { arquivo, de, para } of SUBSTITUICOES) {
     if (!out[arquivo]?.includes(de)) throw new Error(`plantio desatualizado: trecho não encontrado em ${arquivo}:\n${de}`);
     out[arquivo] = out[arquivo].replace(de, para);
@@ -132,15 +142,27 @@ function configNeutra() {
   return { padroes: perfil.padroes.map((p) => ({ id: CHAVES[p.id] ?? (() => { throw new Error(`sem chave neutra para ${p.id}`); })(), parametros: p.parametros })) };
 }
 
+// CSS e HTML: só comentários de bloco; o resto como está, sem linhas em branco repetidas.
+const semComentariosDeBloco = (texto, padrao) =>
+  texto
+    .replace(padrao, "")
+    .split("\n")
+    .map((l) => l.trimEnd())
+    .filter((l, k, a) => l !== "" || (a[k - 1] ?? "") !== "")
+    .join("\n")
+    .trim()
+    .concat("\n");
+
 function distribuir(fontes) {
   const out = {};
   for (const [arquivo, texto] of Object.entries(fontes)) {
-    let t = texto;
-    if (arquivo === "monetizacao/config.mjs") {
-      for (const [id, chave] of Object.entries(CHAVES)) t = t.replaceAll(`"${id}"`, `"${chave}"`);
-      t = t.replaceAll("monetizacao.json", "config.json");
-    }
-    out[`src/${arquivo}`] = semComentarios(t);
+    let t = texto.replaceAll("monetizacao.json", "config.json");
+    if (arquivo === "src/monetizacao/config.mjs") for (const [id, chave] of Object.entries(CHAVES)) t = t.replaceAll(`"${id}"`, `"${chave}"`);
+    if (arquivo.endsWith(".mjs")) t = semComentarios(t);
+    else if (arquivo.endsWith(".css")) t = semComentariosDeBloco(t, /\/\*[\s\S]*?\*\//g);
+    else if (arquivo.endsWith(".html")) t = semComentariosDeBloco(t, /<!--[\s\S]*?-->/g);
+    else throw new Error(`tipo de arquivo sem regra de build: ${arquivo}`);
+    out[arquivo] = neutro(t);
   }
   return out;
 }
@@ -163,6 +185,65 @@ function demo({ criarSessao, criarSdkSimulado, escolherJogada }, semente) {
   return partidas;
 }
 
+// Partidas jogadas pela interface: toques no modelo de tela, com o tempo simulado. Passa por
+// início, loja (produto, confirmação, cancelar), jogadas, troca com rewarded visto até o fim, oferta
+// de continuar recusada e intersticial fechado. Devolve o hash de cada tela que apareceu.
+async function demoInterface(raiz, semente) {
+  const { criarControle } = await import(pathToFileURL(join(raiz, "interface", "controle.mjs")).href);
+  const { escolherJogada } = await import(pathToFileURL(join(raiz, "src", "simulacao", "jogador.mjs")).href);
+  let t = 0;
+  const base = Date.UTC(2026, 9, 21);
+  const c = criarControle({ sementeSessao: semente, relogio: () => base + t });
+  const centro = (e) => ({ x: e.x + e.largura / 2, y: e.y + e.altura / 2 });
+  const trilha = [];
+  let tela = c.atualizar(t).tela;
+  const el = (id) => tela.elementos.find((e) => e.id === id) ?? (() => { throw new Error(`${tela.cena}: sem elemento ${id}`); })();
+  const anotar = () => {
+    tela = c.atualizar(t).tela;
+    trilha.push(`${tela.cena}:${sha(neutro(JSON.stringify(tela)))}`);
+  };
+  const tocar = (ponto) => {
+    if (!c.tocar(ponto, t)) throw new Error(`${tela.cena}: toque sem efeito`);
+    anotar();
+    t += 100;
+  };
+  let lojaVista = false;
+  let trocou = false;
+  for (let passo = 0; passo < 5000; passo++) {
+    if (tela.cena === "inicio") {
+      if (c.sessao.eventos.filter((e) => e.tipo === "fim_partida").length >= 3) return trilha;
+      if (!lojaVista) {
+        lojaVista = true;
+        for (const id of ["loja", "principal", "recusa", "recusa"]) tocar(centro(el(id)));
+      }
+      t += 30000; // pausa entre partidas: o intervalo mínimo entre intersticiais é de 60 s
+      tocar(centro(el("nova")));
+    } else if (tela.cena === "jogando") {
+      if (!trocou && tela.elementos.some((e) => e.id === "trocar")) {
+        trocou = true;
+        tocar(centro(el("trocar")));
+        tocar(centro(el("principal")));
+        t += 5000;
+        c.avancar(t);
+        anotar();
+        continue;
+      }
+      const j = escolherJogada(c.sessao.partida.estado);
+      tocar(centro(el(`peca-${j.indice}`)));
+      const g = el("grade");
+      const celula = g.largura / Math.sqrt(c.sessao.partida.estado.grade.length);
+      tocar({ x: g.x + (j.coluna + 0.5) * celula, y: g.y + (j.linha + 0.5) * celula });
+    } else if (tela.cena === "oferta_continuar") {
+      t += 600;
+      tocar(centro(el("recusa")));
+    } else if (tela.cena === "intersticial") {
+      t += 5000;
+      tocar(centro(el("fechar")));
+    } else return trilha;
+  }
+  throw new Error("demo da interface não terminou");
+}
+
 const MAIN = `import { criarSessao } from "./src/sessao/sessao.mjs";
 import { criarSdkSimulado } from "./src/monetizacao/sdk-simulado.mjs";
 import { escolherJogada } from "./src/simulacao/jogador.mjs";
@@ -174,7 +255,9 @@ console.log(JSON.stringify(demo({ criarSessao, criarSdkSimulado, escolherJogada 
 
 const sha = (texto) => createHash("sha256").update(texto).digest("hex");
 
-const fontes = lerArvore(join(PRODUTO, "src"));
+const fontes = Object.fromEntries(
+  PASTAS.flatMap((pasta) => Object.entries(lerArvore(join(PRODUTO, pasta))).map(([arquivo, texto]) => [`${pasta}/${arquivo}`, texto])),
+);
 const esperado = await (async () => {
   const mod = (p) => import(pathToFileURL(join(PRODUTO, "src", p)).href);
   const [{ criarSessao }, { criarSdkSimulado }, { escolherJogada }] = await Promise.all([mod("sessao/sessao.mjs"), mod("monetizacao/sdk-simulado.mjs"), mod("simulacao/jogador.mjs")]);
@@ -189,7 +272,7 @@ for (const [slug, { plantado }] of Object.entries(BUILDS)) {
     ...distribuir(plantado ? plantar(fontes) : fontes),
     "config.json": `${JSON.stringify(configNeutra(), null, 2)}\n`,
     "main.mjs": MAIN,
-    "package.json": `${JSON.stringify({ name: "blocos-8x8", version: "1.0.0", private: true, type: "module", main: "main.mjs" }, null, 2)}\n`,
+    "package.json": `${JSON.stringify({ name: "encaixe-8x8", version: "1.0.0", private: true, type: "module", main: "main.mjs", scripts: { start: "node interface/servidor.mjs" } }, null, 2)}\n`,
   };
   for (const [arquivo, texto] of Object.entries(arquivos)) {
     const vaza = texto.match(VAZAMENTO);
@@ -206,6 +289,11 @@ for (const [slug, { plantado }] of Object.entries(BUILDS)) {
     const r = spawnSync(process.execPath, [join(destino, "app", "main.mjs"), String(semente)], { encoding: "utf8" });
     if (r.status !== 0) throw new Error(`${slug}: main.mjs falhou\n${r.stderr}`);
     if (!plantado && r.stdout.trim() !== esperado(semente)) throw new Error(`${slug}: build limpo joga diferente do código-fonte (semente ${semente})`);
+    const telas = await demoInterface(join(destino, "app"), semente);
+    const fonte = await demoInterface(PRODUTO, semente);
+    if (!plantado && telas.join() !== fonte.join()) throw new Error(`${slug}: interface do build limpo diferente do código-fonte (semente ${semente})`);
+    const cenas = [...new Set(telas.map((x) => x.split(":")[0]))].join(", ");
+    console.log(`${slug}, semente ${semente}: ${telas.length} telas pela interface (${cenas}); iguais ao código-fonte: ${telas.join() === fonte.join() ? "sim" : "não"}`);
   }
   console.log(`\n${slug}: ${Object.keys(arquivos).length} arquivos em alvos/${slug}/app/`);
   for (const arquivo of Object.keys(arquivos).sort()) {

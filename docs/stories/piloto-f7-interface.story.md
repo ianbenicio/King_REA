@@ -60,11 +60,11 @@ Regras que valem para toda a story:
 
 ### U3 — variante plantada e alvos (@dev, sessão nova, ~180k)
 
-- [ ] **AC-U3.1 (plantio)** — `pilotos/puzzle-plantado/plantio.mjs` ganha mecanismos visuais (padrões do catálogo, classes misturadas) e iscas visuais (parecem suspeitas e não são); o plantio é de trechos exatos, como na F5. A lista, os IDs e os estados esperados (código, execução, causalidade, configuração) ficam só no `GABARITO.md`, com a seção da F7 separada da F5.
-- [ ] **AC-U3.2 (builds)** — `construir.mjs` gera os dois builds com interface em `alvos/<alvo>/`, com nomes neutros novos (sem `blocos-`), sem comentários e sem perfil de governança; a conferência de vazamento cobre também HTML, CSS e textos de interface; o build limpo joga igual ao código-fonte; duas execuções dão os mesmos hashes.
-- [ ] **AC-U3.3 (segurança)** — `registros/<alvo>/00-seguranca.md` dos dois alvos pelo protocolo normal, com plano de níveis que inclui execução no navegador (N3, `capture_browser_scenario`) e as tools N2 de página que forem usadas; aprovados pelo responsável, com os níveis nas palavras dele.
-- [ ] **AC-U3.4 (cegueira)** — instrução das sessões de análise escrita no handoff, com a lista do que não podem ler (`pilotos/`, `reimplementacoes/puzzle-piloto/`, `docs/plano*`, `docs/stories/`, `docs/handoffs/`, `registros/blocos-*`, o outro alvo e o histórico do git desses caminhos); decisão do responsável sobre regra `deny` de leitura registrada em "Aprovações".
-- [ ] **AC-U3.5 (fechamento)** — `npm test` verde; commit `test:`/`feat:` local (só fontes do plantio e gabarito; builds fora do git); handoff.
+- [x] **AC-U3.1 (plantio)** — `pilotos/puzzle-plantado/plantio.mjs` ganha mecanismos visuais (padrões do catálogo, classes misturadas) e iscas visuais (parecem suspeitas e não são); o plantio é de trechos exatos, como na F5. A lista, os IDs e os estados esperados (código, execução, causalidade, configuração) ficam só no `GABARITO.md`, com a seção da F7 separada da F5.
+- [x] **AC-U3.2 (builds)** — `construir.mjs` gera os dois builds com interface em `alvos/<alvo>/`, com nomes neutros novos (sem `blocos-`), sem comentários e sem perfil de governança; a conferência de vazamento cobre também HTML, CSS e textos de interface; o build limpo joga igual ao código-fonte; duas execuções dão os mesmos hashes.
+- [x] **AC-U3.3 (segurança)** — `registros/<alvo>/00-seguranca.md` dos dois alvos pelo protocolo normal, com plano de níveis que inclui execução no navegador (N3, `capture_browser_scenario`) e as tools N2 de página que forem usadas; aprovados pelo responsável, com os níveis nas palavras dele.
+- [x] **AC-U3.4 (cegueira)** — instrução das sessões de análise escrita no handoff, com a lista do que não podem ler (`pilotos/`, `reimplementacoes/puzzle-piloto/`, `docs/plano*`, `docs/stories/`, `docs/handoffs/`, `registros/blocos-*`, o outro alvo e o histórico do git desses caminhos); decisão do responsável sobre regra `deny` de leitura registrada em "Aprovações".
+- [x] **AC-U3.5 (fechamento)** — `npm test` verde; commit `test:`/`feat:` local (só fontes do plantio e gabarito; builds fora do git); handoff.
 
 ### U4a / U4b — análise cega (sessão nova por alvo, ~180k cada)
 
@@ -105,8 +105,8 @@ Primeira medida do protocolo de monetização com o estado "execução" preenchi
 - [x] U0 — esta story e validação @po
 - [x] U1 — AC-U1.1 a AC-U1.8
 - [x] U2 — AC-U2.1 a AC-U2.5
-- [ ] U3 — AC-U3.1 a AC-U3.5
-- [ ] Responsável — aprovar os protocolos de segurança e os níveis da análise
+- [x] U3 — AC-U3.1 a AC-U3.5
+- [x] Responsável — aprovar os protocolos de segurança e os níveis da análise
 - [ ] U4a — análise cega do alvo 1
 - [ ] U4b — análise cega do alvo 2
 - [ ] U5 — AC-U5.1 a AC-U5.5
@@ -140,6 +140,9 @@ Primeira medida do protocolo de monetização com o estado "execução" preenchi
 | 2026-10-23 | U0 | Escopo completo com análise cega; verificação por modelo puro + navegador | "Completa com análise cega"; "Modelo puro + navegador" |
 | 2026-10-23 | U0 | Plano da F7 aprovado | "Aprovo o plano da F7. Registre a aprovação e siga com a story (U0)." |
 | 2026-10-23 | U0 → U1 | Observações do @po aceitas; a U1 fixa na especificação a duração do intersticial simulado e a janela de toque acidental; U1 em sessão nova | "eu estou de acordo com a sugestões e os dados que faltam, pode seguir o caminho mais seguro e eficiente." |
+| 2026-10-23 | U3 | Protocolo de segurança do alvo `encaixe-1`: N0–N3 aprovados (N3 só `capture_browser_scenario`, servidor do build em 127.0.0.1 durante a captura) | "Aprovar N0–N3 (Recommended)" |
+| 2026-10-23 | U3 | Protocolo de segurança do alvo `encaixe-2`: N0–N3 aprovados (mesmo plano) | "Aprovar N0–N3 (Recommended)" |
+| 2026-10-23 | U3 | Regra `deny` de leitura temporária: Read/Grep/Glob negados nos caminhos proibidos comuns, em `.claude/settings.local.json` (fora do git), aplicada no fim da U3 e removida no início da U5; `.claude/settings.json` sem mudança; o Bash ainda lê, então a varredura do AC-U5.2 continua | "Deny temporário (Recommended)" |
 
 ## File List
 
@@ -166,6 +169,12 @@ Primeira medida do protocolo de monetização com o estado "execução" preenchi
 - U2: `scripts/semgrep/mutacoes.mjs` (mutação "fechar do anúncio com alvo pequeno" no código do modelo)
 - U2: `package.json` (teste novo no `npm test`, `interface/` na varredura do Semgrep, script `puzzle:interface`)
 - U2: `docs/handoffs/2026-10-23-piloto-f7-u2.md` (handoff)
+- U3: `pilotos/puzzle-plantado/plantio.mjs` (substituições da F7 sobre `src/` e `interface/`)
+- U3: `pilotos/puzzle-plantado/construir.mjs` (builds com interface, nomes neutros novos, conferência de vazamento em HTML/CSS/textos, comparação do limpo pela interface)
+- U3: `pilotos/puzzle-plantado/README.md`, `GABARITO.md` (seção da F7, separada da F5)
+- U3: `registros/encaixe-1/00-seguranca.md`, `registros/encaixe-2/00-seguranca.md` (novos)
+- U3: `.claude/settings.local.json` (fora do git: `deny` temporário, removido na U5)
+- U3: `docs/handoffs/2026-10-23-piloto-f7-u3.md` (handoff, com a instrução das sessões cegas)
 
 ## QA Results
 
@@ -181,3 +190,5 @@ _(vazio até a U5)_
 | 2026-10-23 | @dev | U1 concluída: modelo de tela (`src/interface/`), seção 10 da especificação, 38 testes novos; `npm test`, checagem de monetização e Semgrep verdes; perfil sem mudança. Status segue InProgress (U2) |
 | 2026-10-23 | @dev | U2 iniciada (2026-10-23T20:28:14Z, HEAD `ab6cc23`); status segue InProgress |
 | 2026-10-23 | @dev | U2 concluída: interface no navegador (`interface/`), servidor local, fluxos verificados no navegador embutido em desktop e celular com console sem erro, regra Semgrep R6; `npm test` 148/148, checagem de monetização e Semgrep verdes; perfil sem mudança. Status segue InProgress (U3) |
+| 2026-10-23 | @dev | U3 iniciada (2026-10-23T20:52:10Z, HEAD `59036a6`); status segue InProgress |
+| 2026-10-23 | @dev | U3 concluída: variante plantada com a parte visual, builds `encaixe-1` e `encaixe-2` (hashes estáveis em duas execuções, limpo igual ao fonte também pela interface), protocolos de segurança aprovados (N0–N3), `deny` temporário aplicado, instrução cega no handoff; `npm test` 148/148, checagem de monetização verde. Status segue InProgress (U4a/U4b) |

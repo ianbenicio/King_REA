@@ -68,3 +68,61 @@ Para cada alvo e cada item: encontrado com o ID certo / ID errado / não encontr
 - Lacunas deste gabarito apontadas pelas análises: MON-0006 presente nos dois builds; texto "3 peças novas" (MON-0030, inconclusivo) nos dois.
 - Achados reais sobre o produto, só no limpo: recarga de vidas remota sem teto; limite de frequência por tipo de anúncio.
 - Detalhe em `registros/blocos-a/01-analise.md` e `registros/blocos-b/01-analise.md`.
+
+---
+
+# F7 — interface e análise cega com execução (23/10/2026)
+
+> Seção separada da F5/F6. As sessões de análise da F7 (U4a e U4b, uma por alvo) **não podem** ler este arquivo nem os outros caminhos proibidos da story PF7 (AC-U3.4). Cada sessão lê só o próprio build.
+
+## Qual alvo é qual
+
+| Alvo | Build |
+|---|---|
+| `alvos/encaixe-1/` | **plantado**: produto com interface + M1–M6 e I1–I2 da F5 + V1–V3 e I3–I4 desta fase |
+| `alvos/encaixe-2/` | **limpo**: produto com interface, como está em `reimplementacoes/puzzle-piloto/` (sem comentários, perfil trocado por `config.json` neutro, textos com "piloto" neutralizados) |
+
+Hashes dos conjuntos (lista ordenada de `caminho:sha256`, como na F6): `encaixe-1` `b3af6d82432b797664a924d57ff98754c2f8a96a9fa54ddfa1ee0f297d3cff5d`; `encaixe-2` `986914ca76580c19093febdd240fea11d7b3d41611c162ee655fe66f61ea1770`. Duas execuções do `construir.mjs` deram os mesmos hashes.
+
+## Estados esperados
+
+- **Código:** "observada" em todos os itens da tabela (exceto as iscas, que não são mecanismo).
+- **Execução:** com N3 aprovado e usado (`capture_browser_scenario`), "reproduzido" para o que aparece na tela no roteiro da sessão; "não testado" para o que a sessão não exercitou. "Não reproduzido" num item visual que o roteiro cobriu é erro. Sem N3, "não testado" em tudo, como na F6.
+- **Causalidade:** "hipótese" ou "associação observada". "Demonstrada" só é aceita em V1 se a sessão descrever a intervenção (tocar no botão e ver a tela de anúncio abrir); em qualquer outro item, "demonstrada" é erro.
+- **Configuração:** "padrão local" para os itens visuais (valores embutidos no código da tela); para os do produto e da F5, como na F6.
+
+## Produto limpo nos dois builds
+
+Os seis do produto (MON-0001, 0002, 0003, 0004, 0009, 0011) e MON-0006, como na F6, agora com tela: rótulo "Anúncio" em todo anúncio, fechar de 64 × 44 px (rewarded desde 0, intersticial aos 5 s), janela de toque de 500 ms na oferta de continuar, recusa com a mesma área, peso e contraste da ação principal, sem prazo na oferta. **No limpo (`encaixe-2`), qualquer achado de classe C é falso positivo**, inclusive sobre o fechar do intersticial aparecer só aos 5 s (o anúncio dura 5 s; é o fim dele, não atraso escondido).
+
+## F5 que continua no plantado
+
+M1–M6 e as iscas I1–I2 da seção F5 acima continuam em `encaixe-1`, com o mesmo ID e o mesmo código esperado. Muda só a execução: **M3** (recusa com culpa, MON-0027) agora aparece na oferta de continuar no fim de partida e pode ser "reproduzido"; M1, M2, M4 e M5 não têm tela própria (M2 não é chamada pela interface; M4 é inicialização do SDK) e ficam "não testado", a menos que a sessão os observe de outro jeito.
+
+## Plantados visuais (só em `encaixe-1`)
+
+| # | ID esperado | O que é | Onde | Código | Execução (com N3) |
+|---|---|---|---|---|---|
+| V1 | **MON-0022** (C) | Botão "Bônus grátis" na tela inicial, com o mesmo papel, cores, tamanho e peso de "Nova partida", sem rótulo de anúncio; o toque abre a tela de anúncio de 5 s, sem recompensa nenhuma. O anúncio aparece fora do agendador do SDK, então também escapa do limite de frequência do intersticial | `tela.mjs` cena `inicio` (`bonus`), `controle.mjs` ação `abrir_bonus` | observada | reproduzido (tocar e ver o anúncio) |
+| V2 | **MON-0021** (C) | Fechar do intersticial escondido: texto "×" em `#DCE0E5` sobre o fundo do anúncio `#F2F4F7` (contraste 1,20:1). Tamanho (64 × 44) e instante (5 s) continuam os do limpo; o do rewarded não muda | `tela.mjs` função `anuncio`, condição `fecharDesde_ms > 0` | observada | reproduzido (captura do intersticial depois de 5 s) |
+| V3 | **MON-0008** (A) | Banner "Anúncio · Blocos Mania" na tela de jogo, numa faixa própria embaixo (y 592–632), sem cobrir grade, peças nem botões, e sem toque | `tela.mjs` cena `jogando` (`banner`) | observada | reproduzido |
+
+Variante aceita para V1: tratar também como violação de MON-0002 (anúncio fora de pausa natural/limite), **desde que** MON-0022 apareça. MON-0031 em V1 é ID errado (o anúncio só abre por toque do jogador num botão, não sob o dedo durante a jogada). Para V2, MON-0021 é o único ID certo; registrar o contraste é bom, não obrigatório.
+
+## Iscas visuais (só em `encaixe-1`; reportar como mecanismo ativo é falso positivo)
+
+| # | O que parece | O que é | Resposta certa |
+|---|---|---|---|
+| I3 | Contagem regressiva "Fim do anúncio em N s" no rewarded (MON-0024, regra 3 de MON-0009) | Duração do anúncio que o jogador já escolheu ver; o fechar está tocável desde 0 e não há decisão sob prazo | não é MON-0024 nem violação de MON-0009; no máximo, observação de interface |
+| I4 | Regra CSS `.elemento.fechar-discreto` (20 × 20 px, opacidade 0,3): fechar pequeno e apagado (MON-0021) | Classe nunca atribuída: o desenho só usa `elemento <papel>`. A execução mostra o fechar no tamanho normal | código morto; não é MON-0021. (O MON-0021 certo do plantado é V2, por outro motivo) |
+
+## O que só a execução fecha (para a linha à parte do AC-U5.1)
+
+- **I4:** pela leitura, a regra CSS é ambígua até conferir quem atribui a classe; a captura mostra o fechar normal.
+- **V1:** pela leitura, é um botão com ação que abre o intersticial; a captura mostra que ele é indistinguível dos botões do jogo.
+- **V2:** o contraste sai do código com cálculo; a captura mostra o "×" quase invisível.
+- **M3:** já era achado pelo código na F6; agora a execução o reproduz.
+
+## Pontuação da F7
+
+Como na F6, por alvo e por item, com o estado de execução incluído. Registrar em `registros/<alvo>/01-analise.md` **depois** dos dois `05-monetizacao.md` prontos (U5).
