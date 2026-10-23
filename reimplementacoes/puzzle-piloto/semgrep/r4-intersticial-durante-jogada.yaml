@@ -9,6 +9,7 @@ rules:
     paths:
       include:
         - "**/src/**"
+        - "**/puzzle-piloto/interface/**"
         - "**/r4-intersticial-durante-jogada.mjs"
     patterns:
       # "function $F" também casa métodos de classe e de objeto e propriedades com arrow,

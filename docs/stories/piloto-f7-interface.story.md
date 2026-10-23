@@ -52,11 +52,11 @@ Regras que valem para toda a story:
 
 ### U2 — desenho e navegador (@dev, sessão nova ou junto com U1, ~180k)
 
-- [ ] **AC-U2.1 (desenho)** — `interface/index.html` desenha o modelo: grade e peças em canvas; botões, rótulos e ofertas em DOM (texto selecionável e legível por leitor de tela). O desenho não decide nada: tamanho, cor e tempo vêm do modelo.
-- [ ] **AC-U2.2 (execução local)** — o jogo abre por `file://` ou por um servidor estático mínimo em Node (sem dependência, só em `127.0.0.1`), sem rede externa; o SDK continua simulado.
-- [ ] **AC-U2.3 (fluxos)** — no navegador embutido, em janela de desktop e de celular: partida até o fim, intersticial, troca com rewarded, continuar e encerrar, compra de remover anúncios com confirmação, sem vidas com tempo de espera; console sem erro. Resultado por fluxo no handoff (capturas não versionadas).
-- [ ] **AC-U2.4 (Semgrep de interface)** — regra nova só se pegar ao menos uma mutação de tela do AC-U1.6 com zero alertas no limpo e teste anotado; senão, registrar por que não entrou.
-- [ ] **AC-U2.5 (fechamento)** — verificações do AC-U1.8 verdes de novo; commit `feat:` local; handoff.
+- [x] **AC-U2.1 (desenho)** — `interface/index.html` desenha o modelo: grade e peças em canvas; botões, rótulos e ofertas em DOM (texto selecionável e legível por leitor de tela). O desenho não decide nada: tamanho, cor e tempo vêm do modelo.
+- [x] **AC-U2.2 (execução local)** — o jogo abre por `file://` ou por um servidor estático mínimo em Node (sem dependência, só em `127.0.0.1`), sem rede externa; o SDK continua simulado.
+- [x] **AC-U2.3 (fluxos)** — no navegador embutido, em janela de desktop e de celular: partida até o fim, intersticial, troca com rewarded, continuar e encerrar, compra de remover anúncios com confirmação, sem vidas com tempo de espera; console sem erro. Resultado por fluxo no handoff (capturas não versionadas).
+- [x] **AC-U2.4 (Semgrep de interface)** — regra nova só se pegar ao menos uma mutação de tela do AC-U1.6 com zero alertas no limpo e teste anotado; senão, registrar por que não entrou.
+- [x] **AC-U2.5 (fechamento)** — verificações do AC-U1.8 verdes de novo; commit `feat:` local; handoff.
 
 ### U3 — variante plantada e alvos (@dev, sessão nova, ~180k)
 
@@ -104,7 +104,7 @@ Primeira medida do protocolo de monetização com o estado "execução" preenchi
 - [x] U0 — Fase 0 e plano aprovado (`docs/plano-de-execucao.md`, 2026-10-23)
 - [x] U0 — esta story e validação @po
 - [x] U1 — AC-U1.1 a AC-U1.8
-- [ ] U2 — AC-U2.1 a AC-U2.5
+- [x] U2 — AC-U2.1 a AC-U2.5
 - [ ] U3 — AC-U3.1 a AC-U3.5
 - [ ] Responsável — aprovar os protocolos de segurança e os níveis da análise
 - [ ] U4a — análise cega do alvo 1
@@ -154,6 +154,18 @@ Primeira medida do protocolo de monetização com o estado "execução" preenchi
 - U1: `reimplementacoes/puzzle-piloto/tests/interface.test.mjs` (novo: 38 testes, 26 deles de mutação de tela)
 - U1: `package.json` (testes da interface no `npm test`)
 - U1: `docs/handoffs/2026-10-23-piloto-f7-u1.md` (handoff)
+- U2: `reimplementacoes/puzzle-piloto/interface/index.html`, `estilo.css` (novos: página e estilo sem cor nem tamanho próprios)
+- U2: `reimplementacoes/puzzle-piloto/interface/controle.mjs` (novo: toque → ação da sessão; rewarded antes da sessão agir, roteiro do SDK simulado com o que o jogador fez)
+- U2: `reimplementacoes/puzzle-piloto/interface/desenho.mjs` (novo: canvas para grade e peças, DOM para o resto)
+- U2: `reimplementacoes/puzzle-piloto/interface/servidor.mjs` (novo: servidor estático em 127.0.0.1, só arquivos do piloto)
+- U2: `reimplementacoes/puzzle-piloto/src/interface/cenas.mjs` (rewarded escolhido na oferta de continuar fica por cima dela)
+- U2: `reimplementacoes/puzzle-piloto/ESPECIFICACAO.md` (§10: precedência da oferta; §10.1 nova, desenho no navegador)
+- U2: `reimplementacoes/puzzle-piloto/tests/interface-navegador.test.mjs` (novo: 9 testes do controle e do servidor)
+- U2: `reimplementacoes/puzzle-piloto/semgrep/r6-fechar-alvo-pequeno.yaml`, `.mjs` (nova regra R6 e teste anotado)
+- U2: `reimplementacoes/puzzle-piloto/semgrep/r3-recusar-abre-anuncio-ou-loja.yaml`, `r4-intersticial-durante-jogada.yaml` (também valem para `interface/`)
+- U2: `scripts/semgrep/mutacoes.mjs` (mutação "fechar do anúncio com alvo pequeno" no código do modelo)
+- U2: `package.json` (teste novo no `npm test`, `interface/` na varredura do Semgrep, script `puzzle:interface`)
+- U2: `docs/handoffs/2026-10-23-piloto-f7-u2.md` (handoff)
 
 ## QA Results
 
@@ -167,3 +179,5 @@ _(vazio até a U5)_
 | 2026-10-23 | @po | Validação de 10 pontos: GO (9,5/10); status Draft → Ready |
 | 2026-10-23 | @dev | U1 iniciada (2026-10-23T19:18:36Z, HEAD `5b330e6`); status Ready → InProgress |
 | 2026-10-23 | @dev | U1 concluída: modelo de tela (`src/interface/`), seção 10 da especificação, 38 testes novos; `npm test`, checagem de monetização e Semgrep verdes; perfil sem mudança. Status segue InProgress (U2) |
+| 2026-10-23 | @dev | U2 iniciada (2026-10-23T20:28:14Z, HEAD `ab6cc23`); status segue InProgress |
+| 2026-10-23 | @dev | U2 concluída: interface no navegador (`interface/`), servidor local, fluxos verificados no navegador embutido em desktop e celular com console sem erro, regra Semgrep R6; `npm test` 148/148, checagem de monetização e Semgrep verdes; perfil sem mudança. Status segue InProgress (U3) |

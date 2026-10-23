@@ -6,10 +6,11 @@
   "scripts": {
     "rea": "rea",
     "doctor": "rea mcp doctor",
-    "test": "node --test .claude/hooks/rea-gate.test.mjs .claude/hooks/cli-gate.test.mjs scripts/assets/organizar-assets.test.mjs scripts/monetizacao/verificar-perfis.test.mjs reimplementacoes/puzzle-piloto/tests/prng-pecas-dificuldade.test.mjs reimplementacoes/puzzle-piloto/tests/jogo.test.mjs reimplementacoes/puzzle-piloto/tests/simulacao.test.mjs reimplementacoes/puzzle-piloto/tests/monetizacao.test.mjs reimplementacoes/puzzle-piloto/tests/sessao.test.mjs reimplementacoes/puzzle-piloto/tests/invariancia.test.mjs reimplementacoes/puzzle-piloto/tests/interface.test.mjs",
+    "test": "node --test .claude/hooks/rea-gate.test.mjs .claude/hooks/cli-gate.test.mjs scripts/assets/organizar-assets.test.mjs scripts/monetizacao/verificar-perfis.test.mjs reimplementacoes/puzzle-piloto/tests/prng-pecas-dificuldade.test.mjs reimplementacoes/puzzle-piloto/tests/jogo.test.mjs reimplementacoes/puzzle-piloto/tests/simulacao.test.mjs reimplementacoes/puzzle-piloto/tests/monetizacao.test.mjs reimplementacoes/puzzle-piloto/tests/sessao.test.mjs reimplementacoes/puzzle-piloto/tests/invariancia.test.mjs reimplementacoes/puzzle-piloto/tests/interface.test.mjs reimplementacoes/puzzle-piloto/tests/interface-navegador.test.mjs",
+    "puzzle:interface": "node reimplementacoes/puzzle-piloto/interface/servidor.mjs",
     "test:notepad": "dotnet test reimplementacoes/notepad/PRKingNotepad.slnx",
     "check:monetizacao": "node scripts/monetizacao/verificar-perfis.mjs",
-    "semgrep": "node scripts/semgrep/rodar.mjs scan reimplementacoes/puzzle-piloto/semgrep reimplementacoes/puzzle-piloto/src",
+    "semgrep": "node scripts/semgrep/rodar.mjs scan reimplementacoes/puzzle-piloto/semgrep reimplementacoes/puzzle-piloto/src reimplementacoes/puzzle-piloto/interface",
     "semgrep:test": "node scripts/semgrep/rodar.mjs test reimplementacoes/puzzle-piloto/semgrep",
     "semgrep:mutacoes": "node scripts/semgrep/mutacoes.mjs"
   },

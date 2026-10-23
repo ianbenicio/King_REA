@@ -1,0 +1,53 @@
+/* Só o que o modelo não traz: posicionamento, fonte da página e foco de teclado. Cores, posições,
+   tamanhos e pesos vêm do modelo de tela (desenho.mjs). */
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  font-family: system-ui, sans-serif;
+}
+
+#tela {
+  position: relative;
+}
+
+#jogo {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.elemento {
+  position: absolute;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.25;
+  border: 0;
+  font-family: inherit;
+  user-select: text;
+}
+
+.elemento[hidden] {
+  display: none;
+}
+
+button.elemento {
+  cursor: pointer;
+}
+
+button.elemento:focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 2px;
+}

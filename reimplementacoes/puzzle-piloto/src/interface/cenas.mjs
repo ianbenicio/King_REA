@@ -11,11 +11,13 @@ export function anuncioAposEventos(novos) {
 }
 
 // pedido: null (a tela que a sessão impõe) ou { tipo } para intersticial, rewarded
-// ({ recompensa }), oferta_troca, loja ({ etapa }) e sem_vidas. A oferta de continuar tem
-// precedência sobre qualquer pedido.
+// ({ recompensa, origem }), oferta_troca, loja ({ etapa }) e sem_vidas. A oferta de continuar tem
+// precedência sobre qualquer pedido, menos o rewarded que o jogador escolheu nela (origem
+// "continuar"): esse é a resposta à oferta e fica por cima dela até acabar.
 export function cenaDaSessao(sessao, pedido = null) {
   const partida = sessao.partida;
-  if (partida?.oferta) return { tipo: "oferta_continuar", oferta: partida.oferta, pontos: partida.estado.pontos };
+  const respostaAOferta = pedido?.tipo === "rewarded" && pedido.origem === "continuar";
+  if (partida?.oferta && !respostaAOferta) return { tipo: "oferta_continuar", oferta: partida.oferta, pontos: partida.estado.pontos };
   switch (pedido?.tipo) {
     case "intersticial":
       if (!partida) return { tipo: "intersticial" };

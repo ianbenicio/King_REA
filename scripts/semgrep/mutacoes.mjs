@@ -20,6 +20,8 @@ const MUTACOES = [
   ["recusar continuar exibe anúncio", "sessao/sessao.mjs", "      if (acao === \"recusar\") {", "      if (acao === \"recusar\") {\n        recusarComAnuncio();", "r3-recusar-abre-anuncio-ou-loja"],
   ["jogada exibe intersticial", "sessao/sessao.mjs", "      const { estado, efeito } = jogar(partida.estado, jogada);", "      sdk.exibir(\"intersticial\");\n      const { estado, efeito } = jogar(partida.estado, jogada);", "r4-intersticial-durante-jogada"],
   ["recompensa com condição extra", "monetizacao/recompensas.mjs", "      entregue = true;\n      entregar();", "      entregue = true;\n      if (Math.random() < 0.5) entregar();", "r5-recompensa-condicional"],
+  // Mesma mutação de tela "fechar pequeno" do AC-U1.6 (tests/interface.test.mjs), agora no código do modelo.
+  ["fechar do anúncio com alvo pequeno", "interface/tela.mjs", "      largura: 64,\n      altura: ALVO_MIN_PX,", "      largura: 24,\n      altura: ALVO_MIN_PX,", "r6-fechar-alvo-pequeno"],
 ];
 // R3 precisa de uma função de recusa que exiba: acrescentada junto com a mutação 3.
 const EXTRA_R3 = '\nfunction recusarComAnuncio() {\n  globalThis.sdk?.exibir("intersticial");\n}\n';

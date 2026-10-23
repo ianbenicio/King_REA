@@ -1,0 +1,29 @@
+rules:
+  - id: r6-fechar-alvo-pequeno
+    message: >-
+      Elemento de fechar com lado de $N px na tela de referência. O fechar de anúncio precisa de
+      alvo de pelo menos 44 x 44 px (ESPECIFICACAO.md, seção 10); fechar pequeno demais é botão
+      de fechar enganoso (MON-0021).
+    severity: ERROR
+    languages: [javascript]
+    paths:
+      include:
+        - "**/src/interface/**"
+        - "**/puzzle-piloto/interface/**"
+        - "**/r6-fechar-alvo-pequeno.mjs"
+    patterns:
+      # Objeto literal do elemento com papel "fechar" e largura ou altura literal abaixo de 44.
+      # Tamanho vindo de constante (ALVO_MIN_PX) não casa aqui: a verificação do valor fica nos
+      # testes do modelo (tests/interface.test.mjs).
+      - pattern-either:
+          - pattern: |
+              { ..., papel: "fechar", ..., largura: $N, ... }
+          - pattern: |
+              { ..., papel: "fechar", ..., altura: $N, ... }
+          - pattern: |
+              { ..., largura: $N, ..., papel: "fechar", ... }
+          - pattern: |
+              { ..., altura: $N, ..., papel: "fechar", ... }
+      - metavariable-comparison:
+          metavariable: $N
+          comparison: $N < 44

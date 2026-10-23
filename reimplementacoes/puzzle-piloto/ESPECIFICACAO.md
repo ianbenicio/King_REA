@@ -100,7 +100,7 @@ A interface (`src/interface/`) monta cada tela como **dado puro**: dada a cena (
 
 - **Tela de referência:** 360 × 640 px (retrato). Posições e tamanhos são em pixels dessa tela; o desenho escala.
 - **Elemento:** papel (ação principal, ação, recusa, fechar, rótulo, informação), texto, posição e tamanho, cor do texto e do fundo, peso e tamanho da fonte, o instante (em ms desde que a tela apareceu) em que fica visível e o instante em que aceita toque (nenhum, para quem não é tocável), e a ação que o toque dispara.
-- **Cenas:** jogando, oferta de troca, oferta de continuar, intersticial, rewarded, loja (produto e confirmação) e sem vidas. A oferta de continuar tem precedência: enquanto a sessão a mostra, nenhuma outra cena aparece.
+- **Cenas:** jogando, oferta de troca, oferta de continuar, intersticial, rewarded, loja (produto e confirmação) e sem vidas. A oferta de continuar tem precedência: enquanto a sessão a mostra, nenhuma outra cena aparece, a não ser o rewarded que o jogador escolheu nela, que é a resposta à oferta.
 
 Valores fixos desta seção (escolhidos na U1 da F7):
 
@@ -124,3 +124,13 @@ Regras:
 - **Oferta de troca:** diz exatamente quantas peças serão trocadas (seção 9).
 - **Compra:** em duas telas; a segunda pede a confirmação explícita. Restaurar compras fica sempre disponível na loja.
 - **Sem vidas:** mostra o tempo até a próxima vida em minutos, arredondado para cima; a vida por anúncio só é oferecida se ainda couber no limite do dia, e a recusa segue as regras acima.
+
+### 10.1 Desenho no navegador
+
+O desenho (`interface/`) fica fora de `src/` e não decide regra: a cada mudança, monta a tela com `montarTela(cenaDaSessao(sessao, pedido))`, desenha a grade e as peças em canvas e o resto em elementos de página (botões e textos legíveis por leitor de tela), e passa todo toque, de mouse, dedo ou teclado, por `tocar(tela, { x, y, t_ms })`, com o tempo contado desde que a tela apareceu. Uma tela "aparece" quando muda a cena ou o pedido; a mesma cena atualizada (a jogada seguinte) não reinicia o tempo. Depois de cada ação, os eventos novos da sessão passam por `anuncioAposEventos` para saber se o intersticial entra.
+
+- **Jogada:** toque numa peça para escolher, depois na casa da grade onde fica o canto superior esquerdo dela. Jogada que não cabe não muda nada.
+- **Rewarded:** a tela do anúncio abre antes de a sessão agir. Ver até o fim (5 s) conclui o anúncio sozinho; tocar em "Fechar" antes disso interrompe. Só então a sessão executa a ação (troca, continuar ou vida), e o roteiro do SDK simulado devolve o que o jogador fez: `completo` ou `fechado`. Assim a recompensa continua vindo só do callback do SDK, sem mudar a sessão nem o núcleo.
+- **Intersticial:** a sessão decide e registra a exibição no fim da partida (o SDK simulado é síncrono e devolve `completo`, porque esse anúncio não pode ser fechado antes do fim); a tela vem logo depois e o fechar só aparece aos 5 s.
+- **Consentimento:** sem tela de consentimento no piloto; o SDK é inicializado sem consentimento (anúncios não personalizados).
+- **Execução local:** servidor estático em Node, sem dependência, só em `127.0.0.1`, que entrega apenas os arquivos do piloto; nada vai para a rede.
