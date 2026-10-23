@@ -1,6 +1,6 @@
 # Story PF7 — Piloto de monetização, F7: interface mínima e análise cega com execução
 
-**Status:** Ready (validada por @po em 2026-10-23, ver "Validação @po")
+**Status:** InProgress (U1 iniciada em 2026-10-23; validada por @po em 2026-10-23, ver "Validação @po")
 **Workflow:** SDC + QA Loop (máx. 2 iterações) · **Plano:** [`docs/plano-de-execucao.md`](../plano-de-execucao.md) §3 e §6 · **Plano do piloto:** [`docs/plano-piloto-puzzle.md`](../plano-piloto-puzzle.md) §7 e §8 · **Produto:** [`reimplementacoes/puzzle-piloto/`](../../reimplementacoes/puzzle-piloto/)
 **Complexidade:** STANDARD · estimativa L (13 pontos): seis sessões depois desta; riscos em vazamento para a análise cega e em execução de build com classe C
 
@@ -41,14 +41,14 @@ Regras que valem para toda a story:
 
 ### U1 — modelo de tela (@dev, sessão nova, ~180k)
 
-- [ ] **AC-U1.1 (modelo)** — *Dado* um estado da sessão (jogando, oferta de troca, oferta de continuar, intersticial, rewarded, loja, sem vidas), *quando* `src/interface/` monta a tela, *então* o resultado é um dado puro: lista de elementos com papel (ação principal, recusa, fechar, rótulo, informação), texto, posição e tamanho em pixels de uma tela de referência, cores de texto e fundo, e o tempo a partir do qual cada elemento aceita toque. Sem DOM, sem relógio próprio, sem aleatoriedade.
-- [ ] **AC-U1.2 (dependências)** — `src/interface/` importa só de `src/sessao/` e de si mesma; R1 e R2 continuam sem alerta; o teste de invariância passa sem mudança.
-- [ ] **AC-U1.3 (paridade da recusa)** — *Dada* qualquer oferta (troca, continuar, vida, compra), *então* a recusa tem a mesma área, o mesmo peso de fonte e contraste igual ou maior que 4,5:1 (calculado pelo modelo, fórmula da WCAG), e o texto dela é neutro (sem culpa). Teste cobre cada oferta.
-- [ ] **AC-U1.4 (fechar e rótulo)** — *Dado* um intersticial ou rewarded, *então* o fechar está visível e tocável desde o início no rewarded e a partir do fim do anúncio no intersticial simulado, com alvo mínimo de 44 × 44 px, fora da área de outros botões; todo anúncio tem rótulo "Anúncio" visível; nenhuma oferta de continuar tem contagem regressiva.
-- [ ] **AC-U1.5 (toque acidental)** — *Dado* um anúncio que aparece no fim de partida, *quando* o jogador toca nos primeiros instantes (janela definida no modelo), *então* o toque não abre nada; nenhum anúncio aparece sob o dedo durante uma jogada.
-- [ ] **AC-U1.6 (mutações de tela)** — mutações aplicadas em memória no teste (recusa menor ou apagada, fechar pequeno, atrasado ou sobreposto, anúncio sem rótulo, contagem regressiva, botão de ação no lugar do fechar) fazem os testes de U1.3–U1.5 falharem, uma a uma.
-- [ ] **AC-U1.7 (especificação e perfil)** — `ESPECIFICACAO.md` ganha a seção "Interface" com as regras acima em palavras próprias; `monetizacao.json` só muda se algum padrão novo entrar, e nesse caso com marcador e nova aprovação do responsável registrada aqui.
-- [ ] **AC-U1.8 (fechamento)** — `npm test`, `npm run check:monetizacao`, `npm run semgrep`, `semgrep:test` e `semgrep:mutacoes` verdes; testes novos no `npm test` da raiz; commit `feat:` local; handoff em `docs/handoffs/`.
+- [x] **AC-U1.1 (modelo)** — *Dado* um estado da sessão (jogando, oferta de troca, oferta de continuar, intersticial, rewarded, loja, sem vidas), *quando* `src/interface/` monta a tela, *então* o resultado é um dado puro: lista de elementos com papel (ação principal, recusa, fechar, rótulo, informação), texto, posição e tamanho em pixels de uma tela de referência, cores de texto e fundo, e o tempo a partir do qual cada elemento aceita toque. Sem DOM, sem relógio próprio, sem aleatoriedade.
+- [x] **AC-U1.2 (dependências)** — `src/interface/` importa só de `src/sessao/` e de si mesma; R1 e R2 continuam sem alerta; o teste de invariância passa sem mudança.
+- [x] **AC-U1.3 (paridade da recusa)** — *Dada* qualquer oferta (troca, continuar, vida, compra), *então* a recusa tem a mesma área, o mesmo peso de fonte e contraste igual ou maior que 4,5:1 (calculado pelo modelo, fórmula da WCAG), e o texto dela é neutro (sem culpa). Teste cobre cada oferta.
+- [x] **AC-U1.4 (fechar e rótulo)** — *Dado* um intersticial ou rewarded, *então* o fechar está visível e tocável desde o início no rewarded e a partir do fim do anúncio no intersticial simulado, com alvo mínimo de 44 × 44 px, fora da área de outros botões; todo anúncio tem rótulo "Anúncio" visível; nenhuma oferta de continuar tem contagem regressiva.
+- [x] **AC-U1.5 (toque acidental)** — *Dado* um anúncio que aparece no fim de partida, *quando* o jogador toca nos primeiros instantes (janela definida no modelo), *então* o toque não abre nada; nenhum anúncio aparece sob o dedo durante uma jogada.
+- [x] **AC-U1.6 (mutações de tela)** — mutações aplicadas em memória no teste (recusa menor ou apagada, fechar pequeno, atrasado ou sobreposto, anúncio sem rótulo, contagem regressiva, botão de ação no lugar do fechar) fazem os testes de U1.3–U1.5 falharem, uma a uma.
+- [x] **AC-U1.7 (especificação e perfil)** — `ESPECIFICACAO.md` ganha a seção "Interface" com as regras acima em palavras próprias; `monetizacao.json` só muda se algum padrão novo entrar, e nesse caso com marcador e nova aprovação do responsável registrada aqui.
+- [x] **AC-U1.8 (fechamento)** — `npm test`, `npm run check:monetizacao`, `npm run semgrep`, `semgrep:test` e `semgrep:mutacoes` verdes; testes novos no `npm test` da raiz; commit `feat:` local; handoff em `docs/handoffs/`.
 
 ### U2 — desenho e navegador (@dev, sessão nova ou junto com U1, ~180k)
 
@@ -103,7 +103,7 @@ Primeira medida do protocolo de monetização com o estado "execução" preenchi
 
 - [x] U0 — Fase 0 e plano aprovado (`docs/plano-de-execucao.md`, 2026-10-23)
 - [x] U0 — esta story e validação @po
-- [ ] U1 — AC-U1.1 a AC-U1.8
+- [x] U1 — AC-U1.1 a AC-U1.8
 - [ ] U2 — AC-U2.1 a AC-U2.5
 - [ ] U3 — AC-U3.1 a AC-U3.5
 - [ ] Responsável — aprovar os protocolos de segurança e os níveis da análise
@@ -145,6 +145,15 @@ Primeira medida do protocolo de monetização com o estado "execução" preenchi
 
 - `docs/plano-de-execucao.md` (novo plano da F7; o anterior foi para `docs/planos/2026-10-21-notepad-bloco-5.md`)
 - `docs/stories/piloto-f7-interface.story.md` (esta)
+- U1: `reimplementacoes/puzzle-piloto/ESPECIFICACAO.md` (seção 10, "Interface", com a duração do intersticial e do rewarded simulados e a janela de toque acidental)
+- U1: `reimplementacoes/puzzle-piloto/src/interface/tela.mjs` (novo: modelo de tela como dado puro, `montarTela`, `tocar`)
+- U1: `reimplementacoes/puzzle-piloto/src/interface/cores.mjs` (novo: contraste pela fórmula da WCAG)
+- U1: `reimplementacoes/puzzle-piloto/src/interface/cenas.mjs` (novo: `cenaDaSessao`, `anuncioAposEventos`)
+- U1: `reimplementacoes/puzzle-piloto/src/sessao/sessao.mjs` (getters só de leitura `painelVidas` e `semAnuncios` para a interface)
+- U1: `reimplementacoes/puzzle-piloto/tests/interface-verificacoes.mjs` (novo: verificações das regras de tela e mutações em memória)
+- U1: `reimplementacoes/puzzle-piloto/tests/interface.test.mjs` (novo: 38 testes, 26 deles de mutação de tela)
+- U1: `package.json` (testes da interface no `npm test`)
+- U1: `docs/handoffs/2026-10-23-piloto-f7-u1.md` (handoff)
 
 ## QA Results
 
@@ -156,3 +165,5 @@ _(vazio até a U5)_
 |---|---|---|
 | 2026-10-23 | @sm | Story criada (Draft) a partir do plano da F7 |
 | 2026-10-23 | @po | Validação de 10 pontos: GO (9,5/10); status Draft → Ready |
+| 2026-10-23 | @dev | U1 iniciada (2026-10-23T19:18:36Z, HEAD `5b330e6`); status Ready → InProgress |
+| 2026-10-23 | @dev | U1 concluída: modelo de tela (`src/interface/`), seção 10 da especificação, 38 testes novos; `npm test`, checagem de monetização e Semgrep verdes; perfil sem mudança. Status segue InProgress (U2) |

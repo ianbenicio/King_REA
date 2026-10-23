@@ -7,7 +7,7 @@ import { AGENDADOR_INICIAL, aoTerminarPartida, registrarAnuncio, registrarExibic
 import { resolverConfig } from "../monetizacao/config.mjs";
 import { comprar, restaurar, semAnuncios } from "../monetizacao/loja.mjs";
 import { entregaUnica, ofertaContinuar, ofertaTroca, podeTrocar } from "../monetizacao/recompensas.mjs";
-import { consumirVida, ganharPorAnuncio, podeGanharPorAnuncio, tempoAteProxima, vidasIniciais } from "../monetizacao/vidas.mjs";
+import { atualizar, consumirVida, ganharPorAnuncio, podeGanharPorAnuncio, tempoAteProxima, vidasIniciais } from "../monetizacao/vidas.mjs";
 
 // Semente da partida n: derivada só da semente da sessão e de n (nada de monetização entra).
 export const sementeDaPartida = (sementeSessao, n) => semear((sementeSessao ^ Math.imul(n, 0x9e3779b9)) >>> 0)[0];
@@ -180,6 +180,19 @@ export function criarSessao({ sementeSessao, sdk, relogio, consentimento, remoto
     },
     get vidas() {
       return vidas;
+    },
+    // MON-0011: o que a interface mostra das vidas agora (contagem, espera e se a vida por anúncio
+    // ainda cabe no dia). Só leitura: não muda o estado guardado.
+    get painelVidas() {
+      const agora = relogio();
+      return {
+        vidas: atualizar(vidas, agora, config.valores).vidas,
+        esperar_ms: tempoAteProxima(vidas, agora, config.valores),
+        ofertaAnuncio: podeGanharPorAnuncio(vidas, agora, config.valores),
+      };
+    },
+    get semAnuncios() {
+      return semAnuncios(carteira);
     },
     get agendador() {
       return agendador;

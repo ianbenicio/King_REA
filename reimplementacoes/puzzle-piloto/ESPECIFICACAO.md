@@ -93,3 +93,34 @@ A sessão (`src/sessao/`) liga o núcleo à monetização (`src/monetizacao/`). 
 - **Vidas (MON-0011, classe B, aprovado):** cada partida consome uma vida; máximo 5; recarga grátis de 1 a cada 20 min; até 3 vidas por anúncio por dia; sem venda de vidas; com 0 vidas o jogo informa o tempo de espera. Relógio que volta não tira vidas (o período de recarga recomeça) nem zera o limite diário (só um dia posterior zera).
 - **Configuração remota:** só as chaves de ritmo (intervalo, partidas entre anúncios, teto, carência, recarga de vida). Vale apenas se for igual ou menos agressiva que o perfil; senão é rejeitada e o padrão local continua. A recarga de vida tem também um teto (20 a 40 min): deixá-la lenta sem limite empurraria o jogador para o anúncio de vida. A origem de cada valor fica registrada.
 - **Consentimento:** o SDK só é inicializado depois da decisão de consentimento; sem consentimento, anúncios não personalizados.
+
+## 10. Interface
+
+A interface (`src/interface/`) monta cada tela como **dado puro**: dada a cena (o que a sessão e o jogador pediram), devolve a lista de elementos, sem DOM, sem relógio próprio e sem aleatoriedade. Quem desenha (HTML, canvas) só lê esse dado; tamanho, cor e tempo vêm daqui. A interface importa só de `src/sessao/` e de si mesma.
+
+- **Tela de referência:** 360 × 640 px (retrato). Posições e tamanhos são em pixels dessa tela; o desenho escala.
+- **Elemento:** papel (ação principal, ação, recusa, fechar, rótulo, informação), texto, posição e tamanho, cor do texto e do fundo, peso e tamanho da fonte, o instante (em ms desde que a tela apareceu) em que fica visível e o instante em que aceita toque (nenhum, para quem não é tocável), e a ação que o toque dispara.
+- **Cenas:** jogando, oferta de troca, oferta de continuar, intersticial, rewarded, loja (produto e confirmação) e sem vidas. A oferta de continuar tem precedência: enquanto a sessão a mostra, nenhuma outra cena aparece.
+
+Valores fixos desta seção (escolhidos na U1 da F7):
+
+| Valor | Quanto | Por quê |
+|---|---|---|
+| Duração do intersticial simulado | 5 s | curto o bastante para não cansar nos testes manuais, longo o bastante para ver o rótulo e o fechar chegando |
+| Fechar do intersticial | visível e tocável aos 5 s (fim do anúncio); antes disso nada na tela aceita toque | o anúncio entre partidas não é pulável, mas o fechar aparece assim que ele acaba, sem espera extra |
+| Duração do rewarded simulado | 5 s | igual ao intersticial |
+| Fechar do rewarded | visível e tocável desde o início | o rewarded é escolha do jogador; fechar antes do fim interrompe e não dá a recompensa |
+| Janela de toque acidental | 500 ms | maior que um toque que já estava em curso quando a tela mudou (100 a 300 ms) e que o tempo de reagir a uma mudança inesperada; curta o bastante para a tela não parecer travada |
+
+Regras:
+
+- **Anúncio fora da jogada:** o intersticial só aparece depois do fim da partida (seção 9) e o rewarded só depois de o jogador escolher. Nenhuma tela de anúncio aparece enquanto uma jogada está em andamento.
+- **Toque acidental:** nas telas que aparecem sem o jogador pedir, no fim de partida (intersticial e oferta de continuar), nenhum elemento aceita toque nos primeiros 500 ms. Um toque nessa janela não abre nada.
+- **Rótulo:** toda tela de anúncio tem o rótulo "Anúncio", visível desde o início.
+- **Fechar:** toda tela de anúncio tem um único fechar, com alvo de pelo menos 44 × 44 px, sem sobrepor nenhum outro elemento, e o toque nele só fecha (não abre loja, anunciante nem outro anúncio). O corpo do anúncio não é tocável.
+- **Paridade da recusa:** em toda oferta (troca, continuar, vida, compra), a recusa tem a mesma área e o mesmo peso de fonte que a ação principal, aceita toque no mesmo instante (ou antes) e o contraste do texto dela sobre o fundo é de pelo menos 4,5:1 pela fórmula da WCAG (luminância relativa) e não fica abaixo do contraste da ação principal.
+- **Recusa neutra:** o texto da recusa diz o que acontece ("Agora não", "Encerrar a partida", "Voltar", "Cancelar"), sem culpa, sem primeira pessoa e sem falar do que o jogador perde.
+- **Sem prazo:** a oferta de continuar não tem contagem regressiva nem prazo, e nenhuma oferta mostra prazo para decidir. O tempo até a próxima vida, na tela sem vidas, é informação, não prazo.
+- **Oferta de troca:** diz exatamente quantas peças serão trocadas (seção 9).
+- **Compra:** em duas telas; a segunda pede a confirmação explícita. Restaurar compras fica sempre disponível na loja.
+- **Sem vidas:** mostra o tempo até a próxima vida em minutos, arredondado para cima; a vida por anúncio só é oferecida se ainda couber no limite do dia, e a recusa segue as regras acima.
