@@ -1,132 +1,136 @@
-# Plano de execução — PRKing Notepad, bloco 5 (conformidade e lacunas)
+# Plano de execução — piloto de monetização, F7 (interface mínima)
 
 <!--
-Saída da Fase 0 (Harness D5, D30; skill fase-0). Unidade do S3 do Harness
-(H:\King\Harness\docs\plano-de-execucao.md §8). Plano preliminar: a story e os
-critérios finais vêm da sessão U1, pelo SDC.
+Saída da Fase 0 (Harness D5, D30; skill fase-0). Plano preliminar: a story vem
+depois, pelo SDC. O plano anterior (Notepad, bloco 5) está em
+docs/planos/2026-10-21-notepad-bloco-5.md.
 -->
 
-**Data:** 2026-10-21 · **Sessão:** `97ff0c40` · **Projeto:** PRKing_REA · **Branch/commit:** `main` @ `0517e8c`
+**Data:** 2026-10-23 · **Sessão:** `3ce1f2dc-3a2e-4288-add4-c2282ef351c5` · **Projeto:** PRKing_REA · **Branch/commit:** `main` @ `5a7e41bc959b8d79ab7e7e93eb8e91b6d724d7fc`
 
 ## 0. Sessão concorrente
 
-Identificação pelo conteúdo dos transcripts (primeira mensagem, `cwd`, arquivos gravados), não pelo horário:
-
-| Sessão | O que é | Situação |
-|---|---|---|
-| `a0ea8d85` | sessão longa do REA (13/10 → 21/10): instalação, gates, blocos 1–4 do Notepad, correção do Engram | ociosa desde 01:10Z; sem handoff (não existe `docs/handoffs/`). O responsável confirmou: **encerrada**. Não será retomada (regra 2 do S3). |
-| `2ae92520` | criação da tarefa agendada `revisao-mensal-rea` | encerrada, sem gravações no repositório |
-| `539732ef`, `c934e788` | monetização de `blocos-a` e `blocos-b` | encerradas; benchmarks já em `50cc36a`, `e3e60fa` |
-| `11ac3a8a` | catálogo de monetização e checagem de perfis | encerrada |
-
-`git status`: limpo. Nenhuma sessão de outro projeto aberta nesta pasta.
+Nenhuma. `sessao.js --lista 5` e os transcripts do projeto, identificados pelo conteúdo: `3ce1f2dc` é esta sessão (começa com o handoff do Harness colado); `2ae92520`, `41a3fc38` e `97ff0c40` são sessões ligadas da medição do Harness (`l2-app-antes`, `l2-app-depois`, `rea-tarefa`), sem escrita desde 2026-10-22 22:13 (hora local); `a0ea8d85` é a sessão longa dos blocos 1–4 do Notepad (aberta no Harness, `cwd` `H:\King\Harness`), parada desde 2026-10-22 15:17; `11ac3a8a` é uma conversa de avaliação de 2026-10-22. `git status`: limpo.
 
 ## 1. Enquadramento
 
-**Objetivo:** fechar a v1 do PRKing Notepad provando, item a item, que a implementação cumpre as seções 1–11 de `registros/notepad-reimpl/especificacao.md`, resolvendo os itens "(a confirmar)" e as lacunas da §13, corrigindo as divergências e cobrindo a interface com testes.
+**Objetivo:** dar ao puzzle do piloto uma interface mínima e medir, numa análise cega com execução, se o `protocolo-monetizacao` encontra dark patterns que só aparecem na tela.
+
+**Origem:** fase F7 de `docs/plano-piloto-puzzle.md` §8 ("só se F6 mostrar que padrões de UI precisam de piloto próprio") e melhoria nº 5 de `registros/blocos-b/02-benchmark.md`. A F6 analisou só o código (N0/N1): os estados de execução ficaram "não testado" e padrões de interface (destaque, rótulo, botão de fechar) não tinham como aparecer. Confirmado pelo responsável em 2026-10-23.
 
 **Restrições:**
-- **Sala limpa** (`CLAUDE.md` item 8; `reimplementacoes/notepad/README.md`): o trabalho em `reimplementacoes/` lê só a especificação. Nada de `alvos/`, `saidas/`, evidência, pseudocódigo, REA ou Ghidra. Comportamento do original só se confirma **usando o Bloco de Notas normalmente** (spec §13; README regra 3).
-- Divergência deliberada não é defeito: fica em "Diferenças" do README (hoje 11 itens).
-- Dependência nova (NuGet de teste de UI, por exemplo) entra auditada e fixada (`packages.lock.json`; `CLAUDE.md`, "Games": ferramenta nova auditada e fixada).
-- Commit local liberado; push só pelo @devops com autorização. `pre-commit` ativo (blocos de código > 40 linhas, binários, > 300 KB).
-- S3 do Harness: uma sessão por unidade/fase; handoff em `docs/handoffs/` ao fechar a fase ou quando o contexto passar de ~200k; sem mudanças no global durante o S3.
+- Stack do piloto mantida: JavaScript ESM, sem dependências, `node:test` (decisão F0 de 2026-10-20).
+- Produto em `reimplementacoes/puzzle-piloto/`: todo padrão declarado em `monetizacao.json` com marcador `// MON-NNNN`; classe C nunca; a checagem `verificar-perfis.mjs` e o `pre-commit` valem. Mudança de parâmetro derruba a aprovação de MON-0011 presa ao hash (precisa nova aprovação).
+- Variante plantada só em `pilotos/puzzle-plantado/`; builds em `alvos/` (fora do git). O gabarito é o único lugar com a lista do que foi plantado.
+- Análise cega: alvos novos (versão nova dos builds), cada um com protocolo de segurança próprio; execução no navegador (N3, `capture_browser_scenario`) só com aprovação do responsável, confirmada a cada chamada pelo gate.
+- Não mudar `.claude/settings.json` (`autoCompactWindow` 300000, D37 do Harness). Commits locais; push só pelo @devops com autorização.
+- Repositório público: nada de assets ou dados brutos nos registros.
 
-**Perfil do projeto:** domínio engenharia reversa / reimplementação em sala limpa de editor de texto · stack C# + WPF, .NET SDK 10.0.401 fixado, xUnit (57 testes em `PRKingNotepad.Core.Tests`) · integrações nenhuma (APIs do Windows: caixas comuns, impressão, documentos recentes) · UI sim (desktop WPF) · dados sensíveis não (preferências locais em `%APPDATA%`) · fase AIOX SDC, bloco 5 depois de 4 blocos implementados · complexidade STANDARD (muitos itens pequenos, um risco técnico: testes de UI WPF).
+**Perfil do projeto:** domínio piloto de validação de protocolo de engenharia reversa (monetização e dark patterns) · stack JavaScript ESM sem dependências, `node:test`, HTML + canvas · integrações REA (MCP, N0–N3), Semgrep fixado (Docker), navegador embutido do app · UI sim (mínima) · dados sensíveis não · fase AIOX SDC · complexidade STANDARD
 
 **Dúvidas:**
 
 | Dúvida | Resolvida? | Resposta / quando resolver |
 |---|---|---|
-| Qual a unidade de trabalho? | sim | "Notepad: próximo bloco" (responsável, 21/10) |
-| O que é o bloco 5? | sim | "Conformidade + lacunas": matriz spec → código → teste, confirmar os "(a confirmar)", corrigir divergências, cobrir a UI com testes (responsável, 21/10) |
-| A sessão `a0ea8d85` está encerrada? | sim | sim (responsável, 21/10) |
-| Quem confirma o comportamento do original? | sim | O responsável, pelo roteiro que a U1 gera (o agente não controla a área de trabalho e não usa ferramenta de RE). Aprovado com o plano. |
-| Testes de UI: em processo, sem dependência nova, ou FlaUI (UI Automation)? | sim | Em processo (janela WPF numa thread STA dentro do xUnit). FlaUI só se a U1 achar item que o modo em processo não alcança (caixas nativas do Windows), e então com auditoria. Aprovado com o plano. |
-| Onde fica o resultado das confirmações? | sim | Adendo datado em `registros/notepad-reimpl/especificacao.md` (lado da análise; a reimplementação continua lendo só a spec). Aprovado com o plano. |
-| Desligar os MCP `rea` e `ghidra` nas sessões U1–U4? | sim | Não (responsável, 21/10). Sala limpa pela regra de não chamar; a medição do S3 fica comparável à base. |
+| Escopo: só interface no produto, ou também variante plantada com análise cega? | sim | Completa, com análise cega (responsável, 2026-10-23) |
+| Como verificar a interface sem dependências? | sim | Tela como dado puro (modelo testado em `node:test`), DOM/canvas só desenha o modelo, conferência visual no navegador embutido (responsável, 2026-10-23) |
+| Quais padrões visuais plantar e quais iscas | aberta | U4, decidido só no `GABARITO.md` (escrever aqui entregaria a resposta) |
+| Slugs dos alvos novos | aberta | U4; nomes neutros, como em F5 |
+| Níveis da análise cega: N0, N1, N2 e N3? | aberta | protocolo de segurança dos alvos (U4), aprovação do responsável |
+| Impor a cegueira por regra `deny` de leitura nas sessões de análise? | aberta | U4 (o §7 do plano do piloto deixou como limite; ver Riscos) |
+| A interface entra nos builds e no Semgrep (regra nova de UI)? | aberta | U2; a regra só entra se der para escrever sem falso positivo no limpo |
 
 ## 2. Precedentes (Engram)
 
-**Consultas** (`vault_deep_query_tool`, `synthesize: false`, cross-projeto):
+**Consultas:**
 
 | Texto da consulta | Resultados | Relevância (mín–máx) |
 |---|---|---|
-| matriz de conformidade especificação → implementação e testes em reimplementação sala limpa C# WPF; confirmar lacunas; testes de interface WPF; risco de divergência | 7 | 0,508–0,519 |
-| PRKing Notepad .NET 10 WPF: testes de UI automatizados, FlaUI ou UI Automation, verificação contra o original, armadilhas do TextBox (2ª: máx < 0,55 e nada do mesmo domínio) | 7 | 0,505–0,514 |
-| sessões longas retomadas, contexto médio alto, leitura de cache; dividir em sessões por fase com handoff (risco do S3 isolado) | 7 | 0,502–0,516 |
+| interface mínima HTML canvas puzzle sem dependências, padrões visuais de monetização (fechar, destaque da recusa, rótulo), verificação automatizada de UI e análise cega com execução no navegador | 7 | 0,506–0,517 |
+| lições da análise cega do piloto: gabarito, vazamento entre builds, sessão separada, dark pattern visual que análise estática não pega, teste de UI em navegador sem dependências | 7 | 0,503–0,538 |
 
-Nenhuma nota trata de WPF, .NET ou do Notepad: precedentes do domínio não existem. Os usados abaixo são de processo.
+Segunda consulta feita porque a primeira ficou abaixo de 0,55 e só trouxe uma nota do mesmo domínio.
 
 **Usados:**
 
 | Nota (id) | O que diz | Força (D10) | Pré-condição vale aqui? | Efeito no plano |
 |---|---|---|---|---|
-| `plano-global-de-otimiza-o-de-tokens-e-banco-de-skills-v2` | sessões longas sem compactação (contexto médio 450–550k, 85 sessões) puxam o custo; cortar por unidade de trabalho | verificável (medição de 45 dias com `sessao.js`) | sim — mesma máquina; base do REA no §8 do Harness repete o padrão (`a0ea8d85`: 472k médio, 217,7M de leitura de cache) | quatro unidades de sessão com limite ~180k e handoff obrigatório |
-| `padr-o-verificar-cobertura-existente-antes-de-adotar-feature` | antes de construir o que uma lista externa pede, conferir o código: 2 de 5 itens já existiam | relatada | parcial — lá era benchmark de mercado; aqui é a spec contra 4 blocos já feitos. O risco é o mesmo: marcar como faltante o que existe | a matriz exige, por linha, arquivo e teste encontrados (Grep/Read) antes de qualquer status "falta" |
-| `despensa-onda-de-corre-es-da-auditoria-migrations-0005-0009` | correções de auditoria verificadas contra o sistema real; quando o comportamento divergiu do escrito, a spec foi atualizada e a decisão registrada | verificável (cita 42 + 13 + 18 testes e as decisões D-035–D-037) | parcial — lá a spec era do próprio projeto; aqui a spec é da análise e a sala limpa limita quem a muda | cada divergência sai da U1 com destino decidido: corrigir o código, ou registrar em "Diferenças" do README, ou adendo na spec (só fato confirmado do original) |
-| `conte-do-perdido-em-compacta-o-pode-estar-recuper-vel-no-tra` | conteúdo dado como perdido estava no transcript; buscar lá antes de reconstruir | relatada | sim — o porquê das decisões dos blocos 1–4 só existe no transcript de `a0ea8d85` (sem handoff) | se a matriz precisar do motivo de uma decisão antiga, buscar no transcript em vez de reabrir aquela sessão |
+| `piloto-de-valida-o-de-um-protocolo-de-an-lise-de-monetiza-o` (0,538) | Piloto F1–F6: plantado 6/6 com ID e estados certos, iscas evitadas, limpo sem falso positivo; uma sessão por alvo; limite: alvo fácil e mesmo modelo planta e analisa | relatada (o resultado verificável está em `registros/blocos-a/01-analise.md` e no commit `ace9473`) | sim — mesmo projeto, mesmo produto e mesmo protocolo; conferido nos registros e no `pilotos/puzzle-plantado/README.md` | Repete o desenho da F5/F6 (builds neutros, conferência de vazamento, gabarito, uma sessão por alvo, controle limpo); acrescenta o que faltou: execução (N3) para medir o estado "execução" |
 
-**Descartados:** `despensa-auditoria-de-c-digo-riscos-e-usabilidade-2026-07-31` — contexto de outro domínio (RLS, Next.js) · `despensa-revis-o-cto-cmo-ux-e-as-5-mudan-as-de-d-019` — idem · `classmate-connect-13-runbook-quality-gates-after-2026-06-26-fixes` — gotcha do Vitest, não se aplica a .NET · `gate-de-tools-mcp-por-n-vel-de-risco-com-hook-pretooluse-fai` — já implementado aqui; a unidade não usa MCP de RE · `auditoria-est-tica-de-pacote-npm-antes-de-instalar-supply-ch` — npm; vira só o risco da dependência NuGet abaixo · `prking-rea-pilha-de-engenharia-reversa-de-games-em-volta-do` — games · `harness-vis-o-decis-es-e-local-do-projeto`, `01HZ_HANDOFF_2026_05_25_VD`, `fezinha-*`, `classmate-connect-13-*` — sem relação com a unidade.
+**Descartados:** `fezinha-handoff-trilha-web-fase-0-1a-consumidor`, `fezinha-contract-v0-engine-api-web-aprovado`, `fezinha-contrato-radar-time-v0-finalizado`, `fezinha-entregas-codex-em-codex-contract-v0-estado-local`, `fezinha-vis-o-geral-do-projeto`, `fezinha-stack-e-deploy` — outro domínio (web de previsão de futebol) · `despensa-rodada-de-usabilidade-perfil-do-cliente-em-camadas`, `despensa-sess-o-08-12-…`, `despensa-revis-o-cto-cmo-ux-…`, `despensa-sess-o-06-08-…` — usabilidade de app de saúde, sem relação com padrões de monetização · `padr-o-verificar-cobertura-existente-antes-de-adotar-feature` — já coberto (o código do piloto foi mapeado antes do plano) · `plano-global-de-otimiza-o-de-tokens-e-banco-de-skills-v2` — Harness, não a tarefa.
+
+**Achado do Engram:** a nota do piloto lista cinco "lições ligadas" (teste com resposta conhecida, uma sessão por alvo, invariância por mutações, `metavariable-regex` do Semgrep, recarga com relógio voltando), mas nenhuma existe no vault (busca por título e texto em `H:\KingVault`, sem resultado). Propor ao responsável gravar essas notas no fechamento da F7.
 
 ## 3. Plano preliminar
 
-**Workflow AIOX:** SDC (Story Development Cycle), com QA Loop no fim. Motivo: trabalho de evolução sobre código existente com critérios verificáveis; não é feature nova que precise de Spec Pipeline nem projeto desconhecido (Brownfield). A matriz da U1 faz o papel de "QA encontrou itens" e vira a story; a correção pós-gate segue o QA Loop (máx. 2 iterações aqui, para caber nas sessões).
+**Workflow AIOX:** SDC — fase nova de um plano já aprovado, sem requisito informal a destrinchar (Spec Pipeline não se aplica); a story sai do §8 do plano do piloto e deste documento.
 
 **Unidades de sessão (D9):**
 
 | # | Unidade | Fase / executor | Entrega | Critério de aceitação preliminar | Limite de contexto |
 |---|---|---|---|---|---|
-| U1 | Matriz de conformidade e story | SDC criar + validar / @qa (matriz), @sm (story), @po (validação) | `reimplementacoes/notepad/CONFORMIDADE.md` (spec §1–§11 → arquivo → teste → status); roteiro de confirmação para o responsável; `docs/stories/notepad-bloco-5.story.md` com ACs; dúvidas abertas da §1 resolvidas; commit `docs:` | toda subseção 1–11 com linha; status ∈ {ok, divergente, sem teste, a confirmar, fora do escopo}; cada "falta" com evidência de busca; cada divergente com destino; nada lido fora da spec e de `reimplementacoes/notepad/` | ~180k |
-| — | Confirmação no original | responsável, fora de sessão | respostas do roteiro → adendo datado na spec | os 7 "(a confirmar)" e as 2 lacunas da §13 respondidos ou marcados "não observável" | — |
-| U2 | Correções | SDC implementar / @dev | código e testes do Core para cada divergente e cada lacuna confirmada; README "Diferenças" atualizado; commit `fix:`/`feat:` | `dotnet build` sem avisos; `dotnet test` verde; todo divergente da matriz fechado | ~180k |
-| U3 | Testes de interface | SDC implementar / @dev | projeto de testes de UI (em processo, STA) cobrindo os fluxos da matriz marcados "sem teste"; commit `test:` | testes de UI verdes duas vezes seguidas (sem instabilidade); matriz sem "sem teste" nos itens de UI cobertos | ~180k |
-| U4 | QA gate e correção | SDC QA / @qa → @dev (QA Loop) | `/code-review` do diff U2–U3; revisão de sala limpa; matriz final; story `Done`; handoff final; nota curta no Engram apontando o handoff | veredito PASS ou CONCERNS aceito pelo responsável; matriz sem "divergente" aberto; métricas das 4 sessões entregues ao Harness | ~180k |
+| U0 | Fase 0 e story | Fase 0, SDC criar/validar / @sm, @po | este plano; `docs/stories/piloto-f7-interface.story.md` validada; handoff | plano aprovado; story GO no checklist do @po | ~180k |
+| U1 | Modelo de tela | SDC implementar / @dev | `src/interface/` com a tela como dado (botões, tamanho, cor, contraste, rótulo, tempo até poder fechar), ligado a `sessao.mjs` sem tocar `src/nucleo/`; testes de paridade (aceitar × recusar), alvo mínimo do fechar, rótulo de anúncio, ausência de contagem regressiva; §10 na `ESPECIFICACAO.md`; `monetizacao.json` revisto | `npm test`, `check:monetizacao`, `semgrep` e `semgrep:mutacoes` verdes; mutações de tela (recusa menor, fechar escondido, sem rótulo) derrubam os testes | ~180k |
+| U2 | Desenho e navegador | SDC implementar / @dev | `interface/index.html` + desenho em canvas/DOM do modelo; servidor local mínimo em Node (sem dependência) ou `file://`; regra Semgrep de UI se couber | conferência no navegador embutido: partida, intersticial, rewarded, continuar, loja; capturas citadas no handoff (não versionadas) | ~180k |
+| U3 | Variante plantada e alvos | SDC implementar / @dev | plantio visual em `pilotos/puzzle-plantado/` (padrões e iscas só no `GABARITO.md`); `construir.mjs` gera os dois builds com interface, neutros, com conferência de vazamento; protocolo de segurança dos dois alvos novos | builds reproduzíveis com hashes; build limpo joga igual ao código-fonte; vazamento 0; `00-seguranca.md` dos dois aprovados | ~180k |
+| U4a | Análise cega do alvo 1 | protocolo-monetizacao / sessão nova | `registros/<alvo-1>/05-monetizacao.md` e `01-analise.md` | sessão lê só a skill, o catálogo, o modelo 05 e `alvos/<alvo-1>/`; execução só como aprovado | ~180k |
+| U4b | Análise cega do alvo 2 | protocolo-monetizacao / sessão nova | idem para o alvo 2 | idem | ~180k |
+| U5 | Comparação e fechamento | SDC QA / @qa | tabela contra o gabarito (ID, estados, iscas, falsos positivos, padrões visuais pegos só com execução); lições; ajustes propostos ao protocolo e ao catálogo (só com aprovação); story `Done`; nota no Engram | QA gate; varredura dos transcripts de U4a/U4b sem leitura proibida | ~180k |
 
-Qualquer unidade que passar de ~200k fecha com handoff e continua em sessão nova (regra 2 do S3); o handoff conta como parte da unidade.
+São seis unidades além desta, acima das 4–5 estimadas antes de detalhar. Se U1 terminar com folga, U2 entra na mesma sessão.
 
-**Capacidades por fase** (fonte: `H:\King\Harness\docs\catalogo\mapa-fases.md`, `capacidades.yaml`):
+**Capacidades por fase** (fonte: `H:\King\Harness\docs\catalogo\mapa-fases.md`):
 
 | Fase | Ativo | Sob demanda | Não carregar | Como ligar o que falta |
 |---|---|---|---|---|
-| U1 — criar e validar | nativas (Read, Grep, Glob), AskUserQuestion | subagente Explore para varrer `src/` | MCP `rea` e `ghidra` (sala limpa), browser, skills de RE e de jogos | nada; não chamar as tools de RE é regra. Desligar os servidores (`disabledMcpjsonServers`, pelo @devops) foi recusado pelo responsável: ficam carregados, sem uso |
-| U2 / U3 — implementar | nativas, `dotnet` CLI em `C:\tools\dotnet` | `/simplify` | idem U1; impeccable/design (a UI segue o padrão já feito) | nada |
-| U4 — QA | `/code-review` (skill nativa, o modelo chama) | gstack `review` | idem U1 | gstack está em `user-invocable-only` (D22): se for preciso, o responsável digita `/review` |
-| Registro | Engram (`vault_save_tool`), handoff, `sessao.js` | — | — | nada |
+| U0 Fase 0 / story | Engram (deep), AskUserQuestion, nativas | — | REA, Ghidra, browser | nada |
+| U1 modelo | nativas, `npm test`, Semgrep pelo script | `/code-review` | REA, Ghidra, `impeccable` (UI mínima, não design) | nada |
+| U2 desenho | nativas, navegador embutido | `impeccable` só se a tela ficar ilegível | REA, Ghidra | `/impeccable` pelo responsável, se pedir |
+| U3 variante e alvos | nativas, skill `protocolo-seguranca` | — | REA (o protocolo vem antes de qualquer tool) | nada |
+| U4a/U4b análise | skill `protocolo-monetizacao`, REA N0/N1 e o que o protocolo aprovar (N2 `inspect_web_page`, `capture_web_screenshot`; N3 `capture_browser_scenario`) | — | Ghidra, Engram, conectores sensíveis, navegador embutido | gate do REA; N3 pede confirmação por chamada |
+| U5 QA | nativas, `/code-review`, Engram (save) | — | REA | nada |
 
 **Verificações:**
 
 | Entrega | Como provar |
 |---|---|
-| Matriz completa | cada título `##`/`###` das §1–§11 da spec aparece na matriz (contagem por Grep nos dois arquivos) |
-| Sala limpa | `git diff --stat` de U2–U4 só em `reimplementacoes/notepad/`, `docs/` e no adendo da spec; nenhum `Read`/`Grep` em `alvos/` ou `saidas/` nos transcripts de U1–U4 (busca no transcript) |
-| Correções | `dotnet build PRKingNotepad.slnx` (avisos viram erro) e `dotnet test PRKingNotepad.slnx` verdes; número de testes > 57 |
-| Testes de UI | duas execuções seguidas verdes |
-| Commits | `pre-commit` passa sem `--no-verify` |
-| Controles do repositório | `npm test` só se alguma unidade tocar `scripts/` ou `.claude/hooks/` (não previsto) |
-| S3 | `sessao.js --projeto "H:/King/Clientes e Projetos/PRKing_REA" --sessao <id>` por sessão; comparar contexto médio e leitura de cache da unidade aceita com a base do §8 do Harness |
+| Modelo de tela | `npm test` (testes novos de paridade e mutações de tela); `npm run check:monetizacao` |
+| Desacoplamento mantido | `npm test` (invariância), `npm run semgrep`, `semgrep:test`, `semgrep:mutacoes` |
+| Interface | navegador embutido nos fluxos da U2; console sem erro |
+| Builds | `node pilotos/puzzle-plantado/construir.mjs` duas vezes, mesmos hashes; vazamento 0 |
+| Análise cega | tabela contra o gabarito; varredura dos transcripts (sem `pilotos/`, `reimplementacoes/puzzle-piloto/`, `docs/plano*`, `docs/stories/`, `docs/handoffs/` em caminho, padrão ou comando) |
+| Gates | `npm test` depois de qualquer mudança em `scripts/` ou `.claude/hooks/`; `pre-commit` em todo commit, sem `--no-verify` |
 
 **Riscos:**
-- Unidade escorrega para sessão longa — precedente `plano-global-…-v2` — limite ~180k e handoff; não retomar `a0ea8d85`.
-- Marcar como faltante o que já existe — precedente `padr-o-verificar-cobertura-…` — evidência de busca por linha da matriz.
-- "Corrigir" uma diferença deliberada — precedente `despensa-onda-de-corre-es-…` — conferir "Diferenças" do README antes de mudar código; destino explícito por divergência.
-- Contaminação da sala limpa ao confirmar o original — enquadramento — confirmação só pelo uso normal, feita pelo responsável; o resultado entra na spec, nunca direto no código.
-- Testes de UI do WPF instáveis (thread STA, dispatcher, caixas nativas fora do alcance) — enquadramento — começar em processo; caixas nativas ficam como teste manual na matriz; FlaUI só com auditoria.
-- Dependência NuGet nova sem auditoria — descartado `auditoria-est-tica-de-pacote-npm-…` (método análogo) — auditar, fixar versão e lock, registrar em `docs/seguranca/`.
-- Motivo de decisão antiga perdido — precedente `conte-do-perdido-em-compacta-o-…` — busca no transcript de `a0ea8d85`.
+- **Vazamento para a análise cega** — enquadramento (este plano, a story e os handoffs ficam em `docs/`, público e legível) — a lista do plantio só no `GABARITO.md`; as sessões de análise proibidas de ler `docs/plano*`, `docs/stories/`, `docs/handoffs/`, `pilotos/` e `reimplementacoes/puzzle-piloto/`; propor regra `deny` de leitura nessas sessões (decidir na U3).
+- **Mesmo modelo planta e analisa** — precedente `piloto-de-valida-o-…` — controle limpo sem identificação, nomes neutros, iscas visuais; o resultado mede o método, não a eficácia contra app comercial.
+- **Execução (N3) de código nosso que contém classe C** — enquadramento — roda só em `alvos/`, navegador do REA isolado, sem rede (SDK simulado), aprovado caso a caso.
+- **Interface acoplando monetização ao núcleo** — plano do piloto §3 — interface lê o estado da sessão e chama ações; nunca importa de `src/nucleo/` além do que `sessao.mjs` já expõe; R1/R2 e a invariância continuam valendo.
+- **Aprovação de MON-0011 caduca** se o perfil mudar — `CLAUDE.md` — mudar `monetizacao.json` só quando necessário e pedir nova aprovação na mesma unidade.
+- **Contexto acima de 180k em unidade de muita escrita** — handoff da U4 do Notepad (lição: dividir antes de começar) — U1 e U2 separadas; U3 pode virar duas se o plantio e o protocolo não couberem.
 
 ## 4. Custo da Fase 0
 
-Saída de `node ~/.claude/skills/skill-budget/scripts/sessao.js` (sessão `97ff0c40`, 7 min) ao fim do passo 3:
+Saída de `node ~/.claude/skills/skill-budget/scripts/sessao.js` ao fim do passo 3:
 
 | Chamadas | Contexto atual | Chamadas Engram | Resultados Engram no contexto |
 |---|---|---|---|
-| 21 | inicial 107k · médio 130k · máx 152k · 0% > 200k · leitura de cache 2,6M | 3 (`vault_deep_query_tool`) | ~4k |
+| 29 (5 min) | 171k máx, 148k médio; escrita de cache 126k, leitura 4,2M, saída 18k | 2 (`vault_deep_query_tool`, sem síntese) | 14 notas, ~3k |
 
-Prefixo inicial estimado: system prompt e schemas 54k, CLAUDE.md + rules 12k, lista de skills 8k, nomes de tools MCP 6k (inclui ~170 do `rea` e ~30 do `ghidra`, sem uso nesta unidade).
+Medido antes da aprovação e da story; o fechamento da U0 entra no handoff.
 
 ## 5. Aprovação
 
-**Aprovado:** sim · **Por:** responsável (Ian Benicio), na conversa da sessão `97ff0c40` · **Em:** 2026-10-21 · **Ajustes pedidos:** nenhum; propostas das dúvidas abertas aceitas; MCP de RE não serão desligados.
+**Aprovado:** sim ("Aprovo o plano da F7. Registre a aprovação e siga com a story (U0).") · **Por:** responsável · **Em:** 2026-10-23 · **Ajustes pedidos:** nenhum. Nenhum precedente marcado como `aplicável`.
 
-Nenhum precedente marcado como `aplicável` pelo responsável.
+## 6. Contrato da unidade de trabalho (medição do Harness, D37)
+
+| Campo | Valor |
+|---|---|
+| Tarefa | F7 do piloto de monetização: interface mínima no produto limpo, variante plantada com padrões visuais, análise cega com execução das duas, comparação com o gabarito (U0–U5 acima) |
+| Tamanho esperado | médio: 7 sessões (U0, U1, U2, U3, U4a, U4b, U5), ~180k de contexto cada; U1+U2 podem virar uma |
+| Critérios de aceitação | (1) interface do produto limpo com modelo de tela testado, desacoplamento intacto (invariância, Semgrep, checagem de monetização verdes); (2) dois builds neutros reproduzíveis com interface, vazamento 0, protocolos de segurança aprovados; (3) duas análises cegas, cada uma em sessão própria, sem leitura proibida comprovada pela varredura dos transcripts; (4) tabela contra o gabarito com estados de execução preenchidos onde o N3 foi aprovado; (5) QA gate PASS e story `Done` |
+| Commit inicial | `5a7e41bc959b8d79ab7e7e93eb8e91b6d724d7fc` |
+| Início (UTC) | 2026-10-23T14:45:52Z (passo 0 da Fase 0; a sessão abriu às 14:44 com a seleção da tarefa) |
+| Configuração | `.claude/settings.json` sem mudança (`autoCompactWindow` 300000) |
+| Registro por sessão | no handoff do REA: id completo da sessão e de subagentes, início e fim em UTC com segundos, aceita ou não, falhas, retrabalho, compactação e o que teve de ser recuperado |
