@@ -139,6 +139,7 @@ Primeira medida do protocolo de monetização com o estado "execução" preenchi
 | 2026-10-23 | U0 | F7 escolhida como próxima unidade | "Confirmo a F7 do piloto (interface mínima). Siga com a Fase 0 e o contrato da unidade." |
 | 2026-10-23 | U0 | Escopo completo com análise cega; verificação por modelo puro + navegador | "Completa com análise cega"; "Modelo puro + navegador" |
 | 2026-10-23 | U0 | Plano da F7 aprovado | "Aprovo o plano da F7. Registre a aprovação e siga com a story (U0)." |
+| 2026-10-23 | U0 → U1 | Observações do @po aceitas; a U1 fixa na especificação a duração do intersticial simulado e a janela de toque acidental; U1 em sessão nova | "eu estou de acordo com a sugestões e os dados que faltam, pode seguir o caminho mais seguro e eficiente." |
 
 ## File List
 
