@@ -1,6 +1,6 @@
 # Story PF7 — Piloto de monetização, F7: interface mínima e análise cega com execução
 
-**Status:** InProgress (U1 iniciada em 2026-10-23; validada por @po em 2026-10-23, ver "Validação @po")
+**Status:** InReview (gate da U5: CONCERNS, aguardando decisão do responsável; U1 iniciada em 2026-10-23; validada por @po em 2026-10-23, ver "Validação @po")
 **Workflow:** SDC + QA Loop (máx. 2 iterações) · **Plano:** [`docs/plano-de-execucao.md`](../plano-de-execucao.md) §3 e §6 · **Plano do piloto:** [`docs/plano-piloto-puzzle.md`](../plano-piloto-puzzle.md) §7 e §8 · **Produto:** [`reimplementacoes/puzzle-piloto/`](../../reimplementacoes/puzzle-piloto/)
 **Complexidade:** STANDARD · estimativa L (13 pontos): seis sessões depois desta; riscos em vazamento para a análise cega e em execução de build com classe C
 
@@ -68,15 +68,15 @@ Regras que valem para toda a story:
 
 ### U4a / U4b — análise cega (sessão nova por alvo, ~180k cada)
 
-- [ ] **AC-U4.1** — *Dado* um alvo, *quando* a sessão roda o `protocolo-monetizacao` lendo só a skill, o catálogo, o modelo 05 e `alvos/<alvo>/`, *então* produz `registros/<alvo>/05-monetizacao.md` e `01-analise.md` com estados separados por achado; execução só nos níveis aprovados e confirmada a cada chamada pelo gate.
-- [ ] **AC-U4.2** — cada sessão analisa um alvo só e não lê o outro; handoff com id completo da sessão, início e fim em UTC.
+- [x] **AC-U4.1** — *Dado* um alvo, *quando* a sessão roda o `protocolo-monetizacao` lendo só a skill, o catálogo, o modelo 05 e `alvos/<alvo>/`, *então* produz `registros/<alvo>/05-monetizacao.md` e `01-analise.md` com estados separados por achado; execução só nos níveis aprovados e confirmada a cada chamada pelo gate.
+- [x] **AC-U4.2** — cada sessão analisa um alvo só e não lê o outro; handoff com id completo da sessão, início e fim em UTC.
 
 ### U5 — comparação e fechamento (@qa → @dev pelo QA Loop, sessão nova, ~180k)
 
-- [ ] **AC-U5.1 (gabarito)** — tabela por alvo: encontrado com ID certo / ID errado / não encontrado / falso positivo / isca evitada, e estado por estado; linha à parte para o que só a execução revelou (achado que a leitura do código sozinha não fecharia).
-- [ ] **AC-U5.2 (cegueira comprovada)** — varredura dos transcripts de U4a e U4b: nenhuma leitura, busca ou comando nos caminhos proibidos do AC-U3.4; chamadas do REA só aos níveis aprovados.
+- [x] **AC-U5.1 (gabarito)** — tabela por alvo: encontrado com ID certo / ID errado / não encontrado / falso positivo / isca evitada, e estado por estado; linha à parte para o que só a execução revelou (achado que a leitura do código sozinha não fecharia).
+- [x] **AC-U5.2 (cegueira comprovada)** — varredura dos transcripts de U4a e U4b: nenhuma leitura, busca ou comando nos caminhos proibidos do AC-U3.4; chamadas do REA só aos níveis aprovados.
 - [ ] **AC-U5.3 (review)** — `/code-review` do diff de U1–U3 em `reimplementacoes/puzzle-piloto/` e `pilotos/`; cada achado corrigido ou aceito pelo responsável.
-- [ ] **AC-U5.4 (lições e propostas)** — lições em `registros/<alvo>/01-analise.md` (como na F6); ajustes ao protocolo e ao catálogo listados como propostas para o responsável, nenhum aplicado sem aprovação.
+- [x] **AC-U5.4 (lições e propostas)** — lições em `registros/<alvo>/01-analise.md` (como na F6); ajustes ao protocolo e ao catálogo listados como propostas para o responsável, nenhum aplicado sem aprovação.
 - [ ] **AC-U5.5 (fechamento)** — veredito PASS, ou CONCERNS aceito pelo responsável; story `Done`; handoff final com as métricas das sessões (`unidade.js`/`sessao.js` no Harness); nota no Engram, mais as lições ligadas que faltam na nota do piloto, se o responsável aprovar.
 
 ## Critério de pronto (story inteira)
@@ -107,8 +107,8 @@ Primeira medida do protocolo de monetização com o estado "execução" preenchi
 - [x] U2 — AC-U2.1 a AC-U2.5
 - [x] U3 — AC-U3.1 a AC-U3.5
 - [x] Responsável — aprovar os protocolos de segurança e os níveis da análise
-- [ ] U4a — análise cega do alvo 1
-- [ ] U4b — análise cega do alvo 2
+- [x] U4a — análise cega do alvo 1
+- [x] U4b — análise cega do alvo 2
 - [ ] U5 — AC-U5.1 a AC-U5.5
 
 ## Validação @po (checklist de 10 pontos)
@@ -174,11 +174,113 @@ Primeira medida do protocolo de monetização com o estado "execução" preenchi
 - U3: `pilotos/puzzle-plantado/README.md`, `GABARITO.md` (seção da F7, separada da F5)
 - U3: `registros/encaixe-1/00-seguranca.md`, `registros/encaixe-2/00-seguranca.md` (novos)
 - U3: `.claude/settings.local.json` (fora do git: `deny` temporário, removido na U5)
-- U3: `docs/handoffs/2026-10-23-piloto-f7-u3.md` (handoff, com a instrução das sessões cegas)
+- U3: `docs/handoffs/2026-10-23-piloto-f7-u3.md` (handoff, com a instrução das sessões cegas; na U5, frase do §6 que dizia qual build era o plantado neutralizada)
+- U4a: `registros/encaixe-1/01-analise.md`, `05-monetizacao.md`, `registros/ALVO_ATIVO` (commit `5ba3cdf`)
+- U4b: `registros/encaixe-2/01-analise.md`, `05-monetizacao.md`, `registros/ALVO_ATIVO` (commit `7b8128c`)
+- U5: `docs/handoffs/2026-10-24-piloto-f7-u4a.md`, `2026-10-24-piloto-f7-u4b.md` (notas das sessões cegas, copiadas da pasta de notas sem mudança)
+- U5: `registros/encaixe-1/01-analise.md`, `registros/encaixe-2/01-analise.md` (comparação com o gabarito, lições, critério 5, `status: concluida`)
+- U5: `docs/handoffs/2026-10-24-piloto-f7-u5.md` (handoff final com as métricas U0–U5)
+- U5: `.claude/settings.local.json` (fora do git: `deny` removido)
 
 ## QA Results
 
-_(vazio até a U5)_
+**Revisor:** @qa (Quinn), U5, sessão `cfb67beb-1c4d-4280-869e-a628f4cd99f8`, 2026-10-24.
+**Veredito do gate: CONCERNS.**
+- Os ACs de U1 a U4 se cumprem, e o método de análise cega funcionou.
+- As preocupações: dois defeitos do produto limpo que o gabarito não previa (achados 1 e 2 da review) e a cobertura de execução do N3.
+- Para a story virar `Done`, o responsável aceita CONCERNS ou pede as correções (QA loop com @dev).
+
+### AC-U5.1 — gabarito
+
+Detalhe em `registros/<alvo>/01-analise.md`, seção "Comparação com o gabarito".
+
+| Alvo | Plantados com ID certo | Produto | Iscas evitadas | Falso positivo C | Falso negativo | Estados |
+|---|---|---|---|---|---|---|
+| `encaixe-1` (plantado) | 9/9 (M1–M6, V1–V3) | 7/7 | 4/4 | 0 | 1 (MON-0025, real e fora do gabarito) | 1 erro (causalidade de V2); 4 divergências defensáveis |
+| `encaixe-2` (limpo) | — | 6/7 (MON-0006 só como falta de preço dentro de MON-0003) | — | 1 (MON-0021, de classificação, por ambiguidade do catálogo) | 0 | 0 erros; 1 divergência defensável |
+
+**Só a execução fechou:**
+- No plantado:
+  - V1 também depois da compra;
+  - V2 na tela;
+  - o escopo parcial do MON-0003;
+  - o fechar cedo do MON-0001.
+- No limpo:
+  - a confirmação de compra que 1 × 2 cliques atravessam (MON-0025);
+  - o fechar cedo do MON-0001.
+
+**Itens a destacar:**
+- **MON-0025 no limpo:** é mecanismo real do produto, não erro do analista.
+  - A etapa `confirmacao` da loja (`src/interface/tela.mjs`) fica no mesmo retângulo do "Comprar" e aceita toque em 0 ms.
+  - O plantado tem o mesmo defeito, mas a análise dele testou só um toque.
+- **MON-0021 no limpo:** é falso positivo pelo gabarito. A análise aplicou o texto literal do catálogo ("atraso não informado"), e o produto de fato não informa a duração.
+- **Lacuna do N3:**
+  - O cenário clica só no centro de localizadores do DOM, e as peças ficam no canvas, então nenhuma partida terminou.
+  - Ficaram sem execução: o intersticial do agendador, o continuar, a tela sem vidas e a causalidade do MON-0033.
+  - No plantado, o intersticial só foi alcançado pelo V1, o que deixa a comparação assimétrica.
+  - O canvas também não é jogável pelo teclado (acessibilidade).
+- **Vazamento:** o §6 do handoff da U3 dizia qual build era o plantado. A frase foi neutralizada na U5, e nenhuma sessão cega leu o arquivo (o `deny` estava ativo e a varredura não achou acesso).
+
+### AC-U5.2 — cegueira
+
+Script e saídas estão na pasta de notas da sessão-mãe, fora do repositório.
+
+**U4a** (`37f2850d-…`):
+- Nenhuma leitura, busca ou comando em caminho proibido.
+- As 4 ocorrências que a varredura apontou são da própria sessão:
+  - duas escritas do handoff dela (a de `docs/handoffs/` foi recusada pelo `deny`);
+  - um `git log -1` depois do próprio commit;
+  - o texto do wrap-up.
+- REA só em N0, N1 e N3, e a CLI `capture-browser-scenario` passou pelo cli-gate.
+
+**U4b** (`329780a3-…`): mesmo resultado.
+
+**Ressalvas, sem efeito comprovado:**
+- O `CLAUDE.md` (item 9) e os assuntos de commit do snapshot do git dizem que existe uma variante plantada com classe C, mas não qual alvo é.
+- O pedido inicial da U4b listava as sessões ligadas, com o nome do outro alvo.
+
+### AC-U5.3 — review
+
+`/code-review` no nível alto, de `ab6cc23`, `59036a6` e `5d2cb26`: 9 achados.
+
+| # | Achado | Situação |
+|---|---|---|
+| 1 | `tela.mjs`: confirmação de compra no mesmo ponto e sem janela de toque (MON-0025 não intencional) | aguarda o responsável (proposta: `desde_ms: TEMPOS.janelaToque_ms` e posição diferente na etapa `confirmacao`) |
+| 2 | Preço nunca aparece na loja (MON-0003, MON-0006) | aguarda o responsável |
+| 3 | Handoff da U3 dizia qual build era o plantado | corrigido na U5 |
+| 4 | `interface/desenho.mjs` e `controle.mjs` importam de `src/nucleo/` e `src/monetizacao/`, contra "a interface fala só com a sessão" | aguarda o responsável |
+| 5 | Janela de toque aplicada por cena, não a toda troca de tela | aguarda o responsável |
+| 6 | `problemasToque` não cobre a confirmação nem o toque duplo | aguarda o responsável |
+| 7 | Fechar do intersticial oculto por 5 s sem a duração informada (ambiguidade com MON-0021) | aguarda o responsável |
+| 8 | Fundo da recusa diferente do da ação principal ("destaque" do MON-0009) | aguarda o responsável |
+| 9 | `desenho.mjs` refaz o canvas e o DOM a cada redesenho | aguarda o responsável (baixo) |
+
+**Semgrep:**
+- `npm run semgrep`: 0 achados em 18 arquivos.
+- `semgrep:test`: 6/6.
+- `semgrep:mutacoes`: 7/7 (execução isolada).
+- As regras atuais não pegam os achados 1 e 2.
+
+### AC-U5.4 — propostas ao responsável (nenhuma aplicada)
+
+1. **Gabarito:** aceitar a causalidade "demonstrada" quando houver intervenção controlada descrita.
+2. **Catálogo, MON-0021:** definir "informado". Alternativa: o produto mostrar a duração.
+3. **Catálogo, MON-0025:** sinal ou variante "confirmação no mesmo ponto ou sem janela de toque".
+4. **Catálogo, MON-0009:** definir "destaque" (preenchimento, cor, posição).
+5. **Catálogo, MON-0003/0006:** sinal "preço omitido na tela de compra".
+6. **Plano de níveis**, uma destas saídas:
+   - clique por coordenada ou posição no cenário N3;
+   - caminho de jogo pelo DOM, que também resolve a acessibilidade;
+   - adendo para rodar os módulos em Node.
+7. **Modelo do `00-seguranca`:** prever o navegador copiado para `saidas/<slug>/navegador/`.
+8. **Cegueira:**
+   - conferir vazamento em `docs/` antes das sessões cegas;
+   - definir de antemão o destino dos handoffs cegos;
+   - não citar a variante nem os alvos no `CLAUDE.md`, nos assuntos de commit e na lista de sessões ligadas;
+   - o brief informar o público (`children_likely`).
+9. **Roteiro do protocolo:** testar o mesmo gesto repetido (1 × 2 toques) em telas de confirmação.
+10. **Produto:** QA loop com @dev para os achados 1, 2, 4, 6, 7 e 8 da review.
+11. **Engram:** nota de lições do piloto F7, só com aprovação.
 
 ## Change Log
 
@@ -192,3 +294,5 @@ _(vazio até a U5)_
 | 2026-10-23 | @dev | U2 concluída: interface no navegador (`interface/`), servidor local, fluxos verificados no navegador embutido em desktop e celular com console sem erro, regra Semgrep R6; `npm test` 148/148, checagem de monetização e Semgrep verdes; perfil sem mudança. Status segue InProgress (U3) |
 | 2026-10-23 | @dev | U3 iniciada (2026-10-23T20:52:10Z, HEAD `59036a6`); status segue InProgress |
 | 2026-10-23 | @dev | U3 concluída: variante plantada com a parte visual, builds `encaixe-1` e `encaixe-2` (hashes estáveis em duas execuções, limpo igual ao fonte também pela interface), protocolos de segurança aprovados (N0–N3), `deny` temporário aplicado, instrução cega no handoff; `npm test` 148/148, checagem de monetização verde. Status segue InProgress (U4a/U4b) |
+| 2026-10-24 | analista (cego) | U4a (`encaixe-1`, `5ba3cdf`) e U4b (`encaixe-2`, `7b8128c`) concluídas, cada uma em sessão própria |
+| 2026-10-24 | @qa | U5: `deny` removido; comparação com o gabarito, varredura dos transcripts, review do diff U1–U3, lições e propostas; análises aceitas pelo responsável e marcadas `concluida`; `npm test` 148/148, checagem de monetização e Semgrep verdes. Gate CONCERNS; status InProgress → InReview, aguardando o responsável |
