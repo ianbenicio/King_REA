@@ -32,6 +32,8 @@ export function problemasParidade(tela) {
   if (area(r) !== area(a)) p.push(`área da recusa ${area(r)} ≠ da ação principal ${area(a)}`);
   if (r.pesoFonte !== a.pesoFonte) p.push(`peso da fonte da recusa ${r.pesoFonte} ≠ ${a.pesoFonte}`);
   if (r.tamanhoFonte < a.tamanhoFonte) p.push(`fonte da recusa menor (${r.tamanhoFonte} < ${a.tamanhoFonte})`);
+  if (r.corFundo !== a.corFundo) p.push(`fundo da recusa ${r.corFundo} ≠ da ação principal ${a.corFundo}`);
+  if (r.corTexto !== a.corTexto) p.push(`cor do texto da recusa ${r.corTexto} ≠ da ação principal ${a.corTexto}`);
   const [cr, ca] = [contrasteDe(r), contrasteDe(a)];
   if (cr < CONTRASTE_MIN) p.push(`contraste da recusa ${cr.toFixed(2)} < ${CONTRASTE_MIN}`);
   if (cr < ca) p.push(`contraste da recusa ${cr.toFixed(2)} abaixo do da ação principal ${ca.toFixed(2)}`);
@@ -69,6 +71,14 @@ export function problemasAnuncio(tela) {
     const limite = tela.anuncio === "rewarded" ? 0 : TEMPOS.intersticial_ms;
     if (f.aceitaToqueDesde_ms === null || f.aceitaToqueDesde_ms > limite) p.push(`fechar aceita toque em ${f.aceitaToqueDesde_ms} ms, depois de ${limite} ms`);
     if (f.visivelDesde_ms > limite || (f.aceitaToqueDesde_ms !== null && f.visivelDesde_ms > f.aceitaToqueDesde_ms)) p.push(`fechar só aparece em ${f.visivelDesde_ms} ms`);
+    // Fechar que demora: a duração fica escrita desde o início, em texto fixo (atraso informado).
+    const atraso = Math.max(f.visivelDesde_ms, f.aceitaToqueDesde_ms ?? 0);
+    if (atraso > 0) {
+      const duracao = `${String(atraso / 1000).replace(".", ",")} s`;
+      const avisos = tela.elementos.filter((e) => e.papel === "informacao" && e.texto.includes(duracao) && /fechar/i.test(e.texto));
+      if (!avisos.some((e) => e.visivelDesde_ms === 0 && naTela(e) && contrasteDe(e) >= CONTRASTE_MIN))
+        p.push(`fechar só aparece em ${atraso} ms e a tela não informa a duração (${duracao}) desde o início`);
+    }
   }
   const outros = tela.elementos.filter((e) => e.papel !== "fechar" && tocavel(e));
   if (outros.length) p.push(`elemento tocável além do fechar: ${outros.map((e) => e.id).join(", ")}`);
@@ -93,9 +103,33 @@ export function problemasToque(tela) {
   return p;
 }
 
-// Sem contagem regressiva nem prazo em oferta. O tempo até a próxima vida é informação.
+// Sem contagem regressiva nem prazo em oferta. O tempo até a próxima vida e a duração fixa do
+// intersticial são informação, não prazo para decidir.
+const INFORMACAO_DE_TEMPO = new Set(["sem_vidas/espera", "intersticial/duracao"]);
 export function problemasPrazo(tela) {
-  return tela.elementos.filter((e) => !(tela.cena === "sem_vidas" && e.id === "espera") && PRAZO.test(e.texto)).map((e) => `prazo ou contagem em ${e.id}: "${e.texto}"`);
+  return tela.elementos.filter((e) => !INFORMACAO_DE_TEMPO.has(`${tela.cena}/${e.id}`) && PRAZO.test(e.texto)).map((e) => `prazo ou contagem em ${e.id}: "${e.texto}"`);
+}
+
+// Toque duplo numa troca de tela disparada por toque: o toque em idTocado na tela antes leva à
+// tela depois. Um segundo toque em qualquer ponto do elemento tocado não aciona nada na tela
+// depois antes da janela de toque, e a ação principal da tela depois fica fora desse elemento
+// (o gesto repetido por hábito, depois da janela, não confirma nada).
+export function problemasToqueDuplo(antes, idTocado, depois) {
+  const tocado = antes.elementos.find((e) => e.id === idTocado);
+  if (!tocado) return [`${antes.cena}: sem elemento ${idTocado}`];
+  const p = [];
+  const pontos = [centro(tocado)];
+  for (let y = tocado.y; y < tocado.y + tocado.altura; y += 4) for (let x = tocado.x; x < tocado.x + tocado.largura; x += 4) pontos.push({ x, y });
+  procura: for (const t_ms of [0, 50, 100, 250, TEMPOS.janelaToque_ms - 1])
+    for (const ponto of pontos) {
+      const alvo = tocar(depois, { ...ponto, t_ms });
+      if (alvo) {
+        p.push(`segundo toque em ${idTocado} (${ponto.x}, ${ponto.y}) aos ${t_ms} ms abre ${alvo.acao} em ${depois.cena}`);
+        break procura;
+      }
+    }
+  for (const e of doPapel(depois, "acao_principal")) if (sobrepoe(e, tocado)) p.push(`ação principal de ${depois.cena} (${e.acao}) no ponto de ${idTocado} da tela anterior`);
+  return p;
 }
 
 // Mutações de tela, só em memória.

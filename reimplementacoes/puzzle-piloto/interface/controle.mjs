@@ -1,12 +1,10 @@
 // Controle da interface no navegador (ESPECIFICACAO.md, seção 10.1), sem DOM: guarda a sessão, o
 // pedido aberto pelo jogador e a peça escolhida; transforma toque em ação da sessão. Tela, tamanho,
-// cor e tempo vêm sempre de montarTela(cenaDaSessao(sessao, pedido)); o toque passa por tocar().
+// cor e tempo vêm sempre de montarTela(cenaDaSessao(sessao, pedido, { selecionada })); o toque passa por tocar().
 // O tempo t (ms, monotônico) vem de quem desenha; o relógio da sessão (vidas) é outro.
 import { cenaDaSessao, anuncioAposEventos } from "../src/interface/cenas.mjs";
 import { montarTela, tocar, TEMPOS } from "../src/interface/tela.mjs";
-import { REMOVER_ANUNCIOS } from "../src/monetizacao/loja.mjs";
-import { criarSdkSimulado } from "../src/monetizacao/sdk-simulado.mjs";
-import { criarSessao } from "../src/sessao/sessao.mjs";
+import { criarSdkSimulado, criarSessao } from "../src/sessao/sessao.mjs";
 
 export function criarControle({ sementeSessao, relogio, consentimento = false }) {
   // O SDK simulado é síncrono: o rewarded só é pedido à sessão depois que o jogador viu ou fechou
@@ -22,6 +20,10 @@ export function criarControle({ sementeSessao, relogio, consentimento = false })
   let tela = null;
   let chave = null;
   let aparecida = 0;
+  // A tela atual veio de uma troca de tela (não é a primeira): nenhum toque aciona nada antes de
+  // TEMPOS.janelaToque_ms, qualquer que seja a cena. Jogadas seguidas não trocam a tela (mesma
+  // cena "jogando", mesmo pedido) e por isso não esperam.
+  let comJanela = false;
 
   // Roda uma ação da sessão e abre o intersticial se ela terminou a partida com anúncio.
   function agir(acao) {
@@ -46,11 +48,9 @@ export function criarControle({ sementeSessao, relogio, consentimento = false })
     return agir(acao);
   }
 
-  function colocar(elemento, { x, y }) {
+  // Casa da grade tocada (linha e coluna vêm do modelo): canto superior esquerdo da peça escolhida.
+  function colocar({ linha, coluna }) {
     if (selecionada === null) return false;
-    const lado = Math.sqrt(sessao.partida.estado.grade.length);
-    const coluna = Math.floor(((x - elemento.x) * lado) / elemento.largura);
-    const linha = Math.floor(((y - elemento.y) * lado) / elemento.altura);
     try {
       agir(() => sessao.jogar({ indice: selecionada, linha, coluna }));
     } catch (erro) {
@@ -61,7 +61,7 @@ export function criarControle({ sementeSessao, relogio, consentimento = false })
     return true;
   }
 
-  function executar({ id, acao }, ponto) {
+  function executar({ id, acao }) {
     switch (acao) {
       case "nova_partida": {
         const r = sessao.iniciarPartida();
@@ -73,7 +73,7 @@ export function criarControle({ sementeSessao, relogio, consentimento = false })
         selecionada = Number(id.slice("peca-".length));
         return true;
       case "colocar":
-        return colocar(tela.elementos.find((e) => e.id === id), ponto);
+        return colocar(tela.elementos.find((e) => e.id === id));
       case "abrir_loja":
         pedido = { tipo: "loja" };
         return true;
@@ -81,8 +81,9 @@ export function criarControle({ sementeSessao, relogio, consentimento = false })
         pedido = { tipo: "loja", etapa: "confirmacao" };
         return true;
       case "comprar": {
-        const r = sessao.comprar(REMOVER_ANUNCIOS, { confirmado: true });
-        if (r.ok && !plataforma.includes(REMOVER_ANUNCIOS)) plataforma.push(REMOVER_ANUNCIOS);
+        const { id: produto } = sessao.produtoSemAnuncios;
+        const r = sessao.comprar(produto, { confirmado: true });
+        if (r.ok && !plataforma.includes(produto)) plataforma.push(produto);
         pedido = { tipo: "loja" };
         return r.ok;
       }
@@ -118,25 +119,32 @@ export function criarControle({ sementeSessao, relogio, consentimento = false })
     }
   }
 
-  // Monta a tela de agora. Mudou a cena ou o pedido: a tela "aparece" em t.
+  // Monta a tela de agora. Mudou a cena ou o pedido: a tela "aparece" em t e, se não é a primeira,
+  // abre a janela de toque. toqueDesde_ms: instante (desde que a tela apareceu) a partir do qual
+  // algum toque pode valer.
   function atualizar(t) {
-    tela = montarTela(cenaDaSessao(sessao, pedido));
+    tela = montarTela(cenaDaSessao(sessao, pedido, { selecionada }));
     const nova = `${tela.cena}|${JSON.stringify(pedido)}`;
     if (nova !== chave) {
+      comJanela = chave !== null;
       chave = nova;
       aparecida = t;
     }
-    return { tela, t_ms: t - aparecida };
+    return { tela, t_ms: t - aparecida, toqueDesde_ms: comJanela ? TEMPOS.janelaToque_ms : 0 };
   }
 
   return {
     atualizar,
     // Toque no ponto (x, y) da tela de referência no instante t; devolve o elemento tocado ou null.
-    // A tela que resulta do toque aparece no mesmo instante.
+    // A tela que resulta do toque aparece no mesmo instante. Na janela depois de uma troca de tela,
+    // nenhum toque vale (o segundo toque de um toque duplo não cai na tela seguinte).
     tocar({ x, y }, t) {
-      const alvo = tocar(tela ?? atualizar(t).tela, { x, y, t_ms: t - aparecida });
+      const atual = tela ?? atualizar(t).tela;
+      const t_ms = t - aparecida;
+      if (comJanela && t_ms < TEMPOS.janelaToque_ms) return null;
+      const alvo = tocar(atual, { x, y, t_ms });
       if (!alvo) return null;
-      const ok = executar(alvo, { x, y });
+      const ok = executar(alvo);
       atualizar(t);
       return { ...alvo, ok };
     },

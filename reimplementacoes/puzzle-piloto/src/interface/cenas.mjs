@@ -13,8 +13,9 @@ export function anuncioAposEventos(novos) {
 // pedido: null (a tela que a sessão impõe) ou { tipo } para intersticial, rewarded
 // ({ recompensa, origem }), oferta_troca, loja ({ etapa }) e sem_vidas. A oferta de continuar tem
 // precedência sobre qualquer pedido, menos o rewarded que o jogador escolheu nela (origem
-// "continuar"): esse é a resposta à oferta e fica por cima dela até acabar.
-export function cenaDaSessao(sessao, pedido = null) {
+// "continuar"): esse é a resposta à oferta e fica por cima dela até acabar. local: estado só da
+// interface que aparece na tela ({ selecionada }: índice da peça escolhida, ou null).
+export function cenaDaSessao(sessao, pedido = null, { selecionada = null } = {}) {
   const partida = sessao.partida;
   const respostaAOferta = pedido?.tipo === "rewarded" && pedido.origem === "continuar";
   if (partida?.oferta && !respostaAOferta) return { tipo: "oferta_continuar", oferta: partida.oferta, pontos: partida.estado.pontos };
@@ -30,7 +31,7 @@ export function cenaDaSessao(sessao, pedido = null) {
       break;
     }
     case "loja":
-      return { tipo: "loja", etapa: pedido.etapa ?? "produto", comprado: sessao.semAnuncios };
+      return { tipo: "loja", etapa: pedido.etapa ?? "produto", comprado: sessao.semAnuncios, preco: sessao.produtoSemAnuncios.preco };
     case "sem_vidas": {
       const { esperar_ms, ofertaAnuncio } = sessao.painelVidas;
       return { tipo: "sem_vidas", esperar_ms, ofertaAnuncio };
@@ -39,7 +40,15 @@ export function cenaDaSessao(sessao, pedido = null) {
       break;
   }
   if (partida)
-    return { tipo: "jogando", pontos: partida.estado.pontos, vidas: sessao.painelVidas.vidas, pecas: partida.estado.rodada, ofertaTroca: sessao.ofertaTroca };
+    return {
+      tipo: "jogando",
+      pontos: partida.estado.pontos,
+      vidas: sessao.painelVidas.vidas,
+      pecas: partida.estado.rodada,
+      grade: partida.estado.grade,
+      ofertaTroca: sessao.ofertaTroca,
+      selecionada,
+    };
   const fim = sessao.eventos.findLast((e) => e.tipo === "fim_partida");
   return { tipo: "inicio", pontosUltima: fim ? fim.pontos : null };
 }

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "puzzle-piloto",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["reimplementacoes/puzzle-piloto/interface/servidor.mjs", "8737"],
+      "port": 8737
+    }
+  ]
+}

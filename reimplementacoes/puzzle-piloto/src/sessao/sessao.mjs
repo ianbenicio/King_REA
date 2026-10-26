@@ -8,6 +8,13 @@ import { resolverConfig } from "../monetizacao/config.mjs";
 import { comprar, restaurar, semAnuncios } from "../monetizacao/loja.mjs";
 import { entregaUnica, ofertaContinuar, ofertaTroca, podeTrocar } from "../monetizacao/recompensas.mjs";
 import { atualizar, consumirVida, ganharPorAnuncio, podeGanharPorAnuncio, tempoAteProxima, vidasIniciais } from "../monetizacao/vidas.mjs";
+import { PRODUTOS, REMOVER_ANUNCIOS } from "../monetizacao/loja.mjs";
+
+// A interface fala só com a sessão (ESPECIFICACAO.md, seção 10): o que ela precisa de fora daqui
+// passa por esta camada. A forma das peças (para o desenho) e o SDK simulado (o piloto não tem
+// SDK real) são reexportados sem mudança.
+export { peca } from "../nucleo/pecas.mjs";
+export { criarSdkSimulado } from "../monetizacao/sdk-simulado.mjs";
 
 // Semente da partida n: derivada só da semente da sessão e de n (nada de monetização entra).
 export const sementeDaPartida = (sementeSessao, n) => semear((sementeSessao ^ Math.imul(n, 0x9e3779b9)) >>> 0)[0];
@@ -193,6 +200,10 @@ export function criarSessao({ sementeSessao, sdk, relogio, consentimento, remoto
     },
     get semAnuncios() {
       return semAnuncios(carteira);
+    },
+    // MON-0003: o produto da loja como a interface o mostra (identificador e preço). Só leitura.
+    get produtoSemAnuncios() {
+      return Object.freeze({ id: REMOVER_ANUNCIOS, preco: PRODUTOS[REMOVER_ANUNCIOS].preco });
     },
     get agendador() {
       return agendador;

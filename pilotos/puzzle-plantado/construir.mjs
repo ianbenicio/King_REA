@@ -202,10 +202,12 @@ async function demoInterface(raiz, semente) {
     tela = c.atualizar(t).tela;
     trilha.push(`${tela.cena}:${sha(neutro(JSON.stringify(tela)))}`);
   };
+  // Depois de cada toque espera mais que a janela de toque: a interface ignora toques nos primeiros
+  // TEMPOS.janelaToque_ms (500 ms) de cada tela nova.
   const tocar = (ponto) => {
     if (!c.tocar(ponto, t)) throw new Error(`${tela.cena}: toque sem efeito`);
     anotar();
-    t += 100;
+    t += 600;
   };
   let lojaVista = false;
   let trocou = false;
@@ -226,6 +228,7 @@ async function demoInterface(raiz, semente) {
         t += 5000;
         c.avancar(t);
         anotar();
+        t += 600; // a volta à partida também abre a janela de toque
         continue;
       }
       const j = escolherJogada(c.sessao.partida.estado);

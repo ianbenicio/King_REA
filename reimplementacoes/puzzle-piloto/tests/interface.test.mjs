@@ -19,28 +19,31 @@ import {
   problemasParidade,
   problemasPrazo,
   problemasToque,
+  problemasToqueDuplo,
   remover,
   sobrepoe,
 } from "./interface-verificacoes.mjs";
 
 const MIN = 60 * 1000;
 const PASTA_INTERFACE = new URL("../src/interface/", import.meta.url);
+const PRECO = "R$ 9,90";
+const GRADE_USADA = Array.from({ length: 64 }, (_, i) => (i % 9 === 0 ? 1 : 0)); // diagonal ocupada
 const troca = (rodada) => ({ tipo: "oferta_troca", oferta: ofertaTroca({ fim: false, trocasComAnuncio: 0, rodada }) });
 
 // Uma ou mais cenas de exemplo por tipo, com as ofertas como a monetização as devolve.
 const EXEMPLOS = {
   inicio: [{ tipo: "inicio" }, { tipo: "inicio", pontosUltima: 120 }],
   jogando: [
-    { tipo: "jogando", pontos: 10, vidas: 4, pecas: ["P01", null, "P18"], ofertaTroca: ofertaTroca({ fim: false, trocasComAnuncio: 0, rodada: ["P01", null, "P18"] }) },
-    { tipo: "jogando", pontos: 0, vidas: 5, pecas: ["P02", "P10", "P13"], ofertaTroca: null },
+    { tipo: "jogando", pontos: 10, vidas: 4, pecas: ["P01", null, "P18"], grade: GRADE_USADA, ofertaTroca: ofertaTroca({ fim: false, trocasComAnuncio: 0, rodada: ["P01", null, "P18"] }), selecionada: 0 },
+    { tipo: "jogando", pontos: 0, vidas: 5, pecas: ["P02", "P10", "P13"], grade: new Array(64).fill(0), ofertaTroca: null },
   ],
   oferta_troca: [troca(["P01", null, null]), troca(["P01", "P02", null]), troca(["P01", "P02", "P03"])],
   oferta_continuar: [{ tipo: "oferta_continuar", oferta: ofertaContinuar({ continuacoesComAnuncio: 0 }), pontos: 42 }],
   intersticial: [{ tipo: "intersticial" }],
   rewarded: ["1 peça nova no lugar da que falta usar", "esvazia 2 linhas e 2 colunas", "1 vida"].map((recompensa) => ({ tipo: "rewarded", recompensa })),
   loja: [
-    { tipo: "loja", etapa: "produto" },
-    { tipo: "loja", etapa: "confirmacao" },
+    { tipo: "loja", etapa: "produto", preco: PRECO },
+    { tipo: "loja", etapa: "confirmacao", preco: PRECO },
     { tipo: "loja", comprado: true },
   ],
   sem_vidas: [
@@ -78,6 +81,33 @@ test("modelo: toda cena vira dado puro e determinístico, dentro da tela de refe
     for (const a of tocaveis) for (const b of tocaveis) if (a !== b) assert.ok(!sobrepoe(a, b), `${cena.tipo}: ${a.id} sobrepõe ${b.id}`);
   }
   assert.throws(() => montarTela({ tipo: "desconhecida" }), RangeError);
+});
+
+test("jogando: 64 casas e as peças da rodada, cada uma com retângulo, ação e descrição coerentes", () => {
+  const tela = montarTela(EXEMPLOS.jogando[0]);
+  const grade = el(tela, "grade");
+  assert.equal(grade.aceitaToqueDesde_ms, null, "a moldura da grade não é tocável");
+  const casas = tela.elementos.filter((e) => e.id.startsWith("celula-"));
+  assert.equal(casas.length, 64);
+  const lado = grade.largura / 8;
+  for (const e of casas) {
+    assert.equal(e.id, `celula-${e.linha}-${e.coluna}`);
+    assert.equal(e.acao, "colocar");
+    assert.equal(e.aceitaToqueDesde_ms, 0);
+    assert.deepEqual([e.x, e.y, e.largura, e.altura], [grade.x + e.coluna * lado, grade.y + e.linha * lado, lado, lado], e.id);
+    const ocupada = GRADE_USADA[e.linha * 8 + e.coluna] === 1;
+    assert.equal(e.descricao, `linha ${e.linha + 1}, coluna ${e.coluna + 1}, ${ocupada ? "ocupada" : "livre"}`);
+    assert.deepEqual(tocar(tela, { ...centro(e), t_ms: 0 }), { id: e.id, acao: "colocar" });
+  }
+  assert.notEqual(el(tela, "celula-0-0").corFundo, el(tela, "celula-0-1").corFundo, "casa ocupada e livre com fundos diferentes");
+  const pecas = tela.elementos.filter((e) => e.id.startsWith("peca-"));
+  assert.deepEqual(pecas.map((e) => e.descricao), ["peça 1: ponto", "peça 2: usada", "peça 3: quadrado 3x3"]);
+  assert.deepEqual(pecas.map((e) => e.escolhida), [true, false, false]);
+  assert.deepEqual(pecas.map((e) => e.forma.length), [1, 0, 9]);
+  assert.deepEqual(tocar(tela, { ...centro(el(tela, "peca-0")), t_ms: 0 }), { id: "peca-0", acao: "escolher_peca" });
+  assert.equal(tocar(tela, { ...centro(el(tela, "peca-1")), t_ms: 0 }), null, "peça usada não responde");
+  assert.deepEqual(tocar(tela, { ...centro(el(tela, "peca-2")), t_ms: 0 }), { id: "peca-2", acao: "escolher_peca" });
+  assert.throws(() => montarTela({ ...EXEMPLOS.jogando[1], grade: [0, 0, 0] }), RangeError, "grade não quadrada");
 });
 
 test("modelo: sem DOM, relógio próprio nem aleatoriedade no código da interface", () => {
@@ -122,6 +152,21 @@ test("oferta de troca diz exatamente quantas peças serão trocadas", () => {
   }
 });
 
+test("loja: o preço vem da sessão e aparece no produto e na confirmação", () => {
+  const sessao = criarSessao({ sementeSessao: 3, sdk: criarSdkSimulado(), relogio: () => 0, consentimento: false });
+  assert.equal(sessao.produtoSemAnuncios.preco, PRECO);
+  assert.ok(Object.isFrozen(sessao.produtoSemAnuncios));
+  for (const etapa of ["produto", "confirmacao"]) {
+    const cena = cenaDaSessao(sessao, { tipo: "loja", etapa });
+    assert.equal(cena.preco, PRECO);
+    const tela = montarTela(cena);
+    assert.ok(el(tela, "principal").texto.includes(PRECO), `${etapa}: botão "${el(tela, "principal").texto}"`);
+    assert.ok(el(tela, "explicacao").texto.includes(PRECO), `${etapa}: explicação`);
+  }
+  assert.throws(() => montarTela({ tipo: "loja", etapa: "produto" }), RangeError, "loja sem preço não monta");
+  assert.throws(() => montarTela({ tipo: "loja", etapa: "confirmacao", preco: " " }), RangeError);
+});
+
 // AC-U1.4 — fechar, rótulo e prazo.
 test("anúncio: rótulo desde o início e um fechar de 44 × 44 px no mínimo, sem sobreposição, no tempo certo", () => {
   for (const tela of ANUNCIOS) assert.deepEqual(problemasAnuncio(tela), [], tela.anuncio);
@@ -131,6 +176,10 @@ test("anúncio: rótulo desde o início e um fechar de 44 × 44 px no mínimo, s
   assert.deepEqual(tocar(intersticial, { ...fechar, t_ms: TEMPOS.intersticial_ms }), { id: "fechar", acao: "fechar" });
   for (const rewarded of ANUNCIOS.slice(1)) assert.deepEqual(tocar(rewarded, { ...centro(el(rewarded, "fechar")), t_ms: 0 }), { id: "fechar", acao: "fechar" }, "rewarded: fechar desde o início");
   for (const tela of ANUNCIOS) assert.equal(tocar(tela, { ...centro(el(tela, "corpo")), t_ms: 60000 }), null, "corpo do anúncio não abre nada");
+  const aviso = el(intersticial, "duracao");
+  assert.equal(aviso.texto, `Anúncio de ${TEMPOS.intersticial_ms / 1000} s. O botão Fechar aparece ao fim.`, "intersticial: duração informada");
+  assert.equal(aviso.visivelDesde_ms, 0);
+  assert.equal(aviso.aceitaToqueDesde_ms, null);
 });
 
 test("prazo: nenhuma oferta tem contagem regressiva nem prazo (a de continuar não tem prazo na sessão)", () => {
@@ -147,6 +196,24 @@ test("toque acidental: telas de fim de partida não aceitam toque na janela inic
     assert.equal(tocar(oferta, { ...centro(el(oferta, id)), t_ms: TEMPOS.janelaToque_ms - 1 }), null);
     assert.equal(tocar(oferta, { ...centro(el(oferta, id)), t_ms: TEMPOS.janelaToque_ms })?.id, id);
   }
+});
+
+// Toque duplo: trocas de tela disparadas por toque em que o segundo toque abriria compra ou anúncio.
+const TRANSICOES = [
+  { nome: "loja: produto → confirmação", de: EXEMPLOS.loja[0], toque: "principal", para: EXEMPLOS.loja[1] },
+  { nome: "oferta de troca → rewarded", de: EXEMPLOS.oferta_troca[0], toque: "principal", para: EXEMPLOS.rewarded[0] },
+  { nome: "oferta de continuar → rewarded", de: EXEMPLOS.oferta_continuar[0], toque: "principal", para: EXEMPLOS.rewarded[1] },
+  { nome: "sem vidas → rewarded", de: EXEMPLOS.sem_vidas[0], toque: "principal", para: EXEMPLOS.rewarded[2] },
+].map((x) => ({ ...x, de: montarTela(x.de), para: montarTela(x.para) }));
+const CONFIRMACAO = TRANSICOES[0];
+
+test("toque duplo: o segundo toque no mesmo ponto não aciona nada na tela seguinte antes da janela", () => {
+  for (const { nome: n, de, toque, para } of TRANSICOES) assert.deepEqual(problemasToqueDuplo(de, toque, para), [], n);
+  const { de, para } = CONFIRMACAO;
+  const comprar = centro(el(de, "principal"));
+  assert.equal(tocar(para, { ...comprar, t_ms: TEMPOS.janelaToque_ms - 1 }), null);
+  assert.equal(tocar(para, { ...comprar, t_ms: TEMPOS.janelaToque_ms })?.acao, "voltar", "depois da janela, o mesmo ponto cancela");
+  assert.equal(tocar(para, { ...centro(el(para, "principal")), t_ms: TEMPOS.janelaToque_ms })?.acao, "comprar");
 });
 
 // Sessão de ponta a ponta, com o jogador automático, olhando a cena depois de cada ação.
@@ -217,7 +284,9 @@ const MUTACOES = [
   { nome: "recusa menor", telas: OFERTAS, verificar: problemasParidade, mutar: (t) => mudar(t, "recusa", { altura: 32 }) },
   { nome: "recusa estreita", telas: OFERTAS, verificar: problemasParidade, mutar: (t) => mudar(t, "recusa", { largura: 200 }) },
   { nome: "recusa apagada (contraste baixo)", telas: OFERTAS, verificar: problemasParidade, mutar: (t) => mudar(t, "recusa", { corTexto: "#AEB4BB" }) },
-  { nome: "recusa com contraste acima de 4,5 mas abaixo da ação principal", telas: OFERTAS, verificar: problemasParidade, mutar: (t) => mudar(t, "recusa", { corTexto: "#56606B" }) },
+  { nome: "recusa com contraste acima de 4,5 mas abaixo da ação principal", telas: OFERTAS, verificar: problemasParidade, mutar: (t) => mudar(t, "recusa", { corTexto: "#E4E7EB" }) },
+  { nome: "recusa com o destaque antigo (fundo cinza, texto escuro)", telas: OFERTAS, verificar: problemasParidade, mutar: (t) => mudar(t, "recusa", { corFundo: "#E4E7EB", corTexto: "#1F2933" }) },
+  { nome: "recusa com outro fundo e contraste maior", telas: OFERTAS, verificar: problemasParidade, mutar: (t) => mudar(t, "recusa", { corFundo: "#174A84" }) },
   { nome: "recusa em fonte leve", telas: OFERTAS, verificar: problemasParidade, mutar: (t) => mudar(t, "recusa", { pesoFonte: 300 }) },
   { nome: "recusa apagada da tela", telas: OFERTAS, verificar: problemasParidade, mutar: (t) => remover(t, "recusa") },
   { nome: "recusa com culpa", telas: OFERTAS, verificar: problemasParidade, mutar: (t) => mudar(t, "recusa", { texto: "Não, prefiro perder a partida" }) },
@@ -229,6 +298,9 @@ const MUTACOES = [
   { nome: "fechar sobre o rótulo", telas: ANUNCIOS, verificar: problemasAnuncio, mutar: (t) => mudar(t, "fechar", { x: 16, y: 16 }) },
   { nome: "fechar sobre o corpo do anúncio", telas: ANUNCIOS, verificar: problemasAnuncio, mutar: (t) => mudar(t, "fechar", { y: 80 }) },
   { nome: "fechar apagado", telas: ANUNCIOS, verificar: problemasAnuncio, mutar: (t) => mudar(t, "fechar", { corTexto: "#E4E7EB" }) },
+  { nome: "intersticial sem o aviso da duração", telas: ANUNCIOS.filter((t) => t.cena === "intersticial"), verificar: problemasAnuncio, mutar: (t) => remover(t, "duracao") },
+  { nome: "aviso da duração só depois do início", telas: ANUNCIOS.filter((t) => t.cena === "intersticial"), verificar: problemasAnuncio, mutar: (t) => mudar(t, "duracao", { visivelDesde_ms: 3000 }) },
+  { nome: "aviso com duração errada", telas: ANUNCIOS.filter((t) => t.cena === "intersticial"), verificar: problemasAnuncio, mutar: (t) => mudar(t, "duracao", { texto: "Anúncio de 3 s. O botão Fechar aparece ao fim." }) },
   { nome: "anúncio sem rótulo", telas: ANUNCIOS, verificar: problemasAnuncio, mutar: (t) => remover(t, "rotulo") },
   { nome: "rótulo atrasado", telas: ANUNCIOS, verificar: problemasAnuncio, mutar: (t) => mudar(t, "rotulo", { visivelDesde_ms: 3000 }) },
   { nome: "rótulo com outro texto", telas: ANUNCIOS, verificar: problemasAnuncio, mutar: (t) => mudar(t, "rotulo", { texto: "Destaque" }) },
@@ -244,7 +316,7 @@ const MUTACOES = [
 
 test("mutação 'contraste acima de 4,5 mas abaixo da ação principal' fica mesmo nessa faixa", () => {
   const principal = el(OFERTAS[0], "principal");
-  const c = contraste("#56606B", el(OFERTAS[0], "recusa").corFundo);
+  const c = contraste("#E4E7EB", el(OFERTAS[0], "recusa").corFundo);
   assert.ok(c >= 4.5 && c < contraste(principal.corTexto, principal.corFundo), String(c));
 });
 
@@ -255,4 +327,22 @@ for (const m of MUTACOES)
       assert.deepEqual(m.verificar(tela), [], `${nome(tela)}: limpo passa antes da mutação`);
       assert.ok(m.verificar(m.mutar(tela)).length > 0, `${nome(tela)}: mutação não foi pega`);
     }
+  });
+
+// Mutações da confirmação de compra (defeito de toque duplo da review): cada uma, sozinha, tem de
+// derrubar a verificação de toque duplo na troca produto → confirmação.
+const semJanela = (t) => mudar(mudar(t, "principal", { aceitaToqueDesde_ms: 0 }), "recusa", { aceitaToqueDesde_ms: 0 });
+const confirmarNoPontoDoComprar = (t) => mudar(mudar(t, "principal", { y: el(CONFIRMACAO.de, "principal").y }), "recusa", { y: el(CONFIRMACAO.de, "recusa").y });
+const MUTACOES_CONFIRMACAO = [
+  { nome: "confirmação sem janela de toque", mutar: semJanela },
+  { nome: "confirmar de volta ao ponto do Comprar", mutar: confirmarNoPontoDoComprar },
+  { nome: "confirmar no ponto do Comprar e sem janela (o defeito original)", mutar: (t) => semJanela(confirmarNoPontoDoComprar(t)) },
+];
+for (const m of MUTACOES_CONFIRMACAO)
+  test(`mutação de tela pega: ${m.nome}`, () => {
+    const { de, toque, para } = CONFIRMACAO;
+    assert.deepEqual(problemasToqueDuplo(de, toque, para), [], "limpo passa antes da mutação");
+    const mutada = m.mutar(para);
+    assert.deepEqual(problemasParidade(mutada), [], "a mutação mantém a paridade (só o toque duplo a pega)");
+    assert.ok(problemasToqueDuplo(de, toque, mutada).length > 0, "mutação não foi pega");
   });
