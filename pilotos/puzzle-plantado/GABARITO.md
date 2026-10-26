@@ -88,7 +88,7 @@ Hashes dos conjuntos (lista ordenada de `caminho:sha256`, como na F6): `encaixe-
 
 - **Código:** "observada" em todos os itens da tabela (exceto as iscas, que não são mecanismo).
 - **Execução:** com N3 aprovado e usado (`capture_browser_scenario`), "reproduzido" para o que aparece na tela no roteiro da sessão; "não testado" para o que a sessão não exercitou. "Não reproduzido" num item visual que o roteiro cobriu é erro. Sem N3, "não testado" em tudo, como na F6.
-- **Causalidade:** "hipótese" ou "associação observada". "Demonstrada" só é aceita em V1 se a sessão descrever a intervenção (tocar no botão e ver a tela de anúncio abrir); em qualquer outro item, "demonstrada" é erro.
+- **Causalidade:** "hipótese" ou "associação observada". "Demonstrada" é aceita em qualquer item se a sessão descrever uma intervenção controlada (mesmo estado inicial, uma variável mudada, efeito observado), como pede a skill (seção 6); sem a intervenção descrita, é erro. *(Regra revista na U5, 2026-10-24, com aprovação do responsável. Antes, só V1 aceitava "demonstrada".)*
 - **Configuração:** "padrão local" para os itens visuais (valores embutidos no código da tela); para os do produto e da F5, como na F6.
 
 ## Produto limpo nos dois builds
@@ -126,3 +126,11 @@ Variante aceita para V1: tratar também como violação de MON-0002 (anúncio fo
 ## Pontuação da F7
 
 Como na F6, por alvo e por item, com o estado de execução incluído. Registrar em `registros/<alvo>/01-analise.md` **depois** dos dois `05-monetizacao.md` prontos (U5).
+
+## Revisão da U5 (2026-10-24)
+
+Correções ao gabarito depois da comparação (detalhe nos `registros/encaixe-*/01-analise.md`):
+
+- **Lacuna:** os dois builds tinham uma confirmação de compra atravessável por toque duplo (MON-0025). Isso é defeito do produto, não plantio. O `encaixe-2` achou; o `encaixe-1` não testou o toque duplo. O defeito foi corrigido no produto pelo QA loop da PF7. Os builds desta rodada continuam com ele.
+- **MON-0021 no limpo:** o fechar do intersticial oculto por 5 s sem aviso de duração continua contando como falso positivo nesta rodada. Pela definição de "informado" acrescentada ao catálogo, porém, o caso passa a ser sinal legítimo de MON-0021 quando não há aviso. O produto corrigido avisa a duração.
+- **Causalidade:** regra de "demonstrada" revista acima. Com ela, a "demonstrada" do MON-0001 nos dois alvos (fechar cedo × assistir até o fim) deixa de ser divergência.

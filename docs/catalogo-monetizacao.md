@@ -1,7 +1,7 @@
 ---
 titulo: Catálogo de padrões de monetização e dark patterns
 versao: 3
-data: 2026-10-20
+data: 2026-10-24
 status: rascunho — classes de MON-0009, MON-0010, MON-0018 e MON-0033 revistas pelo responsável (2026-10-20); as demais aguardam revisão
 ---
 
@@ -59,9 +59,11 @@ Referências: [Z13] Zagal, Björk e Lewis 2013 · [UIG] UIGuard 2023 · [ADS] Ad
 - **Classe:** A
 - **Descrição:** compra única que remove anúncios forçados, com preço em moeda real, escopo claro (rewarded continua opcional) e restauração da compra.
 - **Sinais:** produto não consumível na loja; flag local que desliga intersticial e banner; caminho de restauração.
+- **Preço omitido:** se a tela de compra ou a de confirmação não mostra o preço em moeda real, o padrão não cumpre a descrição. Registrar a falta no próprio achado, com a tela em que o preço faltou. A falta não muda o ID nem a classe; vale o mesmo para MON-0006.
 - **Infantojuvenil:** permitido
 - **Aliases:** MON-A-03
 - **Referências:** [IND]
+- **Histórico:** v3, 2026-10-24 — sinal "preço omitido" acrescentado (lição da F7 do piloto; aprovado pelo responsável).
 
 ### MON-0004 — Dificuldade dinâmica para manter o fluxo
 - **Classe:** A
@@ -82,10 +84,11 @@ Referências: [Z13] Zagal, Björk e Lewis 2013 · [UIG] UIGuard 2023 · [ADS] Ad
 ### MON-0006 — Loja transparente
 - **Classe:** A
 - **Descrição:** cada item mostra o preço em moeda real; no máximo uma moeda virtual; pacotes compatíveis com os preços dos itens (sem sobra forçada).
-- **Sinais:** preço local exibido junto da moeda virtual; tabela de pacotes × preços sem resto.
+- **Sinais:** preço local exibido junto da moeda virtual; tabela de pacotes × preços sem resto. Falha: preço em moeda real ausente na tela de compra ou na de confirmação (ver "Preço omitido" em MON-0003).
 - **Infantojuvenil:** permitido
 - **Aliases:** MON-A-06
 - **Referências:** [CPC]
+- **Histórico:** v3, 2026-10-24 — sinal de falha "preço omitido" acrescentado (lição da F7 do piloto; aprovado pelo responsável).
 
 ### MON-0007 — Passe ou assinatura com conteúdo listado
 - **Classe:** A
@@ -111,7 +114,8 @@ Referências: [Z13] Zagal, Björk e Lewis 2013 · [UIG] UIGuard 2023 · [ADS] Ad
 - **Infantojuvenil:** permitido
 - **Aliases:** MON-A-09
 - **Referências:** [IND], [Z13]
-- **Histórico:** v2 — mantida em A com as três regras (revisão do responsável).
+- **Destaque (regra 2):** a recusa tem o mesmo destaque da aceitação quando tem a mesma área, o mesmo peso e tamanho de fonte, o mesmo estilo de preenchimento (as duas preenchidas, ou as duas só com contorno), contraste de texto de pelo menos 4,5:1 e posição na mesma área visível, sem rolagem. Cor diferente é aceitável se o estilo for o mesmo. Recusa sem preenchimento ao lado de aceitação preenchida não cumpre a regra 2.
+- **Histórico:** v2 — mantida em A com as três regras (revisão do responsável). v3, 2026-10-24 — definição operacional de "destaque" (lição da F7 do piloto; aprovado pelo responsável).
 
 ### MON-0010 — Oferta com prazo real
 - **Classe:** A
@@ -238,8 +242,10 @@ Referências: [Z13] Zagal, Björk e Lewis 2013 · [UIG] UIGuard 2023 · [ADS] Ad
 - **Classe:** C
 - **Descrição:** fechar pequeno demais, escondido, com atraso não informado, ou cuja área de toque abre a loja ou o anúncio.
 - **Sinais:** botão de fechar com área de toque mínima; área clicável do anúncio sobrepondo o fechar; fechar que aparece em posição variável. Criativos vêm da rede de anúncios: confirmar em sequência de telas e toques, não só em captura isolada.
+- **"Informado":** o atraso é informado quando, desde o início do anúncio, a tela diz quanto ele dura ou quando o fechar aparece (texto fixo ou contagem). Fechar que aparece ao fim de uma duração informada não é MON-0021. Sem esse aviso, o atraso conta como não informado, mesmo que dure só o tempo do anúncio. Nesse caso, registrar a duração medida e a ausência de aviso, para separar esse caso de atraso abusivo.
 - **Aliases:** MON-C-01
 - **Referências:** [UIG], [ADS], [LOJA]
+- **Histórico:** v3, 2026-10-24 — definição operacional de "informado" (lição da F7 do piloto; aprovado pelo responsável).
 
 ### MON-0022 — Anúncio disfarçado
 - **Classe:** C
@@ -266,8 +272,10 @@ Referências: [Z13] Zagal, Björk e Lewis 2013 · [UIG] UIGuard 2023 · [ADS] Ad
 - **Classe:** C
 - **Descrição:** cobrança com um toque, cartão salvo por padrão ou compra que dispara sem tela de confirmação.
 - **Sinais:** fluxo de cobrança chamado direto do botão; ausência de diálogo de confirmação. A loja da plataforma costuma ter confirmação própria: ausência de diálogo no código do app não prova ausência de confirmação; verificar o fluxo completo.
+- **Confirmação atravessável:** uma confirmação que nasce com o botão de confirmar no mesmo ponto do botão anterior e aceita toque imediato conta como cobrança com um toque, porque um toque duplo a atravessa. Teste: 1 toque e 2 toques rápidos no mesmo ponto. Confirmação com janela de toque ou com o confirmar fora do ponto anterior não cai aqui.
 - **Aliases:** MON-C-05
 - **Referências:** [FTC]
+- **Histórico:** v3, 2026-10-24 — sinal "confirmação atravessável" acrescentado (lição da F7 do piloto; aprovado pelo responsável).
 
 ### MON-0026 — Caixa paga com menores prováveis ou com probabilidades ocultas
 - **Classe:** C

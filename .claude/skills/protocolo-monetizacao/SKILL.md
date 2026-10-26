@@ -62,6 +62,8 @@ Partir dos pontos de chamada dos SDKs (passo 1) e seguir referências cruzadas (
 - Registrar versão, dispositivo, região, conectividade, progresso e ações. Distinguir anúncio do próprio app, criativo de terceiros e redirecionamento externo.
 - Capturas, respostas de rede e criativos ficam em `saidas/<slug>/monetizacao/`. No documento, só valores resumidos.
 - **Método do oráculo:** prever pela regra reconstruída (ex.: "intersticial a cada 3 fases, mínimo 30 s") e comparar com o jogo real.
+- **Gesto repetido:** em toda tela de compra, confirmação ou oferta, repetir o mesmo gesto. Testar 1 toque e 2 toques rápidos no mesmo ponto: um toque duplo que atravessa a confirmação é sinal de MON-0025, e um que abre anúncio é sinal de MON-0031. Registrar os dois resultados. Testar só um toque deixa o achado em "não testado". (Lição da F7 do piloto, 2026-10-24.)
+- **Alcance do cenário:** se o cenário só alcança elementos do DOM e o jogo é desenhado em canvas, registrar como lacuna o que ficou sem execução (por exemplo, fim de partida). Não marcar esses itens como "não reproduzido".
 
 ## 6. Classificação e estados
 

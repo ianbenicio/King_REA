@@ -99,6 +99,13 @@ Regras em `reimplementacoes/puzzle-piloto/semgrep/`, cada uma com arquivo de tes
 - **Cegueira:** a análise roda numa **sessão nova**, sem este histórico, instruída a ler só a skill `protocolo-monetizacao`, o catálogo, o modelo 05 e `alvos/puzzle-plantado/`. Proibido ler `pilotos/`, `docs/plano-piloto-puzzle.md`, `reimplementacoes/puzzle-piloto/` e o histórico do git desses caminhos. Limite: a instrução não é imposta por gate; se for preciso imposição, acrescentar regra `deny` de leitura nessas pastas nas permissões da sessão de análise.
 - **Controle de falso positivo:** o build do produto limpo também é analisado, sem que se saiba qual é qual.
 - **Nomes e separação (decidido na F5):** os alvos se chamam `blocos-a` e `blocos-b`; qual é o plantado está só no gabarito. Cada um é analisado numa **sessão própria**, que lê só o próprio build: com os dois lado a lado, uma comparação de arquivos entregaria exatamente o que foi plantado. Os builds são "de distribuição": sem comentários e sem o perfil de governança, com conferência automática de vazamento.
+- **Lista de cegueira (antes de cada rodada cega; lição da F7, aprovada pelo responsável em 2026-10-24):**
+  1. Conferir vazamento em `docs/` (handoffs, stories, planos): nenhum texto pode dizer qual alvo é o plantado, o que foi plantado ou com que classe.
+  2. Não citar a variante plantada nem o conteúdo do plantio em textos que a sessão cega carrega sozinha: `CLAUDE.md`, memória e assuntos de commit (o snapshot do git mostra os últimos commits).
+  3. Definir de antemão o destino do handoff de cada sessão cega, fora dos caminhos bloqueados (por exemplo, a pasta de notas da sessão-mãe). A unidade de comparação copia o handoff para `docs/handoffs/`.
+  4. Dar à sessão cega um nome e um pedido inicial que não mostrem o outro alvo. A lista de sessões ligadas aparece para ela.
+  5. O pedido informa o público do alvo (`children_likely`), para a sessão não ter de supor.
+  6. A sessão de comparação varre os transcripts (AC-U5.2 da PF7) e registra qualquer vazamento achado depois.
 - **Comparação:** depois de os dois `05-monetizacao.md` estarem prontos, comparar com o gabarito numa tabela: encontrado com ID certo / ID errado / não encontrado / falso positivo, e estado por estado. Resultado e lições em `registros/puzzle-plantado/01-analise.md`; ajustes no protocolo ou no catálogo só com aprovação.
 
 ## 8. Fases

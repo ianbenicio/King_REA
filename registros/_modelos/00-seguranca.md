@@ -48,6 +48,8 @@ data: <AAAA-MM-DD>
 - Conectores sensíveis: <desligados | não aplicável a N0/N1 em C1>
 - Rede durante execução: <n/a | sem rede | controlada>
 - Ambiente: <host | VM | Windows Sandbox>
+- Navegador (só com N3 de página): <n/a | cópia do navegador em `saidas/<slug>/navegador/`, com SHA-256 igual ao da origem>. O gate só libera caminhos de `alvos/<slug>/` e `saidas/<slug>/`, então o navegador instalado fora deles é recusado. Prever a cópia aqui evita improvisar durante a análise.
+- Servidor local do alvo (se houver): <n/a | `127.0.0.1:<porta>`, ligado só durante as capturas>
 
 ## 5. Procedimentos
 
