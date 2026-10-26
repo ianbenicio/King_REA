@@ -61,14 +61,16 @@ Organizador próprio já pronto: `scripts/assets/organizar-assets.mjs` (identifi
 4. **Auditar e instalar só as ferramentas daquela engine**, uma a uma, cada uma fixada e registrada no gate.
 5. **Registrar** no `01-analise.md` do jogo e, ao fim, no benchmark do alvo.
 
-## Pendências de informação (responder para destravar)
+## Respostas do responsável (2026-10-26)
 
-- Qual o primeiro jogo-alvo, e onde ele está instalado? (decide a engine e a pilha)
-- O jogo tem anti-cheat? (se tiver, paramos)
-- Você tem Ghidra e um JDK 21 instalados? Tem licença do IDA? (decide o provider nativo)
-- Tem Cheat Engine instalado? (decide a camada de memória ao vivo)
+| Pergunta | Resposta | Observação |
+|---|---|---|
+| Primeiro jogo-alvo e local | **Ultima Online Classic**, instalado em `G:\Games\Electronic Arts\Ultima Online Classic` | O responsável marcou "Unity no PC", mas o cliente Classic deve ser nativo (C++), não Unity. A triagem passiva do protocolo de segurança confirma a engine, e é ela que decide a pilha |
+| Anti-cheat | "Não tem" | O protocolo confere na triagem. Mesmo sem anti-cheat, é jogo online com servidor oficial: execução dinâmica e rede só com aprovação caso a caso |
+| Ghidra, JDK 21, IDA | Ghidra (`%LOCALAPPDATA%\ghidra`, MCP `ghidra` no `.mcp.json`) e JDK 21 (Microsoft 21.0.12) instalados; sem IDA | Provider nativo: Ghidra |
+| Cheat Engine | Não instalado | Sem camada de memória ao vivo por enquanto |
+| Clonar o universal-modder | Aprovado em `ferramentas/` | O clone já existia em `ferramentas/universal-modder/`, fixado em `5ba8150`, fora do git. Única mudança local: fim de linha (CRLF → LF) em dois `.bat` |
 
 ## Decisões em aberto para o responsável
 
-- **Clonar o universal-modder** para aproveitar a base de conhecimento: aprova? Onde? (sugiro `ferramentas/universal-modder/`, fixado num commit, no `.gitignore`)
 - **Baixar algum alvo ou ferramenta para eu inspecionar melhor:** quando uma auditoria estática não bastar, peço o download para uma pasta isolada e analiso sem executar.
