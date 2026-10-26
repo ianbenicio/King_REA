@@ -1,6 +1,6 @@
 # Story PF7 — Piloto de monetização, F7: interface mínima e análise cega com execução
 
-**Status:** InReview (gate da U5: CONCERNS, aguardando decisão do responsável; U1 iniciada em 2026-10-23; validada por @po em 2026-10-23, ver "Validação @po")
+**Status:** Done (gate da U5: PASS depois da iteração 1 do QA loop, 2026-10-24; U1 iniciada em 2026-10-23; validada por @po em 2026-10-23, ver "Validação @po")
 **Workflow:** SDC + QA Loop (máx. 2 iterações) · **Plano:** [`docs/plano-de-execucao.md`](../plano-de-execucao.md) §3 e §6 · **Plano do piloto:** [`docs/plano-piloto-puzzle.md`](../plano-piloto-puzzle.md) §7 e §8 · **Produto:** [`reimplementacoes/puzzle-piloto/`](../../reimplementacoes/puzzle-piloto/)
 **Complexidade:** STANDARD · estimativa L (13 pontos): seis sessões depois desta; riscos em vazamento para a análise cega e em execução de build com classe C
 
@@ -75,9 +75,9 @@ Regras que valem para toda a story:
 
 - [x] **AC-U5.1 (gabarito)** — tabela por alvo: encontrado com ID certo / ID errado / não encontrado / falso positivo / isca evitada, e estado por estado; linha à parte para o que só a execução revelou (achado que a leitura do código sozinha não fecharia).
 - [x] **AC-U5.2 (cegueira comprovada)** — varredura dos transcripts de U4a e U4b: nenhuma leitura, busca ou comando nos caminhos proibidos do AC-U3.4; chamadas do REA só aos níveis aprovados.
-- [ ] **AC-U5.3 (review)** — `/code-review` do diff de U1–U3 em `reimplementacoes/puzzle-piloto/` e `pilotos/`; cada achado corrigido ou aceito pelo responsável.
+- [x] **AC-U5.3 (review)** — `/code-review` do diff de U1–U3 em `reimplementacoes/puzzle-piloto/` e `pilotos/`; cada achado corrigido ou aceito pelo responsável.
 - [x] **AC-U5.4 (lições e propostas)** — lições em `registros/<alvo>/01-analise.md` (como na F6); ajustes ao protocolo e ao catálogo listados como propostas para o responsável, nenhum aplicado sem aprovação.
-- [ ] **AC-U5.5 (fechamento)** — veredito PASS, ou CONCERNS aceito pelo responsável; story `Done`; handoff final com as métricas das sessões (`unidade.js`/`sessao.js` no Harness); nota no Engram, mais as lições ligadas que faltam na nota do piloto, se o responsável aprovar.
+- [x] **AC-U5.5 (fechamento)** — veredito PASS, ou CONCERNS aceito pelo responsável; story `Done`; handoff final com as métricas das sessões (`unidade.js`/`sessao.js` no Harness); nota no Engram, mais as lições ligadas que faltam na nota do piloto, se o responsável aprovar.
 
 ## Critério de pronto (story inteira)
 
@@ -109,7 +109,7 @@ Primeira medida do protocolo de monetização com o estado "execução" preenchi
 - [x] Responsável — aprovar os protocolos de segurança e os níveis da análise
 - [x] U4a — análise cega do alvo 1
 - [x] U4b — análise cega do alvo 2
-- [ ] U5 — AC-U5.1 a AC-U5.5
+- [x] U5 — AC-U5.1 a AC-U5.5 (com a iteração 1 do QA loop)
 
 ## Validação @po (checklist de 10 pontos)
 
@@ -142,6 +142,10 @@ Primeira medida do protocolo de monetização com o estado "execução" preenchi
 | 2026-10-23 | U0 → U1 | Observações do @po aceitas; a U1 fixa na especificação a duração do intersticial simulado e a janela de toque acidental; U1 em sessão nova | "eu estou de acordo com a sugestões e os dados que faltam, pode seguir o caminho mais seguro e eficiente." |
 | 2026-10-23 | U3 | Protocolo de segurança do alvo `encaixe-1`: N0–N3 aprovados (N3 só `capture_browser_scenario`, servidor do build em 127.0.0.1 durante a captura) | "Aprovar N0–N3 (Recommended)" |
 | 2026-10-23 | U3 | Protocolo de segurança do alvo `encaixe-2`: N0–N3 aprovados (mesmo plano) | "Aprovar N0–N3 (Recommended)" |
+| 2026-10-24 | U5 | Análises dos dois alvos aceitas, sem mais investigação | "Aceito as duas análises (não peço mais investigação)." |
+| 2026-10-24 | U5 | Remoção do `deny` de `.claude/settings.local.json` no início da U5 | "Autorizo a U5 a remover o deny de .claude/settings.local.json no início."; depois de duas recusas do classificador: "Autorizo, tente de novo" |
+| 2026-10-24 | U5 | CONCERNS não aceito; QA loop com @dev para os achados 1, 2, 4, 6, 7 e 8 | "Não aceito CONCERNS ainda: abra o QA loop com @dev para os achados 1, 2, 4, 6, 7 e 8 da review." |
+| 2026-10-24 | U5 | Achado 5 entra no QA loop, achado 9 adiado, propostas 1 a 9 aplicadas (na 6, a opção do jogo pelo DOM), nota no Engram ao final (repassado pela sessão-mãe) | "Aprovo as recomendações como estão: incluir o achado 5 no QA loop, adiar o 9, aplicar as propostas 1 a 9 e fazer a nota no Engram ao final. Repasse à U5." |
 | 2026-10-23 | U3 | Regra `deny` de leitura temporária: Read/Grep/Glob negados nos caminhos proibidos comuns, em `.claude/settings.local.json` (fora do git), aplicada no fim da U3 e removida no início da U5; `.claude/settings.json` sem mudança; o Bash ainda lê, então a varredura do AC-U5.2 continua | "Deny temporário (Recommended)" |
 
 ## File List
@@ -181,11 +185,15 @@ Primeira medida do protocolo de monetização com o estado "execução" preenchi
 - U5: `registros/encaixe-1/01-analise.md`, `registros/encaixe-2/01-analise.md` (comparação com o gabarito, lições, critério 5, `status: concluida`)
 - U5: `docs/handoffs/2026-10-24-piloto-f7-u5.md` (handoff final com as métricas U0–U5)
 - U5: `.claude/settings.local.json` (fora do git: `deny` removido)
+- U5, QA loop: `reimplementacoes/puzzle-piloto/src/interface/tela.mjs`, `cenas.mjs`, `src/sessao/sessao.mjs`, `interface/controle.mjs`, `desenho.mjs`, `index.html`, `estilo.css`, `ESPECIFICACAO.md` (§10, §10.1), `tests/interface-verificacoes.mjs`, `interface.test.mjs`, `interface-navegador.test.mjs`
+- U5, QA loop: `pilotos/puzzle-plantado/construir.mjs` (demo da interface com a janela de toque)
+- U5, propostas: `pilotos/puzzle-plantado/GABARITO.md`, `docs/catalogo-monetizacao.md`, `registros/_modelos/00-seguranca.md`, `CLAUDE.md`, `docs/plano-piloto-puzzle.md`, `.claude/skills/protocolo-monetizacao/SKILL.md`
+- U5: `.claude/launch.json` (novo: servidor do puzzle para o navegador embutido)
 
 ## QA Results
 
 **Revisor:** @qa (Quinn), U5, sessão `cfb67beb-1c4d-4280-869e-a628f4cd99f8`, 2026-10-24.
-**Veredito do gate: CONCERNS.**
+**Veredito inicial: CONCERNS.** O responsável não aceitou CONCERNS. Depois da iteração 1 do QA loop, o veredito passou a **PASS** (ver "QA loop — iteração 1"). A troca do canvas pelo DOM (proposta 6, aprovada) supera a redação do AC-U2.1, que dizia "grade e peças em canvas".
 - Os ACs de U1 a U4 se cumprem, e o método de análise cega funcionou.
 - As preocupações: dois defeitos do produto limpo que o gabarito não previa (achados 1 e 2 da review) e a cobertura de execução do N3.
 - Para a story virar `Done`, o responsável aceita CONCERNS ou pede as correções (QA loop com @dev).
@@ -245,15 +253,15 @@ Script e saídas estão na pasta de notas da sessão-mãe, fora do repositório.
 
 | # | Achado | Situação |
 |---|---|---|
-| 1 | `tela.mjs`: confirmação de compra no mesmo ponto e sem janela de toque (MON-0025 não intencional) | aguarda o responsável (proposta: `desde_ms: TEMPOS.janelaToque_ms` e posição diferente na etapa `confirmacao`) |
-| 2 | Preço nunca aparece na loja (MON-0003, MON-0006) | aguarda o responsável |
+| 1 | `tela.mjs`: confirmação de compra no mesmo ponto e sem janela de toque (MON-0025 não intencional) | corrigido na iteração 1 do QA loop |
+| 2 | Preço nunca aparece na loja (MON-0003, MON-0006) | corrigido na iteração 1 do QA loop |
 | 3 | Handoff da U3 dizia qual build era o plantado | corrigido na U5 |
-| 4 | `interface/desenho.mjs` e `controle.mjs` importam de `src/nucleo/` e `src/monetizacao/`, contra "a interface fala só com a sessão" | aguarda o responsável |
-| 5 | Janela de toque aplicada por cena, não a toda troca de tela | aguarda o responsável |
-| 6 | `problemasToque` não cobre a confirmação nem o toque duplo | aguarda o responsável |
-| 7 | Fechar do intersticial oculto por 5 s sem a duração informada (ambiguidade com MON-0021) | aguarda o responsável |
-| 8 | Fundo da recusa diferente do da ação principal ("destaque" do MON-0009) | aguarda o responsável |
-| 9 | `desenho.mjs` refaz o canvas e o DOM a cada redesenho | aguarda o responsável (baixo) |
+| 4 | `interface/desenho.mjs` e `controle.mjs` importam de `src/nucleo/` e `src/monetizacao/`, contra "a interface fala só com a sessão" | corrigido na iteração 1 do QA loop |
+| 5 | Janela de toque aplicada por cena, não a toda troca de tela | corrigido na iteração 1 do QA loop |
+| 6 | `problemasToque` não cobre a confirmação nem o toque duplo | corrigido na iteração 1 do QA loop |
+| 7 | Fechar do intersticial oculto por 5 s sem a duração informada (ambiguidade com MON-0021) | corrigido na iteração 1 do QA loop |
+| 8 | Fundo da recusa diferente do da ação principal ("destaque" do MON-0009) | corrigido na iteração 1 do QA loop |
+| 9 | `desenho.mjs` refaz o canvas e o DOM a cada redesenho | adiado pelo responsável (baixo) |
 
 **Semgrep:**
 - `npm run semgrep`: 0 achados em 18 arquivos.
@@ -261,7 +269,68 @@ Script e saídas estão na pasta de notas da sessão-mãe, fora do repositório.
 - `semgrep:mutacoes`: 7/7 (execução isolada).
 - As regras atuais não pegam os achados 1 e 2.
 
-### AC-U5.4 — propostas ao responsável (nenhuma aplicada)
+### QA loop — iteração 1 (2026-10-24)
+
+**@dev (subagente `aiox-dev`)** corrigiu os achados 1, 2, 4, 5, 6, 7 e 8 e fez o jogo jogável pelo DOM (proposta 6). As mudanças:
+- **Confirmação de compra:** tem janela de 500 ms, e o "Cancelar" ocupa o ponto do "Comprar".
+- **Preço:** vem da sessão (getter `produtoSemAnuncios`) e aparece no produto e na confirmação.
+- **Imports da interface:** `interface/*.mjs` importa só de `src/sessao/` e `src/interface/`, com teste que lê os imports.
+- **Janela de toque:** o controle aplica a janela a toda troca de tela. Jogadas seguidas não esperam.
+- **Toque duplo:** nova verificação `problemasToqueDuplo`, com 3 mutações.
+- **Intersticial:** mostra desde o início "Anúncio de 5 s. O botão Fechar aparece ao fim.", com verificação e mutações.
+- **Destaque da recusa:** recusa e ação principal com o mesmo fundo e a mesma cor de texto, com verificação e mutações.
+- **Jogo pelo DOM:**
+  - o canvas saiu; casas e peças são botões com `data-celula`, `data-peca` e `aria-label`;
+  - o modelo de `jogando` tem as 64 casas;
+  - §10 e §10.1 da `ESPECIFICACAO.md` atualizadas.
+- **Âncoras do plantio:** as 27 continuam intactas.
+
+**Re-review do @qa:**
+- Diff lido.
+- `npm test` 164/164 (eram 148); `check:monetizacao` OK.
+- Semgrep 0 achados, `semgrep:test` 6/6 e `semgrep:mutacoes` 7/7 (rodados pelo @dev, em sequência).
+- Navegador embutido, `semente=1`, console sem erro:
+  - preço nas duas etapas;
+  - toque duplo em "Comprar" para na confirmação;
+  - peça escolhida e colocada pelo teclado (Enter e Espaço);
+  - três partidas jogadas até o fim só por cliques no DOM;
+  - a oferta de continuar e o intersticial (com o aviso de duração e o fechar aos 5 s) foram alcançados;
+  - "Nova partida" tocada 100 ms depois de trocar a tela foi ignorada (janela).
+
+**Correção do @qa em `pilotos/`:** a `demoInterface` do `construir.mjs` tocava a cada 100 ms e quebraria com a janela. Passou a esperar 600 ms depois de cada toque e da volta do rewarded.
+- Verificada só contra o fonte do produto, com um script que roda a demo sem gerar builds: sementes 1 a 3, todas as cenas.
+- O `construir.mjs` **não** foi rodado: ele regera `alvos/encaixe-*`, que são os alvos analisados, com hashes registrados.
+
+**Gate final: PASS.**
+- O achado 9 (redesenho completo do DOM, que também gera ruído de `aria-live`) ficou adiado pelo responsável, para uma próxima unidade.
+- Os alvos `encaixe-*` desta rodada continuam com o produto antigo, de propósito.
+
+**Retomada em 2026-10-26.** O turno de 2026-10-24 parou no limite semanal de uso, antes do commit e da nota no Engram. Na retomada:
+- **O @dev tinha terminado.** O diff cobre os achados 1, 2 e 4 a 8 e o jogo pelo DOM. Nada estava pela metade.
+- **Alvos intactos.** O `construir.mjs` não foi rodado. Os hashes de conjunto dos alvos `encaixe-1` e `encaixe-2`, recalculados, batem com os dos `00-seguranca.md`, e nenhum arquivo dos alvos é posterior a 2026-10-23 17:57.
+- **Testes:** `npm test` 164/164 e `check:monetizacao` OK, de novo.
+- **Semgrep não foi rodado de novo:** o Docker estava desligado. Vale a execução do @dev de 2026-10-24. Depois dela, o código do produto não mudou.
+- **Navegador embutido de novo, com `semente=1` e console sem erro:**
+  - preço nas duas etapas da loja;
+  - o 2º toque do toque duplo caiu em "Cancelar" e foi ignorado;
+  - 7 partidas jogadas só pelo DOM;
+  - rewarded de continuar recebido aos 5 s;
+  - intersticial com o aviso desde o início e o Fechar oculto até o fim;
+  - tela sem vidas;
+  - toque a 100 ms de uma tela nova ignorado e liberado depois de 500 ms.
+- **Nota no Engram:** `li-es-da-f7-do-piloto-de-monetiza-o-an-lise-cega-da-interfac`, ligada à nota de contexto do piloto.
+
+### AC-U5.4 — propostas ao responsável (aplicadas na U5 com aprovação, exceto a 10, que foi o QA loop, e a 11, a nota no Engram)
+
+**Onde cada proposta entrou:**
+- 1 → `pilotos/puzzle-plantado/GABARITO.md` (regra de causalidade e "Revisão da U5").
+- 2 a 5 → `docs/catalogo-monetizacao.md`: definições e sinais, com "Histórico" em cada padrão. Nenhuma classe mudou e o catálogo continua na v3, para não invalidar perfis.
+- 6 → jogo pelo DOM, no QA loop.
+- 7 → `registros/_modelos/00-seguranca.md`.
+- 8 → `CLAUDE.md` (item 9, sem citar a variante) e lista de cegueira no `docs/plano-piloto-puzzle.md` §7.
+- 9 → skill `protocolo-monetizacao` §5 (gesto repetido; alcance do cenário).
+
+**As propostas, como foram apresentadas:**
 
 1. **Gabarito:** aceitar a causalidade "demonstrada" quando houver intervenção controlada descrita.
 2. **Catálogo, MON-0021:** definir "informado". Alternativa: o produto mostrar a duração.
@@ -296,3 +365,6 @@ Script e saídas estão na pasta de notas da sessão-mãe, fora do repositório.
 | 2026-10-23 | @dev | U3 concluída: variante plantada com a parte visual, builds `encaixe-1` e `encaixe-2` (hashes estáveis em duas execuções, limpo igual ao fonte também pela interface), protocolos de segurança aprovados (N0–N3), `deny` temporário aplicado, instrução cega no handoff; `npm test` 148/148, checagem de monetização verde. Status segue InProgress (U4a/U4b) |
 | 2026-10-24 | analista (cego) | U4a (`encaixe-1`, `5ba3cdf`) e U4b (`encaixe-2`, `7b8128c`) concluídas, cada uma em sessão própria |
 | 2026-10-24 | @qa | U5: `deny` removido; comparação com o gabarito, varredura dos transcripts, review do diff U1–U3, lições e propostas; análises aceitas pelo responsável e marcadas `concluida`; `npm test` 148/148, checagem de monetização e Semgrep verdes. Gate CONCERNS; status InProgress → InReview, aguardando o responsável |
+| 2026-10-24 | @dev | QA loop, iteração 1: achados 1, 2, 4, 5, 6, 7 e 8 corrigidos; jogo jogável pelo DOM e pelo teclado; `npm test` 164/164; Semgrep verde |
+| 2026-10-24 | @qa | Re-review: verificado no navegador embutido; demo do construtor ajustada à janela de toque; propostas 1 a 9 aplicadas com aprovação. Gate PASS (achado 9 adiado pelo responsável); status InReview → Done |
+| 2026-10-26 | @qa | Retomada depois da queda por limite de uso: estado conferido (alvos intactos; @dev completo), testes e navegador verificados de novo, nota no Engram, commits locais |
