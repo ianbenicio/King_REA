@@ -309,7 +309,7 @@ Script e saídas estão na pasta de notas da sessão-mãe, fora do repositório.
 - **O @dev tinha terminado.** O diff cobre os achados 1, 2 e 4 a 8 e o jogo pelo DOM. Nada estava pela metade.
 - **Alvos intactos.** O `construir.mjs` não foi rodado. Os hashes de conjunto dos alvos `encaixe-1` e `encaixe-2`, recalculados, batem com os dos `00-seguranca.md`, e nenhum arquivo dos alvos é posterior a 2026-10-23 17:57.
 - **Testes:** `npm test` 164/164 e `check:monetizacao` OK, de novo.
-- **Semgrep não foi rodado de novo:** o Docker estava desligado. Vale a execução do @dev de 2026-10-24. Depois dela, o código do produto não mudou.
+- **Semgrep:** na retomada, o Docker estava desligado. Depois que o responsável religou, rodou de novo em 2026-10-26 sobre o HEAD `f7fd0c6`: 0 achados em 18 arquivos, `semgrep:test` 6/6 e `semgrep:mutacoes` 7/7.
 - **Navegador embutido de novo, com `semente=1` e console sem erro:**
   - preço nas duas etapas da loja;
   - o 2º toque do toque duplo caiu em "Cancelar" e foi ignorado;
@@ -368,3 +368,4 @@ Script e saídas estão na pasta de notas da sessão-mãe, fora do repositório.
 | 2026-10-24 | @dev | QA loop, iteração 1: achados 1, 2, 4, 5, 6, 7 e 8 corrigidos; jogo jogável pelo DOM e pelo teclado; `npm test` 164/164; Semgrep verde |
 | 2026-10-24 | @qa | Re-review: verificado no navegador embutido; demo do construtor ajustada à janela de toque; propostas 1 a 9 aplicadas com aprovação. Gate PASS (achado 9 adiado pelo responsável); status InReview → Done |
 | 2026-10-26 | @qa | Retomada depois da queda por limite de uso: estado conferido (alvos intactos; @dev completo), testes e navegador verificados de novo, nota no Engram, commits locais |
+| 2026-10-26 | @qa | Semgrep rodado de novo depois que o Docker voltou: 0 achados, `semgrep:test` 6/6 e `semgrep:mutacoes` 7/7 |
