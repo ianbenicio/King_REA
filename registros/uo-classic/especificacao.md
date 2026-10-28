@@ -181,6 +181,8 @@ Armadilha: blocos em ordem de coluna e células em ordem de linha; errar uma das
 > - Ordem de blocos por coluna e de células por linha **confirmada** por continuidade de altura: é a única das quatro combinações sem salto nas bordas dos blocos. Statics: 7 bytes, x antes de y, índice na ordem do mapa, confirmados pelo encaixe das alturas e pela coerência entre flags de terreno e de objeto.
 > - **Corrigido:** os 4 bytes de cabeçalho do bloco não são lixo. Guardam o número sequencial do bloco, o que serve de checagem de integridade. O leitor **PODE** validar esse número e **NÃO DEVE** depender dele para posicionar o bloco.
 > - No `.uop`, o mapa vem em pedaços de 4096 blocos, e o arquivo pode ter um bloco a mais no fim. O leitor **DEVE** calcular o total de blocos pela largura e altura do mapa, não pelo tamanho dos dados. O mapa 0 legado da instalação mede 7168 × 4096; o recorte da seção 10.1 vale igual.
+>
+> **Adendo — reabertura (2026-10-28)** (`01-analise.md`, pergunta 10): o cliente original leva embutida uma tabela de integridade do mapa, com 4 bits por bloco, comparados com parte do MD5 dos 196 bytes do bloco; quando não bate, ele avisa o servidor com o bloco. Isso serve à checagem do cliente em rede e não muda a leitura do mapa nem as regras desta seção. Numa simulação local, sem servidor, essa checagem não tem função (inferência); a decisão de incluí-la ou não fica com o responsável.
 
 ### 3.6 Cor e imagens
 
@@ -203,6 +205,11 @@ Duas seções: terreno e objetos. Cada registro tem flags, altura, peso, camada 
 - O formato novo (`AnimationFrame*.uop`) tem partes não descritas pelas fontes (cabeçalho inicial, nomes dos grupos de ação) [F] §7.5 (lacuna). Se a instalação só tiver o formato novo para um corpo, a reimplementação **DEVE** cair no placeholder.
 
 > **Adendo — confirmado em parte no cliente (2026-10-28)** (`01-analise.md`, pergunta 9): confirmados os papéis de `body.def`, `bodyconv.def` e `mobtypes.txt` e o contêiner e os nomes do `AnimationSequence.uop`. O `animdata.mul` tem grupos de tamanho fixo e uma sobra no fim, menor que um grupo; o leitor **DEVE** limitar a leitura pelo tamanho do arquivo. O `AnimationFrame*.uop` e os `anim*.mul` **continuam em aberto**: ficaram fora da cópia analisada, e a lacuna da seção acima não muda.
+>
+> **Adendo — reabertura (2026-10-28)** (`01-analise.md`, pergunta 9; um arquivo de cada formato copiado pelo Adendo 2 do `00-seguranca.md`):
+> - **Formato legado (índice + dados de animação):** segue o par índice + dados da §3.4. Cada recurso vivo começa por uma paleta de 256 cores de 16 bits, a contagem de quadros e a lista de deslocamentos dos quadros; cada quadro traz centro, largura e altura antes dos pixels. Na instalação, a grande maioria das entradas vivas fecha com essa leitura, mas uma pequena parte (cerca de 1,4 %) não fecha. O leitor **DEVE** validar contagem, deslocamentos e tamanho de cada quadro contra o tamanho do recurso e, se não fechar, tratar o recurso como ausente (placeholder).
+> - **Formato novo (`AnimationFrame*.uop`):** cada entrada do contêiner corresponde a um par corpo + ação, com nome lógico `build/animationlegacyframe/` seguido do corpo em 6 dígitos, `/`, a ação em 2 dígitos e `.bin`. A entrada começa por uma marca de 4 letras, versão, número do corpo, caixa envolvente, contagem de quadros e paleta de 256 cores de 32 bits; depois vem uma tabela com um registro por quadro (grupo de direção, índice do quadro, caixa do quadro e deslocamento até os pixels, contado a partir do próprio registro). Os índices de quadro crescem dentro de cada entrada. O leitor **DEVE** conferir que o número do corpo da entrada bate com o do nome e que todo deslocamento cai dentro da entrada.
+> - **Ainda em aberto:** a codificação dos pixels de cada quadro do formato novo, que não foi examinada. Até ela ser descrita, a regra de cair no placeholder (acima) continua valendo para corpos que só existam no formato novo.
 
 ### 3.9 Projeção isométrica e ordem de desenho
 

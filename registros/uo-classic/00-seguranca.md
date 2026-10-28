@@ -144,6 +144,7 @@ N2, N3 e N4 não foram aprovados.
 | Data | Tool | Nível | Motivo | Aprovação |
 |---|---|---|---|---|
 | 2026-10-28 | Nenhuma tool do REA nem do Ghidra: triagem passiva com PowerShell e Defender | N0/N1, já aprovados (status e níveis sem mudança) | O cliente completo foi baixado pelo patcher, rodado pelo responsável fora da sessão. Nova triagem e cópia do cliente (Adendo 1, abaixo) | Triagem pedida pelo responsável na sessão principal ("Sim, na sessão do protocolo"); cópia A + B aprovada pelo responsável nesta sessão |
+| 2026-10-28 | Cópia de 3 arquivos de animação; leitores próprios em Node (só leitura) | N1, já aprovado (status e níveis sem mudança) | Reabertura da análise para fechar a §3.8 da especificação (Adendo 2, abaixo) | Decisão do responsável na sessão principal ("Reabrir, depois benchmark"), transmitida por ela a esta sessão |
 
 ### Adendo 1 — triagem passiva do cliente (2026-10-28)
 
@@ -238,3 +239,20 @@ Não há pasta de personagens nem de macros do jogador. `Default.mac` e `Macros.
   - os itens pessoais acima, `Music/`, `patcher/` e o desinstalador: 180 arquivos, 140 MB.
 
 **Consequência para o plano.** Os níveis continuam N0 e N1. A pilha da seção 3 vale para o cliente, mas o Ghidra deve importar a cópia de `alvos/uo-classic/cliente/`. O leitor dos formatos `.mul`/`.uop` continua dependendo de adendo (auditado, fixado e registrado no gate) antes de ser instalado.
+
+### Adendo 2 — arquivos de animação e leitores próprios (2026-10-28)
+
+Só leitura. Nada do cliente foi executado e não houve rede.
+
+**Cópia** de `G:\Games\Electronic Arts\Ultima Online Classic` para `alvos/uo-classic/cliente/`, em 2026-10-28T14:24Z. O SHA-256 foi conferido na origem e no destino, e os quatro arquivos são iguais. O `AnimationSequence.uop` já estava na cópia A do Adendo 1; só foi conferido.
+
+| Arquivo | Bytes | SHA-256 |
+|---|---|---|
+| `AnimationFrame6.uop` | 23596117 | `D6475B662BB1EC7B8334F51562207434486EF95C1791628FB2B69D1359132AC6` |
+| `AnimationSequence.uop` | 119894 | `0651D15B248BB540D16514BF1F76C5FD3E4B1F84A487AE5B79A86182B09711B9` |
+| `anim6.idx` | 949200 | `95D7F8A09AACE7F1DA7E489ED27058E9B988DE8AAD630351F266E24670F8374B` |
+| `anim6.mul` | 48762346 | `918976721E944C73109CC50B6EE4E35ADCBC46428BBBE5EDD402A184C22CEC1D` |
+
+Lista também em `saidas/uo-classic/copia-animacao-sha256.tsv`, fora do git. Os demais `AnimationFrame*.uop` e `anim*.mul` continuam fora. Nenhuma imagem é extraída ou convertida: a análise lê só cabeçalhos, tabelas e estatísticas, e assets seguem pelo `protocolo-assets`.
+
+**Leitores próprios (registro tardio).** A pilha da seção 3 pede adendo para "um parser próprio a partir da documentação". Na análise de 2026-10-28 foram usados leitores próprios em Node, sem dependências, em `saidas/uo-classic/scripts/` (fora do git): só leitura de arquivos em `alvos/uo-classic/`, sem rede, sem escrita fora de `saidas/uo-classic/`. Este adendo registra o uso, que deveria ter sido registrado antes; o responsável pode pedir que os resultados sejam refeitos de outro modo.

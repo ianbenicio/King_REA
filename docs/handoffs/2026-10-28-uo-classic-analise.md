@@ -77,3 +77,63 @@ Trocas de modelo: 0 | compactacoes: 1
 - O **protocolo de benchmark** só roda com o "sim" do responsável na conversa.
 - Para fechar as lacunas de código (manifesto e verificação do patcher, bloco da `.data`, Granny): reconectar o REA e repetir com o provedor Ghidra, ainda em N1.
 - Para o `AnimationFrame*.uop` e os `anim*.mul`: decisão do responsável de copiar esses arquivos, pelo `protocolo-assets`.
+
+## Reabertura (2026-10-28)
+
+Decisão do responsável, transmitida pela sessão principal: "Reabrir, depois benchmark". O benchmark tinha sido commitado (`a4ef5d0`) e foi revertido (`48ee0e3`). A análise voltou para `status: em_andamento` e continua assim: o responsável decide se conclui. O benchmark só volta com um novo "sim" dele.
+
+### O que mudou no ambiente
+
+- O provedor Ghidra do REA passou a funcionar (Ghidra 12.1.4). Houve descompilação e xrefs do `UO.exe` e do `client.exe`, ainda em N1.
+- Adendo 2 do `00-seguranca.md`: cópia de `AnimationFrame6.uop`, `anim6.idx` e `anim6.mul`, com SHA-256 conferido na origem e no destino; `AnimationSequence.uop` só conferido. Registro tardio dos leitores próprios em Node.
+
+### O que fechou
+
+- **Patcher, conferência e assinatura (pergunta 2).** Conferência dos pacotes contra o manifesto pelo hash de 64 bits (ausente, a mais, comprimento, compressão, tamanho do metadado e do CRC). No modo completo: SHA-256 dos dados e assinatura verificada por operação de chave pública com chave embutida (forma de RSA, por inferência). `TGVerifyUpdateIntegrity` é só do invólucro Cider do Mac.
+- **Bloco da `.data` (pergunta 10).** Tabela de integridade do mapa, 4 bits por bloco, comparada com o MD5 do bloco; divergência gera a mensagem `0xC5`. Lacuna `unk_bba627f1…` resolvida (`verified`).
+- **Animações (pergunta 9).** Estrutura das entradas `AMOU` do `AnimationFrame6.uop` (nomes, cabeçalho, paleta, tabela de quadros) e coerência do `anim6` com as fontes públicas. Adendos novos na §3.8 e na §3.5 da `especificacao.md`.
+
+### O que ficou aberto, e por quê
+
+| Ponto | Motivo | Lacuna |
+|---|---|---|
+| Esquema do manifesto `MythicMFT` e do `.prod` | O manifesto não está na cópia (pasta `patcher/` fora) | `unk_57447042…` (`investigating`) |
+| Metadado v5 dos `.uop` | Falta seguir no `UO.exe` o método do arquivo MYP que entrega o metadado à verificação | `unk_284a2435…` (`investigating`) |
+| Origem dos dados da tabela de integridade | Com os mapas desta instalação a coincidência fica no acaso (cerca de 6 %) | `unk_8fe032e5…` (nova, `open`) |
+| Granny | Strings não acham a DLL; faltam os argumentos das 11 chamadas a `LoadLibraryA` | `unk_9d3c0ce1…` (`investigating`) |
+| Pixels dos quadros `AMOU` | Não examinados | `unk_8b721263…` (`investigating`) |
+| 213 entradas incoerentes do `anim6` | Sem explicação no código ainda | `unk_6830c229…` (`investigating`) |
+| Bit 15, nomes do `tileart`, ordem das luzes | Não priorizados na reabertura | `unk_cef18757…`, `unk_c93a4147…`, `unk_3d62e92e…` (`open`) |
+
+Bundle final em `saidas/uo-classic/evidence.json`: 28 registros, 10 lacunas em 16 revisões.
+
+### Falhas, desvios e retrabalho
+
+- **Conectores ligados:** os conectores do claude.ai ficaram ligados durante parte da reabertura, contra a regra de alvo não confiável sem conectores sensíveis. Nenhum foi usado.
+- **Registro tardio:** os leitores próprios de animação foram usados antes de entrar no Adendo 2.
+- **Benchmark commitado e revertido:** `a4ef5d0` e `48ee0e3`.
+- **Store do REA perdido:** uma reconexão do servidor e cada `close_binary` zeram registros e lacunas. Reimportei os bundles e refiz as evidências com o alvo aberto; os IDs são determinísticos e saíram iguais. Regra que fica: exportar antes de fechar. Um registro intermediário (`ev_cca8d38c…`) não está no bundle final.
+- **Retrabalho no REA:** o primeiro `update_unknown` falhou sem `resolution.evidence_ids` e com um ID de evidência incompleto; refeito com o ID completo lido do bundle de trabalho. Um script Node inline quebrou por aspas; reescrito como arquivo.
+- **Lacuna da Granny:** a correção de "7 PE" para 9 entrou no campo de passos recomendados; o texto da pergunta não muda no REA.
+- Nada do alvo foi executado. Não houve rede. O patcher não rodou.
+
+### Contexto e métricas
+
+- Compactações: 3 na sessão inteira.
+- Medido antes do commit com `node ~/.claude/skills/skill-budget/scripts/sessao.js` (sessão desde 13:03, 236 min):
+
+```
+Tokens            principal   subagentes
+  chamadas              176            0
+  entrada nova          376            0
+  escrita cache        890k            0
+  leitura cache       31.8M            0
+  saida                151k            0
+Contexto por requisicao: inicial 98k | medio 186k | mediano 181k | max 267k | >200k 39%
+Trocas de modelo: 0 | compactacoes: 3
+```
+
+### Próximo passo
+
+- O responsável decide se conclui a análise (`status: concluida`) ou pede mais investigação.
+- Benchmark: só com um novo "sim" do responsável na conversa.
