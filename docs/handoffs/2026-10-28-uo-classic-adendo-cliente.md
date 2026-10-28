@@ -42,6 +42,7 @@ Os critérios estão cumpridos. A aceitação final pelo responsável ainda não
 - **Pendências de método, não falhas:**
   - a alta entropia da `.data` do `client.exe` e o uso da `Granny.dll` ficaram como hipóteses para N1;
   - os nomes de compilador vêm da versão do linker e do cabeçalho Rich, sem decodificação completa do Rich.
+- **Desvio no commit:** o índice do git já tinha uma renomeação feita por outra sessão (`docs/plano-de-execucao.md` → `docs/planos/2026-10-23-piloto-f7.md`, sem mudança de conteúdo), e ela entrou no commit `ce21bad` junto com os meus dois arquivos. Não reescrevi o histórico (sem reset nem amend). A sessão dona da renomeação deve saber que ela já está commitada. O novo `docs/plano-de-execucao.md` dela continua fora do git.
 - Nenhuma tool do REA nem do Ghidra foi usada. Nada do cliente foi executado. Não houve rede, além da leitura dos termos no protocolo de 2026-10-26.
 
 ## Contexto
