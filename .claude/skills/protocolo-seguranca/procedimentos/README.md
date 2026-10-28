@@ -6,7 +6,7 @@ Procedimentos adicionais aplicados pelo protocolo de segurança (passo 5). Cada 
 
 | ID | Nome | Gatilho | Criado em | Origem (alvo) |
 |----|------|---------|-----------|---------------|
-| — | (nenhum ainda) | — | — | — |
+| [P01](P01-dados-pessoais.md) | Dados pessoais em arquivos do alvo | Alvo instalado com configuração, log, perfil ou save do usuário; qualquer classe; triagem e N1 | 2026-10-28 | `uo-classic` |
 
 ## Modelo
 
