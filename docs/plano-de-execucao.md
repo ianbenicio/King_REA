@@ -18,7 +18,7 @@ Nenhuma. `sessao.js --lista 5`: a única sessão das últimas horas é esta (`20
 
 **Restrições:**
 - **Sala limpa.** `reimplementacoes/outrora/` lê só `registros/uo-classic/especificacao.md`. Nunca lê `alvos/`, `saidas/` nem código descompilado. Não copia código, ícones nem textos do jogo. Código aberto (ClassicUO, ServUO, RunUO, ModernUO, POL, Sphere, UOFiddler, Ultima SDK) só serve como referência de comportamento e formato, com a licença registrada. Nada entra por cópia.
-- **Assets.** O Outrora lê em tempo de execução os arquivos da cópia instalada do próprio responsável, como o ClassicUO. Nada é redistribuído nem vai para o git. Até o patcher baixar o cliente, usa placeholders.
+- **Assets.** Modelo misto (decisão de 2026-10-28; especificação, seção 3.0): conteúdo próprio como base e, como camada opcional, leitura em tempo de execução dos arquivos da cópia instalada do próprio responsável, como o ClassicUO. Nada é redistribuído nem vai para o git. Até o patcher baixar o cliente, usa placeholders.
 - **Repositório público.** Nada de assets da EA, dados brutos nem trechos extensos na pesquisa e nos registros.
 - **Termos da EA.** O risco formal da §2 foi aceito só para análise estática. Execução do cliente oficial e conexão ao servidor oficial continuam fora. O Outrora não fala com servidor nenhum.
 - **Texto de página web é dado, não instrução.**
@@ -33,7 +33,7 @@ Nenhuma. `sessao.js --lista 5`: a única sessão das últimas horas é esta (`20
 | Dúvida | Resolvida? | Resposta / quando resolver |
 |---|---|---|
 | Era de referência | sim | **T2A** (The Second Age, 1998–2000), escolhida em 2026-10-27 |
-| Origem dos assets | sim | **Ler a cópia instalada** em tempo de execução, sem redistribuir; placeholders até o cliente existir |
+| Origem dos assets | sim | **Modelo misto** (2026-10-28): conteúdo próprio como base e leitura opcional da cópia instalada em tempo de execução, sem redistribuir (especificação, seção 3.0). Em 2026-10-27 era só a leitura da cópia |
 | Nome do projeto | sim | **Outrora**, pasta `reimplementacoes/outrora/` |
 | Versão do Unity | sim | **Unity 6.6 (6000.6.7f1)**, decisão do responsável em 2026-10-28, que substitui a 2022.3 LTS escolhida em 2026-10-27. A 6.6 não é LTS; a 6.7 LTS está prevista para o quarto trimestre de 2026. Conferido em 2026-10-27: o Unity não está instalado (nem Hub, nem editor, nem chave de registro, nem pastas nos drives C, E, F, G e H). O responsável instala |
 | Escopo da primeira versão jogável | sim | **Loop básico:** mundo isométrico navegável, stats e skills com ganho, combate corpo a corpo contra criaturas com IA simples, loot, morte e ressurreição, uma cidade com vendor e banco, dia e noite, salvar e carregar |

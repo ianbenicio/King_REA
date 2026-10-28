@@ -30,7 +30,7 @@ Este documento descreve **o que** o Ultima Online fazia na era T2A, em palavras 
 | Tema | Decisão do responsável | Consequência |
 |---|---|---|
 | Era | T2A | Regras até 2000-05-04. Trammel, Renaissance e Age of Shadows ficam FORA [M1][M15] |
-| Assets | Ler em tempo de execução a cópia instalada do responsável, como o ClassicUO, sem redistribuir | Seção 3. Placeholders até o cliente existir. Risco legal na seção 17 |
+| Assets | Modelo misto (2026-10-28): conteúdo próprio como base e leitura opcional da cópia instalada em tempo de execução, como o ClassicUO, sem redistribuir. A Fase 0 tinha só a leitura da cópia | Seção 3. Placeholders até o cliente existir. Risco legal na seção 17 |
 | Nome | "Outrora" (proposto na Fase 0) | O PRKing_UO adota ou não. Nunca "Ultima", "Ultima Online" nem "Britannia" [E93][E96] |
 | Unity | 6.6 (6000.6.7f1), decisão de 2026-10-28 que substitui a 2022.3 LTS da Fase 0 | O PRKing_UO hoje diz Unity 6.3 LTS: divergência listada no Anexo A. A 6.6 não é LTS (ver A19) |
 | Primeira versão jogável | Loop básico | Mundo isométrico navegável; stats e skills com ganho; combate corpo a corpo contra criaturas com IA simples; loot; morte e ressurreição; uma cidade com vendedor e banco; dia e noite; salvar e carregar |
@@ -88,7 +88,36 @@ No jogo original o cliente só pede e o servidor decide tudo: movimento, dano, g
 
 ## 3. Dados da cópia instalada (leitura em tempo de execução)
 
-A reimplementação lê os arquivos da instalação do próprio jogador, sem copiar, converter para distribuição nem versionar nada, como fazem ClassicUO e MobileUO [E1][E26]. Toda leitura **DEVE** passar por uma interface de "provedor de recursos" com duas implementações: leitor da instalação e placeholders próprios (inferência de projeto, decisão da Fase 0).
+A reimplementação lê os arquivos da instalação do próprio jogador, sem copiar, converter para distribuição nem versionar nada, como fazem ClassicUO e MobileUO [E1][E26]. Toda leitura **DEVE** passar por uma interface de "provedor de recursos" com duas implementações: leitor da instalação e conteúdo próprio (decisão de 2026-10-28, seção 3.0).
+
+### 3.0 Modelo misto de conteúdo (decisão do responsável, 2026-10-28)
+
+O jogo combina as duas origens: **conteúdo próprio como base**, que é o padrão do PRKing_UO, e a **leitura da cópia instalada como camada opcional**, que foi a decisão da Fase 0. As duas não entram em conflito se valerem as regras abaixo, e uma ajuda a outra.
+
+**O que cada origem acrescenta (inferência de projeto):**
+
+- O conteúdo próprio faz o jogo rodar sem nenhum arquivo da EA: ele pode ser testado, compartilhado e montado em integração contínua, e a exposição legal fica menor que a da leitura pura (seção 17).
+- A instalação dá um volume de dados reais que o conteúdo próprio não terá tão cedo:
+  - mapa de 6144 × 4096;
+  - milhares de tiles com flags de `tiledata`;
+  - animações de todos os corpos.
+- Esse volume serve para validar e estressar o leitor, a projeção e a ordem de desenho (seção 3.9), a colisão e as alturas (seção 10.5), o pathfinding e o carregamento por setores.
+- O contrato comum obriga o conteúdo próprio a seguir as mesmas medidas:
+  - losango de 44 × 44;
+  - 4 pixels por unidade de altura;
+  - o mesmo conjunto de flags da seção 3.7.
+- Com isso, o motor fica genérico e as duas origens se trocam sem mudar código.
+
+**Regras (DEVE):**
+
+1. **Identificadores neutros.** Itens, criaturas, tiles e sons do jogo têm IDs próprios. Uma tabela de correspondência liga cada ID próprio ao asset próprio e, quando existir, ao gráfico da instalação. Save, regras e dados de jogo usam só IDs próprios (seção 15). Trocar a origem não quebra o save.
+2. **Uma origem por mundo.** A configuração escolhe o pacote de conteúdo do mundo, "próprio" ou "instalação", para o mapa e a arte. Não se misturam sprites das duas origens na mesma cena. A exceção é o recurso que falta na instalação: esse cai no conteúdo próprio, como na seção 3.8.
+3. **Leitura só em tempo de execução.** Não há importador que converta ou guarde em cache arquivos da instalação dentro do projeto. Nada lido da instalação vai para `Assets/`, para o git, para o build, para o save ou para capturas versionadas. Isso substitui a ideia de "importador offline" dos documentos do PRKing_UO (Anexo A, A5), porque uma conversão para disco criaria cópia derivada.
+4. **Conteúdo próprio não deriva da EA.** Arte, mapa e textos próprios são criados do zero. Não se decalca sprite, não se copia o desenho do mapa e não se usa a instalação como molde.
+5. **Regras e números são sempre próprios.** As tabelas de regras da seção "Modelo numérico" valem nas duas origens. Da instalação vêm só gráfico, geometria do mapa e flags de tile, convertidas para o conjunto de flags próprio.
+6. **Testes com dados da instalação são só locais.** São pulados quando a instalação não existe e nunca viram fixture versionada nem rodam na integração contínua.
+
+**Pendente:** distribuir para outras pessoas um build com o leitor habilitado é decisão separada do responsável, depois de reavaliar a seção 17. Até lá, o leitor vale só para uso pessoal na máquina dele.
 
 ### 3.1 Localizar a instalação
 
@@ -644,7 +673,7 @@ Lidos em `H:\King\Clientes e Projetos\PRKing_UO`, sem edição: `README.md`, `do
 | # | PRKing_UO diz | Fase 0 decidiu | Fonte |
 |---|---|---|---|
 | A4 | Unity 6.3 LTS | Unity 6.6 (6000.6.7f1), decisão do responsável em 2026-10-28 (a Fase 0 tinha 2022.3 LTS) | `README.md` l. 14; arquitetura l. 18; Story 1.1; seção 1 desta especificação |
-| A5 | Conteúdo original como padrão; importador de dados do cliente opcional | Ler a cópia instalada em tempo de execução, sem redistribuir; placeholders até o cliente existir | `README.md`; PRD; seção 3 |
+| A5 | Conteúdo original como padrão; importador de dados do cliente opcional, fora do runtime | Resolvido em 2026-10-28 pelo modelo misto (seção 3.0): o conteúdo próprio como padrão fica; o importador offline é trocado por leitura opcional em tempo de execução, sem conversão para disco | `README.md`; PRD; seção 3 |
 | A6 | Perfil "T2A/Renaissance" | T2A puro; Renaissance e Trammel ficam fora | `README.md` l. 15; seção 1.1 [M1][M15][W7] |
 | A7 | Nome "PRKing UO Offline" (contém a sigla da marca) | "Outrora" proposto; nenhuma marca da EA no produto | seção 17 [E84][E93][E96] |
 | A8 | Escopo da primeira fatia (PRD §8 e Story 1.1) inclui recurso coletável, receita, crafting; o PRD ainda prevê ranged, quatro magias, mining, lumberjacking, pets, casa e missão | Loop básico: sem crafting, coleta, magia, pets nem casa; com morte e ressurreição, banco e dia e noite, que a Story 1.1 não tem | seção 1; Story 1.1 |
