@@ -143,3 +143,98 @@ N2, N3 e N4 não foram aprovados.
 
 | Data | Tool | Nível | Motivo | Aprovação |
 |---|---|---|---|---|
+| 2026-10-28 | Nenhuma tool do REA nem do Ghidra: triagem passiva com PowerShell e Defender | N0/N1, já aprovados (status e níveis sem mudança) | O cliente completo foi baixado pelo patcher, rodado pelo responsável fora da sessão. Nova triagem e cópia do cliente (Adendo 1, abaixo) | Triagem pedida pelo responsável na sessão principal ("Sim, na sessão do protocolo"); cópia A + B aprovada pelo responsável nesta sessão |
+
+### Adendo 1 — triagem passiva do cliente (2026-10-28)
+
+Só leitura. Nada do cliente foi executado, nenhuma conexão foi aberta e o patcher não rodou.
+
+**Inventário.** A pasta de origem tem 522 arquivos, 2.633 MB:
+
+- 70 `.mul` (1.020 MB);
+- 23 `.uop` (1.416 MB);
+- 8 `.idx`;
+- 93 `.mp3` (109 MB);
+- 1 `.bik`;
+- 10 `.exe`;
+- 12 `.dll`;
+- textos de dados em 8 idiomas;
+- pastas `Data`, `GDF`, `logs`, `Music`, `notes` e `patcher`.
+
+**Executáveis e DLLs (SHA-256):**
+
+| Arquivo | Bytes | Versão / origem | Compilador e linkagem | Assinatura | SHA-256 |
+|---|---|---|---|---|---|
+| `client.exe` | 3616768 | Electronic Arts, Ultima Online 7.0.117.33 | PE32 x86, MSVC 2005 (linker 8.0), link em 2026-10-22 | não assinado | `6EEFCDC345FCFD54DA00D63045B5B753D51ECD8B90E30C414FCF14A6F5929B80` |
+| `client_beta.exe` | 4492288 | Ultima Online 7.0.117.31 | PE32 x86, MSVC 2015+ (linker 14.0), link em 2026-10-20 | não assinado | `AE4EB4E186CFAE690234706FCAE08E36112C8B9E3D4189F0A299E66BBAE5C0BA` |
+| `client_tc.exe` | 3325952 | Ultima Online 7.0.29.97 | PE32 x86, MSVC 2005, link em 2013-04-05 | não assinado | `6507E703B0AE65FA7BA174F53F86317AC3B736F0B12C1A8E86240B4CB03B5146` |
+| `ClientPicker.exe` | 126976 | UO ClientPicker 1.0.0.1 | PE32, MSVC 6, 2008 | não assinado | `D55A83372238428F0A839279E5D332302FBF6F28F7857BBB15427874958905A5` |
+| `UOPatch.exe` | 73728 | sem versão | PE32 de console, MSVC 2005, 2012 | não assinado | `8EC46F4BE79D16A4688F4705FF948D7794F10F2D0D9558C1FEA4631C5B256A63` |
+| `Owo.exe` | 73728 | sem versão (Origin Worlds Online) | PE32, MSVC 5, 1999 | não assinado | `9D4AF73194CADAB9FE06A6367B624F4641AEDABD1C420B08D1E5828405A5367D` |
+| `Transerv.exe` | 59904 | sem versão (servidor de tradução local) | PE32, MSVC 5, 1999 | não assinado | `36CB9E331E09B8D63B246E49875347ED693C3D9AB81953BF28EC17D110FB90D0` |
+| `uotd.exe` | 24576 | uotd 1.0.0.1 (dica do dia) | PE32, MSVC 6, 2007 | não assinado | `25725F0140205FF1CE86818FFF46CC287A10D6484A96B55AE0637AE047C56453` |
+| `UO.exe` / `UO.bin` | 583256 | Bioware Patch Client 1.0.6.5 (o mesmo do protocolo; `UO.bin` é a cópia que o patcher usa para se reiniciar) | PE32, MSVC 2005 | válida, Electronic Arts | `422C8FBBBE2105C4486BEA88C9A6DEA27A0E07D233EBD96F3F659143F3D83417` |
+| `uninstUOClassic.exe` | 86294 | desinstalador NSIS (o mesmo do protocolo) | PE32 | não assinado | `43DD289F91A75D41013D8147B8D761E7C7B9A68B19162423DFEA86C51CDF843A` |
+| `patchui.dll` / `patchui_win.dll` | 329304 | Mythic Patch Client UI 1.0.8.7 | PE32, MSVC 2005 | válida, Electronic Arts | `9310DEB92C0694729E2611BD2972ECE8CAD1FF381539F77FFF7C77BB96E6BAF4` |
+| `Igrping.dll` | 20480 | sem versão | PE32, MSVC 6, 2001 | não assinado | `CDB77ABB556F73CBB643ABE99AF4D898533F244E9BBE86A11934960E54F8A073` |
+| `Granny.dll` | 492032 | sem versão (RAD Granny, 2001) | PE32, MSVC 6 | não assinado | `A33BF57258CE71CAF4D755364A7E44192A5A1433B98B6DB4AAAF6542BA5F6C58` |
+| `Binkw32.dll` | 291328 | RAD Bink and Smacker 1.0w | PE32, MSVC 6, 2000 | não assinado | `F2AD88706CF898FF489C5B3F19FAC5A4D51DD59110B8E919B518C1D0F9A9B73A` |
+| `Patchw32.dll` | 202240 | Pocket Soft RTPatch 7.00 | PE32, 2002 | não assinado | `19486800845B74BE3487F1319D6F249CE85E8B47DF586DD8E9B9CBB46875AE93` |
+| `dbghelp.dll` | 940032 | Microsoft Debugging Tools 6.3 (2004) | PE32 | não assinado | `412F6C0ED936316275E68E21DF7255E4E35FAD14E114E479E8C5C9D75ECAC88C` |
+| `glew32.dll` | 424960 | GLEW 2.2.0 | PE32, MSVC 2019 | não assinado | `C087C55E2B1F12C1528ECDA97A55CC74ED0A8073BF1F35E52B4957138E8C5704` |
+| `SDL2.dll` | 1364480 | SDL 2.30.11 | PE32, MSVC 2019 | não assinado | `B3516903E97055CAF9450A723833835D6D8DCB2024526F3FC0F3A0B216974A2C` |
+| `SDL2_image.dll` | 229376 | SDL_image 2.8.8 | PE32, MSVC 2019 | não assinado | `6CF3EF42225F9CB039B68E463EE86AF6ACF2373A82CD5A7EF2CDEE308146BE76` |
+| `SDL2_ttf.dll` | 1461760 | SDL_ttf 2.24.0 | PE32, MSVC 2019 | não assinado | `0B89721770517616E178907966C0135D9153918A9E5E2A8C52904CBF1E26DC12` |
+| `GDF/UOClassicGDF.dll` | 221184 | Game Definition File (o mesmo do protocolo) | PE32 | não assinado | `918766CA41C4D7A39980AFB3AE7C3360E3646FF0583F86283194B22FADA8AAA6` |
+
+**Engine e linguagem.** A engine é **nativa, não Unity**. Confirmado pelos arquivos:
+
+- Nenhum PE tem cabeçalho CLR (.NET).
+- Não há `UnityPlayer.dll`, `GameAssembly.dll`, `<Jogo>_Data/` nem strings de mono ou IL2CPP.
+- Todos os PE têm cabeçalho Rich do MSVC, ou seja, foram compilados em C/C++ com Visual C++.
+
+Detalhes por cliente:
+
+- **`client.exe`:** importa `WSOCK32` (rede), `DDRAW`, `DSOUND`, `WINMM`, `binkw32` (vídeo), `igrping` e `dbghelp`, e cita `d3d9.dll` e `Direct3DCreate9`, o que indica Direct3D 9 carregado em tempo de execução. Também cita os formatos `.mul` e `.uop`.
+- **`client_beta.exe`:** tem outra pilha de vídeo, SDL2 + OpenGL (`glew32`, `OPENGL32`). Isso indica um renderizador novo em teste.
+- **`Granny.dll`:** nenhum dos clientes a importa estaticamente. O uso dela fica em aberto.
+
+**Proteção.**
+
+- **Packer:** nenhum.
+  - O entry point fica em `.text`, os imports estão completos (por exemplo, 171 de `KERNEL32`) e a entropia de `.text` é normal (6,6).
+  - As seções extras (`uva_data`, `LBMPEG_D`, `.debuu`) são pequenas. A `.data` do `client.exe` tem 300 KB em disco com entropia 7,1, consistente com tabelas embutidas, e o resto é memória não inicializada (cerca de 24 MB).
+  - Fica como hipótese a conferir em N1, não como sinal de packer.
+- **Anti-cheat e DRM:** nada encontrado. Não há strings nem módulos de EasyAntiCheat, BattlEye, nProtect/GameGuard, XIGNCODE, Themida, VMProtect ou UPX. `IsDebuggerPresent` aparece uma vez por binário, o padrão do runtime.
+- **Assinatura:** só o patcher e o `patchui*.dll` são assinados pela EA. Os clientes e as DLLs de terceiros não têm assinatura.
+- **Antivírus:** Microsoft Defender (`MpCmdRun -ScanType 3`) na pasta inteira, em 2026-10-28T12:24Z: nenhuma ameaça.
+- **Classe:** continua C1. A origem é oficial (o patcher da EA baixou dos servidores da EA, segundo o log) e o scan veio limpo. A falta de assinatura nos clientes é uma nota, não um sinal forte.
+
+**Dados pessoais e da conta.** Ficaram fora da cópia e de qualquer registro:
+
+| Local | Conteúdo | Tratamento |
+|---|---|---|
+| `Uo.cfg` | [REDIGIDO: ID da conta], marcação de primeira execução e opções | fora da cópia. O cliente já foi aberto uma vez pelo responsável |
+| `metrics.txt` | [REDIGIDO: perfil de hardware da máquina] | fora da cópia |
+| `logs/patcher.102726.Log` | [REDIGIDO: caminhos locais e horários do patch] | fora da cópia. O log registra 1,78 GB de patch, de 2026-10-27, sem erro final |
+| `notes/` | notas de versão da EA em 4 idiomas, com contatos públicos de suporte | fora da cópia (não servem à análise) |
+| `GDF/` (`.lnk`, `.mcl`) | caminhos da máquina local | fora da cópia, como no protocolo |
+| `Login.cfg` | servidores de login oficiais da EA (endereços públicos) | copiado: não é dado pessoal |
+
+Não há pasta de personagens nem de macros do jogador. `Default.mac` e `Macros.txt` são os padrões de fábrica. Nenhum arquivo copiado contém o ID da conta, o usuário do Windows ou e-mail, conferido por busca na cópia.
+
+**Cópia** para `alvos/uo-classic/cliente/`, aprovada pelo responsável (opção A + B): 147 arquivos, 631.935.447 bytes (602,6 MB), 0 divergências de hash. SHA-256 do conjunto (lista ordenada de `caminho:sha256`): `65D1BED3917BFE120F377D580FE6191BEFA41F74BE5E8532915A5ADEE0473F06`. A lista completa com hashes está em `saidas/uo-classic/triagem-cliente-sha256.tsv`, fora do git.
+
+- **A (36,6 MB, 102 arquivos):**
+  - os 10 `.exe` do cliente (não inclui `UO.exe`, que já está em `instalacao/`);
+  - `Igrping.dll` e `Granny.dll`;
+  - dados de regras: `tiledata`, `multi`, `MultiCollection`, `skills`, `skillgrp`, `hues`, `radarcol`, `animdata`, `animinfo`, `speech`, `light`, `texidx`, `palette`, `tileart.uop`, `string_dictionary.uop`, `MainMisc.uop` e `AnimationSequence.uop`;
+  - os `.def`, `.txt` e `.cfg` de dados;
+  - textos em inglês (`Cliloc.enu` e afins);
+  - `Data/assetmap.xml`.
+- **B (566 MB, 45 arquivos):** mundo (`map*LegacyMUL.uop`, `statics*`, `staidx*`, `stadif*`, `facet*`).
+- **Fora:**
+  - assets de arte, animação, som, gumps, fontes e texturas, além dos textos de outros idiomas: 195 arquivos, 1.890 MB. Só pelo `protocolo-assets`, se for pedido;
+  - os itens pessoais acima, `Music/`, `patcher/` e o desinstalador: 180 arquivos, 140 MB.
+
+**Consequência para o plano.** Os níveis continuam N0 e N1. A pilha da seção 3 vale para o cliente, mas o Ghidra deve importar a cópia de `alvos/uo-classic/cliente/`. O leitor dos formatos `.mul`/`.uop` continua dependendo de adendo (auditado, fixado e registrado no gate) antes de ser instalado.
