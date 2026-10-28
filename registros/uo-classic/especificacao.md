@@ -32,7 +32,7 @@ Este documento descreve **o que** o Ultima Online fazia na era T2A, em palavras 
 | Era | T2A | Regras até 2000-05-04. Trammel, Renaissance e Age of Shadows ficam FORA [M1][M15] |
 | Assets | Ler em tempo de execução a cópia instalada do responsável, como o ClassicUO, sem redistribuir | Seção 3. Placeholders até o cliente existir. Risco legal na seção 17 |
 | Nome | "Outrora" (proposto na Fase 0) | O PRKing_UO adota ou não. Nunca "Ultima", "Ultima Online" nem "Britannia" [E93][E96] |
-| Unity | 2022.3 LTS | O PRKing_UO hoje diz Unity 6.3 LTS: divergência listada no Anexo A |
+| Unity | 6.6 (6000.6.7f1), decisão de 2026-10-28 que substitui a 2022.3 LTS da Fase 0 | O PRKing_UO hoje diz Unity 6.3 LTS: divergência listada no Anexo A. A 6.6 não é LTS (ver A19) |
 | Primeira versão jogável | Loop básico | Mundo isométrico navegável; stats e skills com ganho; combate corpo a corpo contra criaturas com IA simples; loot; morte e ressurreição; uma cidade com vendedor e banco; dia e noite; salvar e carregar |
 
 Fora da primeira versão (FORA): magia (seção 7 fica especificada para a segunda), crafting e coleta (seção 12), housing e barcos (seção 14), pets e domesticação, guildas, multijogador, protocolo de rede.
@@ -643,7 +643,7 @@ Lidos em `H:\King\Clientes e Projetos\PRKing_UO`, sem edição: `README.md`, `do
 
 | # | PRKing_UO diz | Fase 0 decidiu | Fonte |
 |---|---|---|---|
-| A4 | Unity 6.3 LTS | Unity 2022.3 LTS | `README.md` l. 14; arquitetura l. 18; Story 1.1; seção 1 desta especificação |
+| A4 | Unity 6.3 LTS | Unity 6.6 (6000.6.7f1), decisão do responsável em 2026-10-28 (a Fase 0 tinha 2022.3 LTS) | `README.md` l. 14; arquitetura l. 18; Story 1.1; seção 1 desta especificação |
 | A5 | Conteúdo original como padrão; importador de dados do cliente opcional | Ler a cópia instalada em tempo de execução, sem redistribuir; placeholders até o cliente existir | `README.md`; PRD; seção 3 |
 | A6 | Perfil "T2A/Renaissance" | T2A puro; Renaissance e Trammel ficam fora | `README.md` l. 15; seção 1.1 [M1][M15][W7] |
 | A7 | Nome "PRKing UO Offline" (contém a sigla da marca) | "Outrora" proposto; nenhuma marca da EA no produto | seção 17 [E84][E93][E96] |
@@ -663,5 +663,5 @@ Lidos em `H:\King\Clientes e Projetos\PRKing_UO`, sem edição: `README.md`, `do
 | A16 | Chunks de 32 × 32 tiles | O dado nativo vem em blocos de 8 × 8 (ordem de coluna) e o servidor ativa setores de 16 × 16; um chunk de 32 × 32 junta 4 × 4 blocos, o que funciona, mas a leitura precisa respeitar a ordem dos blocos | arquitetura l. 203; seção 3.5 [F7][F44]; seção 2 [E46] |
 | A17 | Ordenação por (screenY, z, layer, stableId) | A ordem do cliente de referência usa diagonais e uma prioridade por tipo (terreno z − 2, objeto z ± 1, personagem z + 1, efeito z + 2); "screenY" já mistura z e erra objetos altos (inferência) | arquitetura l. 212; seção 3.9 [F23][E57][E58] |
 | A18 | Tique autoritativo de 10 Hz | Compatível com passos de 400, 200 e 100 ms (múltiplos de 100 ms) e com o tique de IA de 0,175 s só se arredondado (inferência) | arquitetura l. 219; seções 2.2 e 13.1 [E45][W26] |
-| A19 | Unity 6.3 LTS "com suporte até dezembro de 2027" | Não verificado nesta pesquisa; vale conferir se a escolha voltar ao Unity 6 | arquitetura l. 18 |
+| A19 | Unity 6.3 LTS "com suporte até dezembro de 2027" | Não verificado. A versão escolhida, 6.6, é "supported release", não LTS: recebe correções até sair a 6.7 LTS, prevista para o quarto trimestre de 2026; a migração para a 6.7 entra no plano do PRKing_UO | arquitetura l. 18; anúncio da Unity, https://discussions.unity.com/t/unity-6-6-is-now-available/1735357 (acesso 2026-10-28) |
 | A20 | Nenhuma menção às fórmulas da era (acerto, dano, ganho, regeneração) nem a que perfil numérico usar | Seções 4–9 desta especificação, com o aviso de que os números vêm do emulador pré-AOS | seção "Modelo numérico" |

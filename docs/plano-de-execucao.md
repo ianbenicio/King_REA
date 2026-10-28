@@ -26,7 +26,7 @@ Nenhuma. `sessao.js --lista 5`: a única sessão das últimas horas é esta (`20
 - **Sem código** nesta etapa, salvo aprovação do responsável. Commits locais; push só pelo @devops, com autorização.
 - Não editar `H:\King\Harness`.
 
-**Perfil do projeto:** domínio jogo RPG isométrico single-player, inspirado em MMO clássico · stack Unity 2022.3 LTS, C# · integrações nenhuma de rede; leitura local de `.mul`/`.uop` · UI sim · dados sensíveis não (a cópia instalada é do responsável e não sai da máquina) · fase AIOX Spec Pipeline → SDC · complexidade COMPLEX
+**Perfil do projeto:** domínio jogo RPG isométrico single-player, inspirado em MMO clássico · stack Unity 6.6 (6000.6.7f1), C# · integrações nenhuma de rede; leitura local de `.mul`/`.uop` · UI sim · dados sensíveis não (a cópia instalada é do responsável e não sai da máquina) · fase AIOX Spec Pipeline → SDC · complexidade COMPLEX
 
 **Dúvidas:**
 
@@ -35,7 +35,7 @@ Nenhuma. `sessao.js --lista 5`: a única sessão das últimas horas é esta (`20
 | Era de referência | sim | **T2A** (The Second Age, 1998–2000), escolhida em 2026-10-27 |
 | Origem dos assets | sim | **Ler a cópia instalada** em tempo de execução, sem redistribuir; placeholders até o cliente existir |
 | Nome do projeto | sim | **Outrora**, pasta `reimplementacoes/outrora/` |
-| Versão do Unity | sim | **Unity 2022.3 LTS**. Conferido em 2026-10-27: o Unity não está instalado (nem Hub, nem editor, nem chave de registro, nem pastas nos drives C, E, F, G e H). O responsável instala |
+| Versão do Unity | sim | **Unity 6.6 (6000.6.7f1)**, decisão do responsável em 2026-10-28, que substitui a 2022.3 LTS escolhida em 2026-10-27. A 6.6 não é LTS; a 6.7 LTS está prevista para o quarto trimestre de 2026. Conferido em 2026-10-27: o Unity não está instalado (nem Hub, nem editor, nem chave de registro, nem pastas nos drives C, E, F, G e H). O responsável instala |
 | Escopo da primeira versão jogável | sim | **Loop básico:** mundo isométrico navegável, stats e skills com ganho, combate corpo a corpo contra criaturas com IA simples, loot, morte e ressurreição, uma cidade com vendor e banco, dia e noite, salvar e carregar |
 | A cópia instalada terá `.mul` ou `.uop`? | aberta | O cliente atual da EA usa `.uop` para a maioria dos dados. Resolver quando o patcher rodar; o leitor precisa dos dois |
 | Licença do próprio Outrora | aberta | Decidir antes do primeiro código |
@@ -98,7 +98,7 @@ As unidades rodam nesta sessão, se o contexto couber (os subagentes guardam a p
 - Cópia de código aberto por engano — enquadramento — subagentes instruídos a descrever em palavras próprias, sem colar código; revisão antes do commit.
 - Fórmulas de T2A divergem entre fontes (Stratics da época, emuladores que miram outra era) — enquadramento — registrar a fonte e a era de cada fórmula; conflito vira inferência marcada.
 - Assets ainda ausentes (o patcher não rodou) — handoff do protocolo — o plano começa com placeholders e uma interface de provedor de recursos.
-- Unity 2022.3 LTS pode já ter saído do suporte em 2026 — enquadramento — registrar no plano; o código não depende de recurso exclusivo da versão.
+- Unity 6.6 não é LTS: recebe correções até sair a 6.7 LTS (quarto trimestre de 2026) — decisão de 2026-10-28 — o código não depende de recurso exclusivo da versão; migrar para a 6.7 LTS quando sair.
 - Termos da EA: ler os arquivos da cópia instalada é uso do cliente fora do jogo oficial — `00-seguranca.md` §2 — o Outrora não redistribui nem modifica os arquivos e não conecta a servidor; o risco fica registrado para o responsável.
 
 ## 4. Custo da Fase 0

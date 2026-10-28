@@ -20,7 +20,7 @@ Todas as referências têm URL e data de acesso (2026-10-27). Nenhum bloco de c�
 
 ## Decisões do responsável (Fase 0, 2026-10-27)
 
-Era T2A; assets lidos da cópia instalada em tempo de execução; Unity 2022.3 LTS; escopo "loop básico"; nome "Outrora". Em 2026-10-28 o projeto Unity passou para `H:\King\Clientes e Projetos\PRKing_UO`; este repositório entrega só a especificação.
+Era T2A; assets lidos da cópia instalada em tempo de execução; Unity 2022.3 LTS (trocado em 2026-10-28 pelo responsável por Unity 6.6, 6000.6.7f1); escopo "loop básico"; nome "Outrora". Em 2026-10-28 o projeto Unity passou para `H:\King\Clientes e Projetos\PRKing_UO`; este repositório entrega só a especificação.
 
 ## Aceite
 
