@@ -152,9 +152,17 @@ A primeira versão **DEVE** ler: terreno, statics, `tiledata`, arte, `hues` e an
 
 Arquivo com assinatura "MYP", cabeçalho com versão e ponteiro para a primeira tabela de blocos; as tabelas encadeadas listam entradas com posição, tamanhos comprimido e descomprimido, hash de 64 bits do nome lógico e indicador de compressão. O nome lógico de cada recurso segue um padrão por arquivo (por exemplo, número do recurso com zeros à esquerda) e passa por uma função de hash pública (lookup3, de Bob Jenkins, domínio público) [F3][F4][F36] e §2 de [F]. Exceções de nome por arquivo e tipos de compressão (incluindo um tipo "zlib + BWT" ou "Mythic", conforme a fonte) estão em [F] §2.5 (conflito sobre o tipo 3).
 
+> **Adendo — confirmado no cliente (2026-10-28), com acréscimos** (`01-analise.md`, pergunta 4):
+> - Na mesma instalação convivem as versões 4 e 5 do contêiner. O leitor **DEVE** aceitar as duas. Nas duas, o cabeçalho traz uma marca fixa, a capacidade de cada tabela e o total de arquivos. Na v5 a primeira tabela pode vir depois dos dados.
+> - Hash: lookup3 na variante de dois resultados, com o nome lógico **em minúsculas**. Os padrões de nome conferidos são o diretório `build/<recurso>/` mais o número com zeros à esquerda (8 dígitos para mapa, tileart e animationsequence; 6 para multicollection), além de nomes fixos (`housing.bin`, `string_dictionary.bin`). As variantes de mapa "x" usam o nome base sem o "x".
+> - A posição de cada entrada aponta para um bloco de metadado, cujo tamanho vem na entrada; os dados começam logo depois dele. O leitor **DEVE** pular esse bloco. O conteúdo dele é opaco na v5 (lacuna).
+> - Compressão nos arquivos copiados: só "nenhuma" e "zlib". O conflito sobre o tipo 3 segue sem dado local; o leitor **DEVE** recusar tipos desconhecidos com erro claro.
+
 ### 3.4 Par índice + dados
 
 Cada entrada do índice traz posição no arquivo de dados, tamanho e um campo extra; posição inválida significa recurso ausente. O campo extra guarda, conforme o arquivo, largura e altura (gumps, luzes) ou outro dado; a ordem dos dois valores diverge entre leitores para `light` [F] §3, §8.3 (conflito).
+
+> **Adendo — confirmado no cliente (2026-10-28)** (`01-analise.md`, pergunta 5): entradas de 12 bytes. O recurso falta quando a posição é −1 ou o tamanho é zero. Nenhuma entrada sai do arquivo de dados nos pares conferidos (luzes, multis, perícias, statics). Registros de multi têm 16 bytes. Nas luzes da instalação, todas são quadradas, então o conflito de ordem largura/altura não aparece aqui; o leitor **DEVE** mesmo assim conferir que largura × altura cabe no tamanho declarado.
 
 ### 3.5 Mapa e statics
 
@@ -169,21 +177,32 @@ Cada entrada do índice traz posição no arquivo de dados, tamanho e um campo e
 
 Armadilha: blocos em ordem de coluna e células em ordem de linha; errar uma das duas transpõe ou embaralha o mapa (inferência) [F] §4.1.
 
+> **Adendo — confirmado no cliente (2026-10-28), com uma correção** (`01-analise.md`, pergunta 6):
+> - Ordem de blocos por coluna e de células por linha **confirmada** por continuidade de altura: é a única das quatro combinações sem salto nas bordas dos blocos. Statics: 7 bytes, x antes de y, índice na ordem do mapa, confirmados pelo encaixe das alturas e pela coerência entre flags de terreno e de objeto.
+> - **Corrigido:** os 4 bytes de cabeçalho do bloco não são lixo. Guardam o número sequencial do bloco, o que serve de checagem de integridade. O leitor **PODE** validar esse número e **NÃO DEVE** depender dele para posicionar o bloco.
+> - No `.uop`, o mapa vem em pedaços de 4096 blocos, e o arquivo pode ter um bloco a mais no fim. O leitor **DEVE** calcular o total de blocos pela largura e altura do mapa, não pelo tamanho dos dados. O mapa 0 legado da instalação mede 7168 × 4096; o recorte da seção 10.1 vale igual.
+
 ### 3.6 Cor e imagens
 
 - Cor de 16 bits 5-5-5: vermelho nos bits 10–14, verde 5–9, azul 0–4. O bit 15 é ignorado por um leitor e usado como "opaco" por outro (conflito); preto puro é tratado como transparente na arte de objetos (inferência a confirmar) [F22][F42][F50].
 - Tile de terreno: losango de 44 × 44 pixels sem compressão. Arte de objeto: imagem com largura, altura e linhas compactadas por trechos (run-length). Gumps: compressão por trechos de cor repetida [F] §5.
 - Paletas (hues): grupos de 8 entradas, cada uma com 32 cores, faixa e nome; aplicadas trocando a cor original pela entrada da paleta [F9] e [F] §5.6.
 
+> **Adendo — paletas confirmadas no cliente (2026-10-28)** (`01-analise.md`, pergunta 8): 375 grupos de 8 paletas (3000 no total), cada uma com 32 cores, início e fim de faixa e nome de 20 bytes. O bit 15 vale zero em todas as cores das paletas, então elas não decidem o conflito do bit 15. A arte de objetos e os gumps não foram conferidos: ficaram fora da cópia (lacuna).
+
 ### 3.7 Propriedades de tile (`tiledata`)
 
 Duas seções: terreno e objetos. Cada registro tem flags, altura, peso, camada de equipamento, nome e outros campos [F8]. Flags que a simulação **DEVE** usar: intransponível, superfície (pode-se ficar em cima), parede, fundo (background), folhagem, telhado, molhado (água), ponte e porta [F] §6.2. Largura dos flags: 32 bits nos clientes antigos e 64 a partir de 7.0.9.0; detectar pelo tamanho do arquivo (conflito sobre o método) [F8][F] §6.1.
+
+> **Adendo — confirmado no cliente (2026-10-28)** (`01-analise.md`, pergunta 7): a instalação usa flags de 64 bits, e milhares de objetos usam bits acima do 31. Detectar pelo tamanho funciona: com 64 bits o arquivo divide exatamente em grupos de 32 registros com cabeçalho de 4 bytes (terreno e depois objetos, 65.536 objetos); com 32 bits a conta não fecha. O leitor **DEVE** testar as duas larguras e recusar o arquivo se nenhuma dividir exatamente.
 
 ### 3.8 Animações
 
 - Por tipo de corpo (monstro, animal, humano) há um número diferente de ações; cada ação tem 5 direções desenhadas e as outras 3 são espelhadas [F10] e [F] §7.3.
 - Arquivos de definição remapeiam corpos (`body.def`, `bodyconv.def`) e classificam tipos (`mobtypes.txt`) [F10].
 - O formato novo (`AnimationFrame*.uop`) tem partes não descritas pelas fontes (cabeçalho inicial, nomes dos grupos de ação) [F] §7.5 (lacuna). Se a instalação só tiver o formato novo para um corpo, a reimplementação **DEVE** cair no placeholder.
+
+> **Adendo — confirmado em parte no cliente (2026-10-28)** (`01-analise.md`, pergunta 9): confirmados os papéis de `body.def`, `bodyconv.def` e `mobtypes.txt` e o contêiner e os nomes do `AnimationSequence.uop`. O `animdata.mul` tem grupos de tamanho fixo e uma sobra no fim, menor que um grupo; o leitor **DEVE** limitar a leitura pelo tamanho do arquivo. O `AnimationFrame*.uop` e os `anim*.mul` **continuam em aberto**: ficaram fora da cópia analisada, e a lacuna da seção acima não muda.
 
 ### 3.9 Projeção isométrica e ordem de desenho
 

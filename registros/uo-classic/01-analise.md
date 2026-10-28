@@ -1,34 +1,60 @@
 ---
 alvo: uo-classic
-status: em_andamento
+status: concluida
 inicio: 2026-10-26
-fim:
+fim: 2026-10-28
 ---
 
 # Análise — Ultima Online Classic (uo-classic)
 
 <!-- status: em_andamento | concluida. Ao marcar concluida, perguntar ao responsável se pode executar o protocolo de benchmark. -->
 
-Escopo aprovado: só o patcher (`alvos/uo-classic/instalacao/`), níveis N0 e N1. O cliente e os dados entram por nova triagem quando forem baixados.
+Escopo aprovado: níveis N0 e N1, só análise estática. Primeiro só o patcher (`alvos/uo-classic/instalacao/`); a partir do Adendo 1 do `00-seguranca.md` (2026-10-28), também o cliente e os dados copiados em `alvos/uo-classic/cliente/` (opção A + B). Nada do alvo foi executado, nenhuma conexão foi aberta e o patcher não rodou.
 
 ## Perguntas da análise
 
-Copiadas do objetivo em `00-seguranca.md`.
+As perguntas 1 a 3 vêm do objetivo do `00-seguranca.md`. As perguntas 4 a 10 vêm do Adendo 1 e da §3 de `especificacao.md` (formatos de dados a confirmar no cliente) e das duas hipóteses deixadas pela triagem.
+
+Evidência: `ev_…` são registros do REA, exportados em `saidas/uo-classic/evidence.json`; `unk_…` são lacunas registradas no REA. Os números vêm de leitores próprios em Node (N1, só leitura), em `saidas/uo-classic/scripts/`, com a saída completa em `saidas/uo-classic/analise-formatos-2026-10-28.txt`. Ambos ficam fora do git.
 
 | # | Pergunta | Resposta | Evidência |
 |---|---|---|---|
-| 1 | Qual é o formato da configuração (`UO-patch.cfg`) e do manifesto que o patcher consome? | | |
-| 2 | Como o patcher descobre, baixa e confere os arquivos do cliente (repositórios, módulos, verificação de integridade)? | | |
-| 3 | O que o patcher grava no disco e no registro? | | |
+| 1 | Qual é o formato da configuração (`UO-patch.cfg`) e do manifesto que o patcher consome? | **Respondida em parte.** O `UO-patch.cfg` é XML: raiz `PatchConfig` › `Config`, com `Log` (pasta, prefixo e nível), `ResourceModules` (um módulo, `http`) e dois produtos, `PatcherProduct` (o próprio patcher, `patcher.prod`) e `MainProduct` (o cliente, `uo-legacyrelease.prod`). Cada produto tem nome, descrição, arquivo `.prod` e uma lista `manifestrepos` com URL de repositório em HTTP sem TLS. O manifesto é XML com raiz `MythicMFT`, chega comprimido (o patcher embute o zlib 1.2.3) e é guardado num cache local. O esquema completo do manifesto e do `.prod` fica **em aberto**: o manifesto não está na cópia (a pasta `patcher/` ficou fora) e o código não foi descompilado (provedor do REA indisponível, ver diário) | Leitura do `.cfg` pelo P01 (só nomes de elemento e atributo; valores só de módulo, `.prod` e host). Strings de `UO.exe`: modelo `<MythicMFT><product …>`, "Failed to decompress manifest file", "manifest cache", `manifestrepos`, `filerepos`. `ev_352890f5…`, `unk_57447042…` |
+| 2 | Como o patcher descobre, baixa e confere os arquivos do cliente (repositórios, módulos, verificação de integridade)? | **Respondida em parte.** Descoberta: cada produto do `.cfg` aponta para repositórios de manifesto; o manifesto traz os repositórios de arquivos (`filerepos`); há um repositório global de reserva embutido. Download: módulo `http` (WinHTTP, sem TLS). Os arquivos ficam em pacotes MYP (o mesmo contêiner `.uop` do cliente; o patcher tem a classe `MYP::MypArchive`) e são identificados por hash de 64 bits. Conferência: o patcher compara pacotes e arquivos locais com o manifesto, lê "metadados de verificação" por arquivo com CRC e verifica assinatura de alguns arquivos ("Signature failed for file"). Algoritmos e chave da assinatura ficam **em aberto** | Strings de `UO.exe`: "Failed to verify local packs against manifest", "failed to read verification metadata", "different metadata CRC length", "Signature failed for file [%hs]", `TGVerifyUpdateIntegrity`, `module.http.UseHashPostFix`, "File [%08x-%08x] exists in pack but not in manifest". `ev_352890f5…`, `unk_57447042…`, `unk_284a2435…` |
+| 3 | O que o patcher grava no disco e no registro? | **Respondida.** Disco: log por execução com o padrão `<prefixo>.<MMDDAA>.Log` (observado `patcher.102726.Log` na triagem), cache e arquivo de manifestos, pacotes MYP (cria, reempacota e apaga entradas) e a cópia `UO.bin` de si mesmo para reiniciar. Registro: o `UO.exe` **não importa nenhuma API de registro**; as chaves observadas na triagem (caminho, executável, GUID do Game Explorer, desinstalação) vêm do instalador NSIS. Ele também importa `CreateProcessW` e `ShellExecuteW`, que servem para relançar a si mesmo ou abrir o cliente (inferência) | Imports e strings de `UO.exe`: `%ls/%ls.%02d%02d%02d.Log`, "Manifest archive … closed", "Failed to repack manifest archive", `CopyFileW`, `DeleteFileW`, nenhum `Reg*`. Triagem do Adendo 1 (`UO.bin`, log). `ev_352890f5…` |
+| 4 | O contêiner `.uop` segue a §3.3 da especificação (assinatura, tabelas, hash, compressão)? | **Confirmado, com acréscimos.** Assinatura `MYP\0`, versões **4 e 5** convivendo na mesma instalação, marca fixa `0xFD23EC43`, ponteiro de 64 bits para a primeira tabela, capacidade da tabela (100 na v4, 1000 na v5) e total de arquivos. Tabelas encadeadas com entradas de 34 bytes. O hash é o lookup3 (`hashlittle2`, resultado `b << 32 | c`) do nome lógico **em minúsculas**: 113 de 113 nomes do mapa conferem, e o mesmo vale para `AnimationSequence`, `MultiCollection` (inclui `housing.bin`), `string_dictionary` e 39.728 de 40.946 entradas do `tileart`. A posição da entrada aponta para um bloco de metadado cujo tamanho vem na entrada; os dados começam depois dele. Na v4 o metadado tem 12 bytes (tipo 3, com data FILETIME) e o hash de 32 bits da entrada é o Adler-32 desse metadado. Na v5 (mapas atualizados em 2026-10-27) o metadado tem 136 ou 137 bytes (tipo 4, bloco opaco de 128 ou 129 bytes). Compressão: só 0 (nenhuma, nos mapas) e 1 (zlib) nos arquivos copiados; nenhum tipo 2 ou 3. As variantes `map*x` usam o mesmo nome base das normais (`build/map0legacymul/…`) | Saída de `uop.mjs` e `meta.mjs` nos 14 `.uop`. Strings do `client.exe`: `%s%s%s%08i.dat`, `build/`, `legacymul/`, `Build/StringDictionary/string_dictionary.bin`. `unk_284a2435…` (metadado v5), `unk_c93a4147…` (nomes restantes) |
+| 5 | Os pares índice + dados seguem a §3.4? | **Confirmado.** Entradas de 12 bytes (posição, tamanho, extra), ausência marcada por posição `-1` ou tamanho ≤ 0, nenhuma entrada fora do arquivo em `lightidx`/`light`, `multi.idx`/`multi.mul`, `Skills.idx`/`skills.mul` e `staidx0`/`statics0`. No `staidx` o campo extra não tem uso (vale `0xFFFFFFFF` ou `0xAAAAAAAA`). Os registros de `multi.mul` têm 16 bytes. No `light`, as 55 entradas são quadradas, então o conflito sobre a ordem largura/altura não muda nada nesta instalação, e uma entrada declara 280 × 280 com dados de 300 × 300 | Saída de `idx.mjs`. `unk_3d62e92e…` |
+| 6 | O mapa e os statics seguem a ordem de blocos e células da §3.5? | **Confirmado, com uma correção.** Blocos de 8 × 8 em ordem por coluna e células em ordem por linha: é a única das quatro combinações com altura contínua nos dois eixos entre blocos (|Δz| médio 0,51 e 0,49, contra 2,2 a 8,2 nas outras). Statics: 7 bytes, `x` e `y` relativos ao bloco, `x` antes de `y`, índice com uma entrada por bloco na ordem do mapa. Prova: árvores sobre terreno molhado em 0 % das posições na ordem do mapa e em 45,8 % se os blocos fossem por linha; onde trocar x e y muda a altura do terreno, a altura do static bate com a leitura x-antes-de-y em 41,1 % dos casos e com a trocada em 19,0 %. **Correção:** os 4 bytes de cabeçalho de cada bloco não são lixo: guardam o número global do bloco (4096 de 4096 conferem). No `.uop`, cada entrada traz 4096 blocos (802.816 bytes), e o arquivo tem um bloco a mais no fim, além de largura × altura / 64 | Saída de `mapa.mjs`, `statics2.mjs`, `statics3.mjs` e `bloco.mjs` sobre `map0LegacyMUL.uop` (7168 × 4096), `staidx0.mul` e `statics0.mul` |
+| 7 | Qual é a largura dos flags do `tiledata` (32 ou 64 bits) e como detectá-la? | **64 bits, e o tamanho do arquivo decide.** Com 64 bits o arquivo divide exatamente (terreno de 30 bytes por registro, objeto de 41, grupos de 32 com cabeçalho de 4) e dá 65.536 objetos; 11.605 objetos usam bits acima do 31. Com 32 bits a conta não fecha. Isso resolve, para esta instalação, o conflito sobre o método de detecção | Saída de `tiledata.mjs` |
+| 8 | O `hues` segue a §3.6? | **Confirmado.** 375 grupos de 708 bytes (cabeçalho de 4 + 8 entradas de 88 bytes), 3000 paletas de 32 cores, com início, fim e nome de 20 bytes ASCII. O bit 15 vale 0 em todas as 96.000 cores, então o conflito do bit 15 não se decide pelo `hues` | Saída de `idx.mjs`. `unk_cef18757…` |
+| 9 | Qual é o formato das animações, incluindo o `AnimationFrame*.uop`? | **Respondida em parte.** Confirmados os papéis de `Body.def` e `Bodyconv.def` (remapeamento de corpos) e de `mobtypes.txt` (tipo por corpo: `MONSTER`, `ANIMAL` e outros), o contêiner e os nomes de `AnimationSequence.uop` (`build/animationsequence/NNNNNNNN.bin`, 392 entradas, zlib) e o `animdata.mul` em grupos de 548 bytes, com 272 bytes que sobram no fim (o leitor precisa limitar pelo tamanho). **Em aberto:** o `AnimationFrame*.uop` e os `anim*.mul`, que não estão na cópia (arte e animação ficaram fora pelo Adendo 1). O cliente só nomeia os componentes `AnimationFrame`, `AnimationFrameSet` e `AnimationLegacyFrameSet` | `unk_8b721263…`, `unk_6830c229…`. Saída de `uop.mjs`. Strings do `client.exe` |
+| 10 | Hipóteses da triagem: a `.data` de alta entropia do `client.exe` e o uso da `Granny.dll` | **`.data`: sem packer, conteúdo em aberto.** A entropia alta se concentra num bloco de exatamente 196.608 bytes (`.data`+0xB600 a +0x3B600). Não é compressão nem cifra: o histograma não é uniforme (qui-quadrado 469 com 255 graus de liberdade) e 577 blocos de 16 bytes alinhados se repetem até 4 vezes. É compatível com uma tabela de valores de 128 bits (inferência). Constantes públicas de Twofish (tabela q0) e de MD5 existem no binário, mas fora desse bloco. **`Granny.dll`: sem uso estático.** A DLL exporta 258 funções Granny, mas nenhum dos 9 executáveis e DLLs da cópia importa a DLL ou contém "granny" ou ".gr2". Ela parece sobra de um cliente antigo (inferência). Nome montado em tempo de execução ainda não está excluído | Saída de `pe.mjs` e `const.mjs`; varredura filtrada de strings (`strs.mjs`). `ev_a6588f65…`, `ev_193aba2c…`, `unk_bba627f1…`, `unk_9d3c0ce1…` |
+
+## Sistemas principais identificados
+
+| Sistema | O que faz | Evidência |
+|---|---|---|
+| Patcher (`UO.exe`, Bioware Patch Client 1.0.6.5) | Lê o `UO-patch.cfg`, baixa manifestos e pacotes por HTTP, confere CRC e assinatura e grava logs e cache | Perguntas 1 a 3, `ev_352890f5…` |
+| Cliente clássico (`client.exe` 7.0.117.33) | Cliente nativo em Direct3D 9; lê `.uop` e `.mul`, inclusive a lista completa de nomes de pacote do cliente | Strings de `.uop` e formatos de nome; triagem do Adendo 1; `ev_a6588f65…` |
+| Cliente em teste (`client_beta.exe` 7.0.117.31) | Mesma camada de dados (mesmos nomes de pacote e formatos), com SDL2 e OpenGL | Strings equivalentes; triagem do Adendo 1 |
+| Camada de dados | Contêiner MYP (v4 e v5) e pares `.idx`/`.mul`; mapa, statics, `tiledata`, `hues`, multis, luzes e definições de animação | Perguntas 4 a 9 |
+| Criptografia do cliente | Tabelas e constantes públicas de Twofish e MD5 presentes no `client.exe` (a análise não foi além da presença) | `const.mjs` |
 
 ## Diário
 
 - 2026-10-26 — Protocolo de segurança aprovado (N0, N1). Triagem passiva sem REA: só existe o bootstrap do patcher (Bioware Patch Client 1.0.6.5, PE32 x86, MSVC); não há cliente nem dados. Nenhuma tool do REA usada ainda.
+- 2026-10-28 — Adendo 1: cliente e dados triados e copiados (A + B).
+- 2026-10-28 — Análise estática do cliente e do patcher, N1.
+  - O provedor Ghidra do REA ficou indisponível no servidor MCP: a checagem do Java devolve `runtime_missing`, embora o mesmo JDK 21 responda em 0,6 s no terminal e o `npx rea doctor` dê a checagem do Java como saudável. A hipótese é que a sonda, com limite de 5 s, falhou no ambiente do processo do servidor MCP. O GhidraMCP também não tinha backend (o Ghidra GUI não estava aberto). Por isso não houve descompilação nem xrefs.
+  - Os formatos de dados foram conferidos com leitores próprios em Node (N1, só leitura), e o REA foi usado para recursos PE, registro de lacunas e exportação do bundle.
+  - O gate barrou uma chamada de `record_unknown` porque o campo `domain` ("binario/client.exe") parecia um caminho. Refeita com outro rótulo.
+  - Dados pessoais: o P01 foi aplicado aos `.cfg` (só nomes de chave e tamanhos). Os valores lidos estavam numa lista de permissão definida antes da leitura (nome do módulo, nomes de produto e de `.prod`, host das URLs). Nenhum dado pessoal apareceu.
+  - Uma lacuna (`unk_9d3c0ce1…`) diz "7 PE" e lista 9 nomes. O número certo é 9.
 
 ## Critérios de conclusão
 
-- [ ] Toda pergunta respondida com evidência, ou marcada "em aberto" com motivo
-- [ ] Sistemas principais do alvo identificados, cada um com ao menos uma evidência
-- [ ] Lacunas registradas no REA (`record_unknown`) e conferidas com `list_unknowns`
-- [ ] Bundle de evidência exportado para `saidas/uo-classic/evidence.json`
-- [ ] Responsável não pediu mais investigação
+- [x] Toda pergunta respondida com evidência, ou marcada "em aberto" com motivo
+- [x] Sistemas principais do alvo identificados, cada um com ao menos uma evidência
+- [x] Lacunas registradas no REA (`record_unknown`) e conferidas com `list_unknowns` (9 lacunas, todas `open`)
+- [x] Bundle de evidência exportado para `saidas/uo-classic/evidence.json` (12 registros, 9 lacunas)
+- [x] Responsável não pediu mais investigação (conclusão pedida pela sessão principal em 2026-10-28; as lacunas que dependem do provedor Ghidra ou de copiar arquivos de animação ficam para decisão do responsável)
