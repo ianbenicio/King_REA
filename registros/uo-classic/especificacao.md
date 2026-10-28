@@ -163,6 +163,8 @@ Arquivo com assinatura "MYP", cabeçalho com versão e ponteiro para a primeira 
 Cada entrada do índice traz posição no arquivo de dados, tamanho e um campo extra; posição inválida significa recurso ausente. O campo extra guarda, conforme o arquivo, largura e altura (gumps, luzes) ou outro dado; a ordem dos dois valores diverge entre leitores para `light` [F] §3, §8.3 (conflito).
 
 > **Adendo — confirmado no cliente (2026-10-28)** (`01-analise.md`, pergunta 5): entradas de 12 bytes. O recurso falta quando a posição é −1 ou o tamanho é zero. Nenhuma entrada sai do arquivo de dados nos pares conferidos (luzes, multis, perícias, statics). Registros de multi têm 16 bytes. Nas luzes da instalação, todas são quadradas, então o conflito de ordem largura/altura não aparece aqui; o leitor **DEVE** mesmo assim conferir que largura × altura cabe no tamanho declarado.
+>
+> **Adendo — segunda rodada da reabertura (2026-10-28):** conflito resolvido pelo código do cliente. No índice de luzes, o primeiro valor de 16 bits do campo extra é a largura e o segundo, a altura. O leitor **DEVE** usar essa ordem. Cada pixel de luz é um inteiro pequeno com sinal que reduz o nível de escuridão; o cliente original limita o resultado a 0..31 e só aceita luzes de número menor que 100 (a primeira versão **PODE** adotar o mesmo limite).
 
 ### 3.5 Mapa e statics
 
@@ -183,6 +185,8 @@ Armadilha: blocos em ordem de coluna e células em ordem de linha; errar uma das
 > - No `.uop`, o mapa vem em pedaços de 4096 blocos, e o arquivo pode ter um bloco a mais no fim. O leitor **DEVE** calcular o total de blocos pela largura e altura do mapa, não pelo tamanho dos dados. O mapa 0 legado da instalação mede 7168 × 4096; o recorte da seção 10.1 vale igual.
 >
 > **Adendo — reabertura (2026-10-28)** (`01-analise.md`, pergunta 10): o cliente original leva embutida uma tabela de integridade do mapa, com 4 bits por bloco, comparados com parte do MD5 dos 196 bytes do bloco; quando não bate, ele avisa o servidor com o bloco. Isso serve à checagem do cliente em rede e não muda a leitura do mapa nem as regras desta seção. Numa simulação local, sem servidor, essa checagem não tem função (inferência); a decisão de incluí-la ou não fica com o responsável.
+>
+> **Adendo — segunda rodada da reabertura (2026-10-28):** a checagem fica desligada até o servidor pedir, e a tabela não corresponde ao mapa atual da instalação: bate só nas regiões que não mudaram desde uma versão anterior do mapa (inferência). Um leitor que reproduzisse essa checagem sobre os dados da instalação acusaria divergência na maior parte do mundo. O leitor **NÃO DEVE** usar essa tabela para validar o mapa.
 
 ### 3.6 Cor e imagens
 

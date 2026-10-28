@@ -137,3 +137,55 @@ Trocas de modelo: 0 | compactacoes: 3
 
 - O responsável decide se conclui a análise (`status: concluida`) ou pede mais investigação.
 - Benchmark: só com um novo "sim" do responsável na conversa.
+
+## Segunda rodada da reabertura (2026-10-28)
+
+Pedido do responsável: "Investigar mais", e depois "Continuar". Só N0 e N1, com os conectores do claude.ai desligados durante a rodada. `status` segue `em_andamento`.
+
+### O que fechou
+
+| Lacuna | Resultado |
+|---|---|
+| `unk_8fe032e5…`, origem da tabela de integridade | `resolved`/`verified`. O MD5 é o padrão. A comparação usa os 4 bits baixos do byte 2 do digest (bloco par) ou do byte 4 (bloco ímpar). A checagem só liga com o pacote `0xC6` do servidor. Com o cabeçalho do bloco em `0xFFFFFFFF`, o acerto vai a 27 % (6 % a 59 % por faixa) e a cerca de 97 % num grupo de blocos idênticos. Conclusão (inferência): a tabela foi gerada de uma versão anterior do mapa, que não está na cópia |
+| `unk_9d3c0ce1…`, Granny | `resolved`/`verified`. 13 chamadas a `LoadLibraryA`, todas com nome constante de DLL de sistema ou DirectX. Nenhum dos 11 PE tem "granny" ou ".gr2" em ASCII ou UTF-16 |
+| `unk_3d62e92e…`, ordem das luzes | `resolved`/`verified`. Primeiro valor de 16 bits = largura, segundo = altura |
+| `unk_c93a4147…`, nomes do `tileart`/`MainMisc` | `resolved`/`out-of-scope`. O `client.exe` só monta nomes de arquivo legado; esses nomes dependem do cliente aprimorado |
+
+### O que avançou ou ficou aberto
+
+| Ponto | Situação | Lacuna |
+|---|---|---|
+| Metadado v5 | Estrutura confirmada no `UO.exe`: id do tipo de checagem (21) e um bloco de assinatura com prefixo de tamanho. Abertos: a origem da tabela de chaves (nenhuma das quatro chaves DER do `UO.exe` verifica) e o hash de 32 bits da entrada. "Chave embutida", da primeira rodada, foi corrigida | `unk_284a2435…` (`investigating`) |
+| Pixels `AMOU` | O cliente não confere a marca `AMOU`. Falta seguir a classe `UOAnimationFrameSet` | `unk_8b721263…` (`investigating`) |
+| 213 entradas do `anim6`, bit 15, manifesto | Sem avanço nesta rodada | `unk_6830c229…`, `unk_57447042…` (`investigating`), `unk_cef18757…` (`open`) |
+
+Bundle em `saidas/uo-classic/evidence.json`: 77 registros, 10 lacunas em 22 revisões (5 `resolved`, 4 `investigating`, 1 `open`). Adendos novos na `especificacao.md`: §3.4 (ordem das luzes) e §3.5 (a tabela não serve para validar o mapa).
+
+### Falhas, desvios e retrabalho
+
+- Mudei a ordem dos passos: as lacunas do `client.exe` vieram antes da troca para o `UO.exe`, para não perder o store. O bundle foi exportado antes da troca.
+- `find_xrefs_to_name("LoadLibraryA")` não acha o nome. O Ghidra o registra como `KERNEL32.DLL::LoadLibraryA` (endereço externo); usei `search_procedures` e `xrefs`.
+- O teste das variantes `map0x`/`map1x` saiu vazio na primeira vez (nome base errado no script) e foi refeito.
+- O primeiro teste de assinatura quebrou com um bloco DER que não era chave; corrigido para ignorá-lo.
+- Os testes de dados (`tabela-data3.mjs`, `tabela-data4.mjs`, `loadlib-args.mjs`, `v5-assinatura.mjs`) não geram evidência no REA. Estão citados nas justificativas das lacunas.
+- Nada do alvo foi executado. Não houve rede. O patcher não rodou.
+
+### Contexto e métricas
+
+Medido com `node ~/.claude/skills/skill-budget/scripts/sessao.js`, cobrindo a sessão inteira desde 13:03 (256 min):
+
+```
+Tokens            principal   subagentes
+  chamadas              278            0
+  entrada nova          594            0
+  escrita cache        1.2M            0
+  leitura cache       49.9M            0
+  saida                214k            0
+Contexto por requisicao: inicial 98k | medio 184k | mediano 182k | max 267k | >200k 37%
+Trocas de modelo: 0 | compactacoes: 4
+```
+
+### Próximo passo
+
+- O responsável decide se conclui a análise ou pede mais investigação. Se pedir, os candidatos são: a classe `UOAnimationFrameSet` (pixels `AMOU`), a origem da tabela de chaves do patcher e o bit 15 da arte.
+- Benchmark: só com um novo "sim" do responsável.
