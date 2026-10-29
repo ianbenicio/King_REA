@@ -1,8 +1,8 @@
 ---
 alvo: uo-classic
-status: em_andamento
+status: concluida
 inicio: 2026-10-26
-fim:
+fim: 2026-10-29
 ---
 
 # Análise — Ultima Online Classic (uo-classic)
@@ -78,4 +78,4 @@ Evidência: `ev_…` são registros do REA, exportados em `saidas/uo-classic/evi
 - [x] Sistemas principais do alvo identificados, cada um com ao menos uma evidência
 - [x] Lacunas registradas no REA (`record_unknown`) e conferidas com `list_unknowns` (10 lacunas: 8 `resolved`, 2 `investigating`)
 - [x] Bundle de evidência exportado para `saidas/uo-classic/evidence.json` (104 registros, 10 lacunas em 26 revisões)
-- [ ] Responsável não pediu mais investigação (reaberta em 2026-10-28 por decisão do responsável: animações e lacunas de código)
+- [x] Responsável não pediu mais investigação (reaberta em 2026-10-28 e investigada em mais duas rodadas; conclusão aprovada pelo responsável na conversa em 2026-10-29, com o bit 15 da arte e o esquema do manifesto em aberto por dependerem de arquivos fora da cópia)

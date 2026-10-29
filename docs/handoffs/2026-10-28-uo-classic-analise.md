@@ -239,3 +239,7 @@ Trocas de modelo: 0 | compactacoes: 6
 
 - O responsável decide se conclui a análise. O que resta aberto (bit 15 da arte e esquema do manifesto) depende de arquivos fora da cópia.
 - Benchmark: só com um novo "sim" do responsável.
+
+## Conclusão (2026-10-29)
+
+O responsável aprovou a conclusão na conversa ("Concluir análise"). O `01-analise.md` passou a `status: concluida`, com `fim: 2026-10-29`. Ficam em aberto, com motivo registrado, o bit 15 da arte e dos gumps e o esquema do manifesto, que dependem de arquivos fora da cópia. O `00-seguranca.md` não foi alterado. Benchmark: só depois de um "sim" explícito do responsável à pergunta da conclusão.
