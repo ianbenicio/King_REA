@@ -243,3 +243,12 @@ Trocas de modelo: 0 | compactacoes: 6
 ## Conclusão (2026-10-29)
 
 O responsável aprovou a conclusão na conversa ("Concluir análise"). O `01-analise.md` passou a `status: concluida`, com `fim: 2026-10-29`. Ficam em aberto, com motivo registrado, o bit 15 da arte e dos gumps e o esquema do manifesto, que dependem de arquivos fora da cópia. O `00-seguranca.md` não foi alterado. Benchmark: só depois de um "sim" explícito do responsável à pergunta da conclusão.
+
+## Benchmark (2026-10-29)
+
+O responsável aprovou na conversa ("Sim, rodar benchmark" e "Executar agora", com pesquisa externa). Conectores do claude.ai desligados durante a unidade.
+
+- `registros/uo-classic/02-benchmark.md` refeito a partir da versão revertida (`a4ef5d0`), com o que as três rodadas fecharam: assinatura RSA por arquivo, chave tipo 21 de 1026 bits no código, preenchimento próprio, cobertura só nos pacotes v5, checagem de integridade do mapa, Granny sem uso e animações completas.
+- Fraqueza principal: chave de 1026 bits e preenchimento fora do PKCS #1. Melhorias para o PRKing_UO: leitor v4 + v5 com conferência do valor de 32 bits, decodificador único de quadros e, se houver distribuição própria, metadados assinados no modelo do TUF.
+- Referências novas, de buscas com termos genéricos: R9 (NIST SP 800-131A Rev. 2), R10 (RFC 8017), R11 (documentação Thales). Nenhum dado do alvo saiu da máquina; os bytes da chave não estão no registro.
+- Nenhuma tool do REA nesta unidade: a evidência veio do bundle exportado e do `01-analise.md`.
