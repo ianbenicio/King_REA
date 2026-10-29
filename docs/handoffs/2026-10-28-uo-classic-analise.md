@@ -189,3 +189,53 @@ Trocas de modelo: 0 | compactacoes: 4
 
 - O responsável decide se conclui a análise ou pede mais investigação. Se pedir, os candidatos são: a classe `UOAnimationFrameSet` (pixels `AMOU`), a origem da tabela de chaves do patcher e o bit 15 da arte.
 - Benchmark: só com um novo "sim" do responsável.
+
+## Terceira rodada da reabertura (2026-10-29)
+
+Pedido do responsável: "Investigar mais", e depois "continuar". Só N0 e N1, com os conectores do claude.ai desligados durante a rodada. `status` segue `em_andamento`.
+
+### O que fechou
+
+| Lacuna | Resultado |
+|---|---|
+| `unk_8b721263…`, pixels `AMOU` | `resolved`/`verified`. Cada quadro tem paleta própria de 256 cores de 16 bits, centro, largura e altura e os pixels na codificação por trechos do `anim.mul`, terminada em `0x7FFF7FFF`. 969.218 de 969.218 trechos dentro da caixa; 15.036 quadros terminam onde começa o seguinte. Corrigido: o bloco de 256 valores de 32 bits do cabeçalho não é a paleta usada |
+| `unk_6830c229…`, 213 entradas do `anim6` | `resolved`/`verified`. Todas têm algum quadro com deslocamento 0 (quadro vazio, 440 no total). Os 86.673 quadros não vazios fecham |
+| `unk_284a2435…`, metadado v5 | `resolved`/`verified`. Chave tipo 21 montada byte a byte por um inicializador estático do `UO.exe` (módulo de 1026 bits, expoente 65537), a única registrada. RSA com preenchimento próprio sobre o SHA-256 dos dados comprimidos: 440 de 440 entradas em 9 arquivos v5. Hash de 32 bits da entrada v5 = metade `c` do lookup3 sobre o metadado (440 de 440). Os bytes da chave ficam só em `saidas/` |
+
+### O que avançou ou ficou aberto
+
+| Ponto | Situação | Lacuna |
+|---|---|---|
+| Bit 15 | Zero no `anim6` (3.804.416 cores), no `radarcol` (81.884) e no `hues` (96.000); usado em 3,6 % das cores das paletas `AMOU`. Arte e gumps fora da cópia | `unk_cef18757…` (`investigating`) |
+| Manifesto | Sem avanço: precisa de um manifesto real, que não está na cópia | `unk_57447042…` (`investigating`) |
+
+Bundle em `saidas/uo-classic/evidence.json`: 104 registros, 10 lacunas em 26 revisões (8 `resolved`, 2 `investigating`). Adendos novos na `especificacao.md`: §3.3 (metadado v5 e hash de 32 bits), §3.6 (bit 15) e §3.8 (pixels, quadro vazio e correção da paleta de 32 bits).
+
+### Falhas, desvios e retrabalho
+
+- O primeiro `open_binary` do `UO.exe` usou `alvos/uo-classic/cliente/`; o certo é `alvos/uo-classic/instalacao/`.
+- O store do REA estava vazio no início; o bundle foi reimportado com `import_evidence_bundle`.
+- O inicializador estático em `0x470750` não é procedimento para o Ghidra; a chamada foi decodificada pelos bytes.
+- A primeira conferência da assinatura procurava o digest no fim do bloco e falhou; o digest fica no meio, entre blocos de `FF`.
+- Testes de dados fora do REA: `anim4.mjs`, `anim5.mjs`, `bit15.mjs`, `v5-chave21.mjs`, `v5-chave21b.mjs`, `v5-hash32.mjs` e `v5-hash32b.mjs`. Citados nas justificativas das lacunas.
+- Nada do alvo foi executado. Não houve rede. O patcher não rodou.
+
+### Contexto e métricas
+
+Medido com `node ~/.claude/skills/skill-budget/scripts/sessao.js`, cobrindo a sessão inteira desde 2026-10-28 13:03:
+
+```
+Tokens            principal   subagentes
+  chamadas              380            0
+  entrada nova          802            0
+  escrita cache        1.6M            0
+  leitura cache       67.5M            0
+  saida                272k            0
+Contexto por requisicao: inicial 98k | medio 182k | mediano 180k | max 268k | >200k 37%
+Trocas de modelo: 0 | compactacoes: 6
+```
+
+### Próximo passo
+
+- O responsável decide se conclui a análise. O que resta aberto (bit 15 da arte e esquema do manifesto) depende de arquivos fora da cópia.
+- Benchmark: só com um novo "sim" do responsável.

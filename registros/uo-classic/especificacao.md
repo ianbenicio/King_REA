@@ -157,6 +157,11 @@ Arquivo com assinatura "MYP", cabeçalho com versão e ponteiro para a primeira 
 > - Hash: lookup3 na variante de dois resultados, com o nome lógico **em minúsculas**. Os padrões de nome conferidos são o diretório `build/<recurso>/` mais o número com zeros à esquerda (8 dígitos para mapa, tileart e animationsequence; 6 para multicollection), além de nomes fixos (`housing.bin`, `string_dictionary.bin`). As variantes de mapa "x" usam o nome base sem o "x".
 > - A posição de cada entrada aponta para um bloco de metadado, cujo tamanho vem na entrada; os dados começam logo depois dele. O leitor **DEVE** pular esse bloco. O conteúdo dele é opaco na v5 (lacuna).
 > - Compressão nos arquivos copiados: só "nenhuma" e "zlib". O conflito sobre o tipo 3 segue sem dado local; o leitor **DEVE** recusar tipos desconhecidos com erro claro.
+>
+> **Adendo — terceira rodada da reabertura (2026-10-29)** (`01-analise.md`, perguntas 2 e 4): o metadado da v5 deixou de ser opaco. Ele é uma assinatura de chave pública do distribuidor sobre o resumo SHA-256 dos dados **como estão gravados** (ainda comprimidos), com um identificador do tipo de chave na frente; a chave pertence ao atualizador oficial e não aos dados. O valor de 32 bits de cada entrada é, na v4, o Adler-32 do metadado e, na v5, a metade de 32 bits do mesmo hash lookup3 aplicado ao metadado.
+> - O leitor **DEVE** continuar pulando o metadado; ler os dados não depende dele.
+> - O leitor **PODE** conferir o valor de 32 bits da entrada contra o metadado, pela regra da versão, como checagem de integridade barata.
+> - A reimplementação **NÃO DEVE** depender da assinatura nem levar a chave do distribuidor: conferir a origem dos arquivos é papel do atualizador oficial.
 
 ### 3.4 Par índice + dados
 
@@ -195,6 +200,8 @@ Armadilha: blocos em ordem de coluna e células em ordem de linha; errar uma das
 - Paletas (hues): grupos de 8 entradas, cada uma com 32 cores, faixa e nome; aplicadas trocando a cor original pela entrada da paleta [F9] e [F] §5.6.
 
 > **Adendo — paletas confirmadas no cliente (2026-10-28)** (`01-analise.md`, pergunta 8): 375 grupos de 8 paletas (3000 no total), cada uma com 32 cores, início e fim de faixa e nome de 20 bytes. O bit 15 vale zero em todas as cores das paletas, então elas não decidem o conflito do bit 15. A arte de objetos e os gumps não foram conferidos: ficaram fora da cópia (lacuna).
+>
+> **Adendo — terceira rodada da reabertura (2026-10-29)** (`01-analise.md`, pergunta 8): o bit 15 também vale zero nas paletas das animações legadas e nas cores do radar. Só as paletas por quadro do formato novo de animação o usam, em cerca de 3,6 % das cores, e parte delas aparece em pixels; o significado ali não foi determinado. O conflito continua sem decisão para a arte e os gumps. Até lá, a primeira versão **PODE** ignorar o bit 15 ao converter a cor, o que nenhum dado conferido contradiz; a decisão final fica com o responsável.
 
 ### 3.7 Propriedades de tile (`tiledata`)
 
@@ -214,6 +221,11 @@ Duas seções: terreno e objetos. Cada registro tem flags, altura, peso, camada 
 > - **Formato legado (índice + dados de animação):** segue o par índice + dados da §3.4. Cada recurso vivo começa por uma paleta de 256 cores de 16 bits, a contagem de quadros e a lista de deslocamentos dos quadros; cada quadro traz centro, largura e altura antes dos pixels. Na instalação, a grande maioria das entradas vivas fecha com essa leitura, mas uma pequena parte (cerca de 1,4 %) não fecha. O leitor **DEVE** validar contagem, deslocamentos e tamanho de cada quadro contra o tamanho do recurso e, se não fechar, tratar o recurso como ausente (placeholder).
 > - **Formato novo (`AnimationFrame*.uop`):** cada entrada do contêiner corresponde a um par corpo + ação, com nome lógico `build/animationlegacyframe/` seguido do corpo em 6 dígitos, `/`, a ação em 2 dígitos e `.bin`. A entrada começa por uma marca de 4 letras, versão, número do corpo, caixa envolvente, contagem de quadros e paleta de 256 cores de 32 bits; depois vem uma tabela com um registro por quadro (grupo de direção, índice do quadro, caixa do quadro e deslocamento até os pixels, contado a partir do próprio registro). Os índices de quadro crescem dentro de cada entrada. O leitor **DEVE** conferir que o número do corpo da entrada bate com o do nome e que todo deslocamento cai dentro da entrada.
 > - **Ainda em aberto:** a codificação dos pixels de cada quadro do formato novo, que não foi examinada. Até ela ser descrita, a regra de cair no placeholder (acima) continua valendo para corpos que só existam no formato novo.
+>
+> **Adendo — terceira rodada da reabertura (2026-10-29)** (`01-analise.md`, pergunta 9): a lacuna dos pixels fechou, e o placeholder deixa de ser obrigatório para corpos que só existam no formato novo.
+> - **Pixels nos dois formatos:** cada quadro é uma sequência de trechos horizontais. Cada trecho começa por um cabeçalho de 32 bits com a coluna inicial (10 bits com sinal), a linha (10 bits com sinal) e o comprimento (12 bits), seguido de um índice de paleta por pixel. Um valor fixo de fim encerra o quadro. A posição do pixel na imagem é a coluna mais o centro x e a linha mais o centro y mais a altura do quadro. O leitor **DEVE** recusar o quadro se um trecho sair da caixa.
+> - **Formato novo:** o deslocamento da tabela aponta para o quadro, que começa por uma paleta própria de 256 cores de 16 bits (a mesma em todos os quadros de uma entrada) e por centro x, centro y, largura e altura com sinal; os trechos vêm depois. **Corrigido:** o bloco de 256 valores de 32 bits do cabeçalho da entrada não é a paleta usada pelos pixels, e o papel dele não foi determinado; o leitor **NÃO DEVE** usá-lo como paleta.
+> - **Formato legado:** a pequena parte de recursos que não fechava tem sempre o mesmo motivo: algum quadro com deslocamento zero. O leitor **DEVE** tratar deslocamento zero como quadro vazio, sem descartar o recurso inteiro; a regra de placeholder acima vale só para recursos que continuem sem fechar depois disso.
 
 ### 3.9 Projeção isométrica e ordem de desenho
 
