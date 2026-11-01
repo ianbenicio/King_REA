@@ -1,6 +1,6 @@
 # Planejamento de evolução — arquitetura, eficiência e qualidade do PRKing_REA
 
-**Data:** 01/11/2026 · **Status:** proposta de planejamento; implementação não iniciada.
+**Data:** 01/11/2026 · **Status:** em execução — etapa 1 concluída; primeira rodada (§12) fechada em 01/11/2026; etapa 2 com stories em Draft.
 
 **Base:** [análise de arquitetura e CTO](../analises/2026-11-01-arquitetura-cto-comparativo.md), sobre o checkout `0146a9494eae87d4637edba0b62482068730c62f` e o estado de trabalho observado naquela revisão.
 
@@ -78,6 +78,32 @@ Tamanhos relativos: **P** = alteração localizada; **M** = vários arquivos e i
 O processo acompanha o tamanho: entregas **P** seguem o caminho curto do SDC (story enxuta, implementação e QA na mesma unidade, como prevê o guia de workflows para correções simples); entregas **M** e **G** seguem o ciclo completo (@sm → @po → @dev → @qa). O laboratório tem um único responsável, e o ciclo completo em toda entrega consumiria mais revisão que implementação.
 
 A primeira rodada de planejamento cobre somente a etapa 1 e a preparação da etapa 2. Ao encerrá-la, usar o tempo real gasto e a disponibilidade do responsável para estabelecer o calendário das demais. O trabalho de identidade/política deve ser dividido em slices se não couber em uma story revisável.
+
+#### Capacidade observada na primeira rodada (revisão de 01/11/2026)
+
+Fontes: handoffs [MEL-01/MEL-02](../handoffs/2026-11-01-evolucao-etapa1-mel01-mel02.md) e [MEL-06a](../handoffs/2026-11-01-evolucao-etapa1-mel06a.md), `sessao.js` e o transcript de cada sessão (duração = primeiro ao último evento). Só Claude Code; o Codex não foi usado nem medido.
+
+| Sessão | Entregas | Tamanho | Duração | Chamadas | Contexto médio / máx. | Requisições > 200k | Retrabalho |
+|---|---|---|---|---|---|---|---|
+| `ed91c88e` | MEL-01 e MEL-02 | P + P | 57 min | 72 | 191k / 250k | 47% | 1 commit refeito (arquivamento no índice errado) |
+| `07ad7cae` | MEL-06a | P | 10 min | 42 | 166k / 219k | 21% | 2 ajustes de script |
+| `b0f09ab6` | preparação da etapa 2 (MEL-03 fatia 1, desenho MEL-08, linha de base, stories) | M parcial + docs | ver [handoff](../handoffs/2026-11-01-evolucao-etapa2-preparacao.md) | ~50 até aqui | 177k / 230k | 28% | 2 ajustes de mensagem do verificador |
+
+Leitura:
+
+- Cada entrega P coube numa sessão, com Fase 0, story, QA curto e handoff. Duas P juntas também couberam, mas com quase metade das requisições acima de 200k: o limite preliminar de ~180k (D9) foi ultrapassado nas três sessões. Para M, uma story por sessão.
+- O custo fixo de uma sessão (instruções, Fase 0, leitura do plano de 520 linhas) fica em ~95k antes do trabalho. Ler o plano inteiro em toda sessão pesa; as próximas leem só a seção da MEL e a story.
+- O gargalo da etapa 2 não é execução, é decisão do responsável: ligar o Docker para a linha de base do Semgrep, auditorias de ferramenta nova (lint, tipos, detector de segredos, actions), ativação da CI e proteção de branch.
+
+Unidades propostas para a etapa 2 (uma sessão cada; calendário fica com a disponibilidade do responsável):
+
+| # | Unidade | Story | Depende de |
+|---|---|---|---|
+| 1 | Validação @po das três stories | MEL-03, MEL-04, MEL-08 | — |
+| 2 | MEL-03 fatia 2: auditoria e escolha de lint e tipos | [MEL-03](../stories/mel-03-ambiente-verificacao.story.md) | 1; aprovação da ferramenta |
+| 3 | MEL-04: módulo de publicação compartilhado | [MEL-04](../stories/mel-04-publicacao-compartilhada.story.md) | 1; decisão sobre detector externo |
+| 4 | MEL-08 local: sonda WPF, agregador, auditoria das actions | [MEL-08](../stories/mel-08-ci-agregada.story.md) | 1 |
+| 5 | MEL-08 ativação: workflow, PRs de falha plantada, proteção de branch | MEL-08 | 3, 4; aprovação do responsável; push pelo @devops |
 
 ## 4. Etapa 1 — corrigir falhas e estabelecer confiança
 
@@ -184,6 +210,8 @@ O `global.json` do .NET tem prioridade: a falta dele é uma das hipóteses da re
 
 **Dependências:** pode começar junto da etapa 1; encerramento integrado com MEL-08. A declaração do ambiente não atualiza o REA nem instala ferramentas automaticamente.
 
+**Fatia 1 entregue em 01/11/2026** ([story MEL-03](../stories/mel-03-ambiente-verificacao.story.md), commit `5e71dbd`): `reimplementacoes/notepad/global.json` (SDK 10.0.401, `rollForward: patch`), `.node-version` (26.12.1), `engines`, `.npmrc`, `npm run verificar` e o [contrato de ambiente](../contrato-ambiente.md). Aceites 1–3 atendidos; o 4 (lint e tipos) está em etapas, com pendência visível. A story continua em Draft para a validação @po antes da fatia 2.
+
 ### MEL-04 — transformar a política de publicação em verificação compartilhada
 
 **Origem:** A06 · **Tipo:** prevenção arquitetural · **Tamanho:** M · **Responsáveis sugeridos:** @dev + @qa; integração @devops.
@@ -230,6 +258,8 @@ Uma asserção que falha continua registrada como falha até existir evidência 
 - [ ] Testes dependentes de ambiente aparecem como categoria própria; "não executável" nunca é contado como aprovado.
 
 **Dependências:** MEL-03 e MEL-04; falhas conhecidas de MEL-02 continuam visíveis até serem corrigidas. Configuração pode ser preparada localmente; push e alterações de proteção remota seguem a autoridade de @devops e a autorização do responsável.
+
+**Desenho pronto em 01/11/2026, sem ativação:** [desenho da CI](2026-11-01-desenho-ci-mel08.md) (commit `d90adb5`) e [story MEL-08](../stories/mel-08-ci-agregada.story.md). Cada job roda o verificador da MEL-03; WPF interativo e Semgrep no Windows hospedado ficam fora; Semgrep no Ubuntu hospedado depende de decisão do responsável.
 
 ## 6. Etapa 3 — autorização vinculada à investigação correta
 
@@ -500,11 +530,11 @@ Revisar prioridades ao fim de cada etapa. Se documentação e cache já resolver
 
 - [x] Preparar stories de MEL-01, MEL-02 e MEL-06a pelo caminho curto (entregas P). A MEL-02 só segue o caminho curto enquanto continuar P; se a causa estiver no produto ou no harness, ela é reclassificada para M e passa ao ciclo completo. Feito em 01/11: as três stories estão em `docs/stories/` (`mel-01-*`, `mel-02-*`, `mel-06a-*`); a MEL-02 continuou P.
 - [x] MEL-02, passos 1 e 2: build limpo e comparação de ambiente, antes de qualquer mudança no Notepad. Feito em 01/11: causa de ambiente, ver [story MEL-02](../stories/mel-02-regressao-wpf.story.md).
-- [ ] Definir o contrato de ambiente/verificação da MEL-03 (começando pelo `global.json`) e o desenho da CI MEL-08.
+- [x] Definir o contrato de ambiente/verificação da MEL-03 (começando pelo `global.json`) e o desenho da CI MEL-08. Feito em 01/11: [contrato de ambiente](../contrato-ambiente.md) e verificador `npm run verificar` (commit `5e71dbd`; `dotnet --version` na pasta do Notepad = 10.0.401; lock adulterado e SDK inexistente recusados; requisito ausente sai com 3); [desenho da CI](2026-11-01-desenho-ci-mel08.md) (commit `d90adb5`), nada ativado em `.github/`.
 - [x] Corrigir assets, conferir hash na admissão e resolver a regressão WPF conforme a causa encontrada, preservando os critérios comportamentais. Feito em 01/11: MEL-01 e MEL-06a corrigidas; a MEL-02 teve causa de ambiente, sem mudança no Notepad. Falta a migração MEL-06a-m.
 - [x] Obter do responsável a decisão sobre clientes suportados: Claude Code e Codex (01/11/2026). A MEL-07 permanece como entrega G na etapa 3.
-- [ ] Executar verificações disponíveis, registrar requisitos ausentes e consolidar o baseline.
-- [ ] Revisar capacidade observada e detalhar as stories da etapa 2.
+- [x] Executar verificações disponíveis, registrar requisitos ausentes e consolidar o baseline. Feito em 01/11: [linha de base](2026-11-01-evolucao-linha-de-base.md) (commit `0113880`): JS 184/184, Core 137/137, UI 76/76 em duas execuções; Semgrep não executado (daemon do Docker desligado); lint e tipos inexistentes; Codex não medido.
+- [x] Revisar capacidade observada e detalhar as stories da etapa 2. Feito em 01/11: capacidade na §3 ("Capacidade observada na primeira rodada"); stories [MEL-03](../stories/mel-03-ambiente-verificacao.story.md), [MEL-04](../stories/mel-04-publicacao-compartilhada.story.md) e [MEL-08](../stories/mel-08-ci-agregada.story.md) em Draft, aguardando validação @po.
 
 **Resultado esperado dessa rodada:** confiança recuperada nos casos conhecidos e um caminho claro para repetir a qualidade automaticamente. O restante do plano passa a avançar sobre uma base verificável.
 
@@ -513,6 +543,7 @@ Revisar prioridades ao fim de cada etapa. Se documentação e cache já resolver
 **File List:**
 
 - `docs/planos/2026-11-01-evolucao-arquitetura-qualidade.md` — planejamento proposto, com justificativas, dependências, critérios e rastreabilidade.
+- `docs/planos/2026-11-01-evolucao-linha-de-base.md` e `docs/planos/2026-11-01-desenho-ci-mel08.md` — anexos da primeira rodada (linha de base e desenho da CI), 01/11/2026.
 - `docs/analises/2026-11-01-arquitetura-cto-comparativo.md` — análise-base; recebeu o adendo de revisão de 01/11/2026 sobre o QA anterior da NB5, sem alterar os resultados observados.
 
 **Revisão 1:** conferência das afirmações contra o código (commit `7626b03`) e ajustes listados no cabeçalho. Fontes conferidas: `scripts/assets/organizar-assets.mjs`, `.claude/hooks/rea-gate.mjs`, `package.json`, `docs/stories/notepad-bloco-5.story.md`, histórico git de `reimplementacoes/notepad/` e `docs/plano-de-execucao.md`.
