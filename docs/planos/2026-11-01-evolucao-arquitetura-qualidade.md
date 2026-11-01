@@ -93,10 +93,12 @@ A primeira rodada de planejamento cobre somente a etapa 1 e a preparação da et
 
 **Aceite:**
 
-- [ ] WAV truncado entra no catálogo com estado de erro, sem derrubar os demais arquivos válidos.
-- [ ] Lote com falha parcial salva JSON/CSV/resumo e devolve exit code não zero.
-- [ ] Arquivos válidos mantêm classificação, hash, deduplicação e proteção contra sobrescrita.
-- [ ] Mensagens, estados e regressão entram no guia do organizador e em seus testes.
+- [x] WAV truncado entra no catálogo com estado de erro, sem derrubar os demais arquivos válidos.
+- [x] Lote com falha parcial salva JSON/CSV/resumo e devolve exit code não zero.
+- [x] Arquivos válidos mantêm classificação, hash, deduplicação e proteção contra sobrescrita.
+- [x] Mensagens, estados e regressão entram no guia do organizador e em seus testes.
+
+**Entregue em 01/11/2026:** [story MEL-01](../stories/mel-01-assets-resilientes.story.md), commit `f594953`.
 
 **Superfície prevista:** `scripts/assets/organizar-assets.mjs` e seu teste; documentação aplicável. Concorrência e retomada ficam para MEL-12, depois da correção.
 
@@ -122,11 +124,13 @@ Corrigir conforme a causa comprovada. Não alterar a especificação para acomod
 
 **Aceite:**
 
-- [ ] Causa de cada falha documentada, classificada como build, ambiente, harness ou produto, com a evidência que descartou as anteriores.
-- [ ] Os quatro cenários e a suíte WPF passam em duas execuções consecutivas, a partir de build limpo, sem alterações intermediárias.
-- [ ] Estabilidade obtida por condição observável do dispatcher/controle ou por isolamento do estado global, sem sleeps arbitrários ou remoção de asserções.
-- [ ] Dependências de estado do sistema (clipboard, foco, sessão interativa) que restarem ficam listadas para a MEL-08.
-- [ ] Testes do Core e conformidade de abertura/gravação continuam verdes.
+- [x] Causa de cada falha documentada, classificada como build, ambiente, harness ou produto, com a evidência que descartou as anteriores.
+- [x] Os quatro cenários e a suíte WPF passam em duas execuções consecutivas, a partir de build limpo, sem alterações intermediárias.
+- [x] Estabilidade obtida por condição observável do dispatcher/controle ou por isolamento do estado global, sem sleeps arbitrários ou remoção de asserções.
+- [x] Dependências de estado do sistema (clipboard, foco, sessão interativa) que restarem ficam listadas para a MEL-08.
+- [x] Testes do Core e conformidade de abertura/gravação continuam verdes.
+
+**Entregue em 01/11/2026:** [story MEL-02](../stories/mel-02-regressao-wpf.story.md). Causa: ambiente (a suíte do parecer rodou no sandbox elevado do Codex, usuário `CodexSandboxOffline`); sem mudança no Notepad; pendências listadas para a MEL-08.
 
 **Superfície prevista:** diagnóstico sem alteração de arquivos nos passos 1 e 2; implementação e testes em `reimplementacoes/notepad/` só no passo 3. Nova story de regressão, preservando o histórico de QA da story NB5 já concluída. A sessão de implementação lê somente código próprio e especificação permitida.
 
@@ -493,7 +497,7 @@ Revisar prioridades ao fim de cada etapa. Se documentação e cache já resolver
 ## 12. Primeira rodada recomendada
 
 - [ ] Preparar stories de MEL-01, MEL-02 e MEL-06a pelo caminho curto (entregas P). A MEL-02 só segue o caminho curto enquanto continuar P; se a causa estiver no produto ou no harness, ela é reclassificada para M e passa ao ciclo completo.
-- [ ] MEL-02, passos 1 e 2: build limpo e comparação de ambiente, antes de qualquer mudança no Notepad.
+- [x] MEL-02, passos 1 e 2: build limpo e comparação de ambiente, antes de qualquer mudança no Notepad. Feito em 01/11: causa de ambiente, ver [story MEL-02](../stories/mel-02-regressao-wpf.story.md).
 - [ ] Definir o contrato de ambiente/verificação da MEL-03 (começando pelo `global.json`) e o desenho da CI MEL-08.
 - [ ] Corrigir assets, conferir hash na admissão e resolver a regressão WPF conforme a causa encontrada, preservando os critérios comportamentais.
 - [x] Obter do responsável a decisão sobre clientes suportados: Claude Code e Codex (01/11/2026). A MEL-07 permanece como entrega G na etapa 3.
