@@ -1,42 +1,43 @@
-# Plano de execução — etapa 1 do plano de evolução: MEL-06a
+# Plano de execução — etapa 2 do plano de evolução: preparação (MEL-03, MEL-08, linha de base)
 
 <!--
-Saída da Fase 0 (Harness D5, D30; skill fase-0). Plano preliminar da última entrega da
-etapa 1 do plano de evolução docs/planos/2026-11-01-evolucao-arquitetura-qualidade.md
-(§4, MEL-06a). O plano anterior (MEL-01 e MEL-02, concluídas) está em
-docs/planos/2026-11-01-evolucao-etapa1-mel01-mel02.md. O piloto do perfil do alvo segue
-no plano docs/planos/2026-11-01-perfis-alvo.md (U4 pendente).
+Saída da Fase 0 (Harness D5, D30; skill fase-0). Plano preliminar da preparação da etapa 2 do
+plano de evolução docs/planos/2026-11-01-evolucao-arquitetura-qualidade.md (§12, itens abertos).
+O plano anterior (MEL-06a, concluída) está em docs/planos/2026-11-01-evolucao-etapa1-mel06a.md.
+O piloto do perfil do alvo segue no plano docs/planos/2026-11-01-perfis-alvo.md (U4 pendente).
 -->
 
-**Data:** 2026-11-01 · **Sessão:** `07ad7cae-5466-461d-8974-110b0dd5b4b8`, aberta pela sessão `local_04e63149-3c4f-4a36-b81d-6fcde8a1728c` · **Projeto:** PRKing_REA · **Branch/commit:** `main` @ `3f9c193`
+**Data:** 2026-11-01 · **Sessão:** `b0f09ab6-c596-4c67-90db-4d7a659b416f`, aberta pela sessão `local_c49d87ce-8222-42b7-ab15-3969b7e9ebed` · **Projeto:** PRKing_REA · **Branch/commit:** `main` @ `5ade645`
 
 ## 0. Sessão concorrente
 
-`sessao.js --lista 5`: a sessão de 19:51 (46 min, 80 chamadas) é a que abriu esta e está parada enquanto esta trabalha; as demais (13:00, 19:24 e 23/10) têm handoff em `docs/handoffs/` e estão paradas. As sessões ligadas (`u1-calibra-o-retroativa`, `u2-cat-logo-de-perfis-de`, `perfis-alvo-u3`) estão ociosas.
+`sessao.js --lista 6`: a sessão de 13:00 (473 min) é a que abriu esta; 19:51 e 19:24 são as da etapa 1 e do piloto, com handoff em `docs/handoffs/`; 20:37 (10 min) corresponde a uma das sessões ligadas do piloto. Todas as sessões ligadas (`corrigir-falhas-mel-01-a`, `mel-06a-hash-admissao`, `u1`, `u2`, `perfis-alvo-u3`) estão ociosas.
 
-`git status` no início: limpo. Depois do arquivamento: `R docs/plano-de-execucao.md -> docs/planos/2026-11-01-evolucao-etapa1-mel01-mel02.md` (esta sessão). Não há ponteiro vivo para o plano arquivado: as menções a `docs/plano-de-execucao.md` são históricas (planos e handoffs antigos) e ficam como estão.
+`git status` no início: limpo. Depois do arquivamento: `R docs/plano-de-execucao.md -> docs/planos/2026-11-01-evolucao-etapa1-mel06a.md` (esta sessão). As menções restantes a `docs/plano-de-execucao.md` são históricas e ficam como estão.
 
 ## 1. Enquadramento
 
-**Objetivo:** fazer o gate conferir, na admissão, o SHA-256 de cada arquivo original do alvo contra o hash registrado no `00-seguranca.md`, bloqueando divergência, hash ausente ou ambíguo (A03, parte barata).
+**Objetivo:** fechar os três itens abertos da §12 do plano de evolução: contrato de ambiente e verificação local da MEL-03 (começando pelo `global.json`), desenho da CI MEL-08 sem ativá-la, linha de base medida e stories da etapa 2 com a capacidade revista.
 
 **Restrições:**
 
-- Nenhuma tool `rea`/`ghidra`; `alvos/` não é aberto. Testes com fixtures sintéticas em pasta temporária.
-- `status` e `niveis_aprovados` de `00-seguranca.md` reais não mudam; níveis dos mapas não mudam; o gate não é desativado nem contornado.
-- `rea-niveis.json` não muda (a lista de admissão sai dos schemas, não do mapa). Mudança no modelo do `00-seguranca.md` e no protocolo de segurança é registrada no plano do piloto (regra de coordenação do plano de evolução §3).
-- Hash ausente ou ambíguo não autoriza preencher aprovações: a migração dos registros existentes não é feita aqui.
-- Sem push. `pre-commit` precisa passar. Conectores do claude.ai não são tocados.
+- Nenhuma tool `rea`/`ghidra`; `alvos/` não é aberto (alvos bloqueados no gate até a MEL-06a-m, que é outra frente).
+- Conectores do claude.ai não são tocados. Clipboard do responsável preservado; Notepad aberto por ele não é fechado.
+- Sem configuração global da máquina, sem SDK ou runtime novo, sem atualizar o REA. Falta de ferramenta vira requisito ausente registrado.
+- Nada ativo em `.github/`, nem segredo ou runner. Sem push.
+- Sala limpa no Notepad: só código próprio e especificação; esta entrega não muda código do Notepad.
+- Commits locais por entrega, conventional commits em inglês, `pre-commit` sem `--no-verify`.
 
-**Perfil do projeto:** domínio laboratório de engenharia reversa (controles próprios) · stack Node ESM (hook PreToolUse e `node --test`) · integrações REA 6.4.0 (só leitura dos schemas em `node_modules/rea-agents`) · UI não · dados sensíveis nenhum (fixtures sintéticas) · fase AIOX SDC, caminho curto · complexidade SIMPLE
+**Perfil do projeto:** domínio laboratório de engenharia reversa (qualidade e ambiente dos controles e das reimplementações) · stack Node ESM 26 (`node --test`), .NET 10 / WPF, Docker (Semgrep fixado) · integrações nenhuma nova (REA 6.4.0 só lido) · UI WPF só nos testes · dados sensíveis nenhum · fase AIOX SDC (stories da etapa 2 em Draft; MEL-03 com primeira fatia implementada) · complexidade STANDARD
 
 **Dúvidas:**
 
 | Dúvida | Resolvida? | Resposta / quando resolver |
 |---|---|---|
-| Onde o gate lê o hash? | sim | Os registros reais usam formatos livres e incompatíveis entre si (hash único, hash do conjunto, tabelas com colunas diferentes, hash abreviado em `notepad-reimpl`, lista em `saidas/` fora do git). Ler texto livre seria ambíguo. Decisão: seção própria no `00-seguranca.md`, "Identidade dos arquivos", tabela `Arquivo` × `SHA-256` com caminho relativo a `alvos/<slug>/` e hash completo |
-| Quais tools admitem conteúdo? | sim | Schemas do REA 6.4.0: `inspect_artifact` e `extract_artifact` não têm caminho (operam sobre o documento aberto); a admissão real é todo argumento de caminho local que aponta para `alvos/<slug>/` (`open_binary`, `inspect_*` com `path`, `analyze_javascript_application`, `capture_*_scenario`, `install_adb_package`, `push_adb_file` etc.). Consultas sobre documento aberto não recalculam |
-| Registros existentes sem a seção | sim, fatiado | Ficam bloqueados na admissão (fail-closed, aceite 2). Migração = fatia própria (MEL-06a-m), com os hashes da triagem e aprovação do responsável, registrada na story |
+| Onde fica o `global.json`? | sim | Em `reimplementacoes/notepad/`, escopo pedido. O `dotnet` procura o `global.json` a partir do diretório de trabalho, não do projeto: o verificador e o `test:notepad` passam a rodar com `cwd` nessa pasta. Conferido com `dotnet --version` dentro e fora dela |
+| Unity entra no contrato? | sim | Não se aplica neste repositório: o projeto Unity mora no PRKing_UO (exceção de 2026-10-28). O contrato só aponta a versão decidida na especificação, sem checagem |
+| Docker | aberta | Daemon desligado no início (`docker version`: cliente 29.4.3, sem servidor). Semgrep fica "não executado" na linha de base, salvo se o responsável ligar o Docker Desktop |
+| Lint e tipos | sim, em etapas | Ferramenta nova exige auditoria; fica como pendência visível na story MEL-03. O verificador só declara `sintaxe` (`node --check`) com esse nome |
 
 ## 2. Precedentes (Engram)
 
@@ -44,51 +45,55 @@ no plano docs/planos/2026-11-01-perfis-alvo.md (U4 pendente).
 
 | Texto da consulta | Resultados | Relevância (mín–máx) |
 |---|---|---|
-| gate PreToolUse hook conferir SHA-256 do arquivo do alvo na admissão manifesto de hash por arquivo fail-closed substituição de conteúdo TOCTOU | 7 | 0,499–0,542 |
-| integridade de artefato hash registrado divergente bloqueia análise engenharia reversa identidade do alvo cópia imutável proveniência saída derivada | 7 | 0,499–0,509 |
+| contrato de ambiente global.json SDK .NET rollForward versão de Node verificação local agregada que distingue aprovado falhou não executado requisito ausente CI GitHub Actions runner Windows testes WPF interativos | 7 | 0,514–0,524 |
+| CI em repositório público logs públicos runner hospedado sem segredos testes de UI dependentes de foco e clipboard categoria não executável Docker indisponível baseline de testes | 7 | 0,509–0,517 |
 
 **Usados:**
 
 | Nota (id) | O que diz | Força (D10) | Pré-condição vale aqui? | Efeito no plano |
 |---|---|---|---|---|
-| `gate-de-tools-mcp-por-n-vel-de-risco-com-hook-pretooluse-fai` (0,542) | Mapa de nível por servidor + hook fail-closed + checagem de commit para repositório público | verificável (`.claude/hooks/rea-gate.mjs`, `npm test`) | sim — é deste projeto; conferido lendo o hook atual | A conferência entra no mesmo hook, como mais uma condição fail-closed, sem segundo mecanismo e sem mexer nos mapas |
+| `testes-de-ui-wpf-falham-no-sandbox-elevado-do-codex-no-windo` (0,517) | Suíte WPF dá 72/76 no sandbox elevado do Codex e 76/76 como usuário interativo | relatada (story MEL-02, sem reprodução do mecanismo) | sim — mesmo projeto e suíte; conferido na story MEL-02 | O verificador detecta usuário do sandbox e não roda a UI ali (não executado, nunca aprovado); a CI separa a categoria |
+| `padr-o-verificar-cobertura-existente-antes-de-adotar-feature` (0,524) | Conferir o que já existe antes de construir | verificável (caso citado com grep e leitura) | sim — conferido: já existem `scripts/instalar-dotnet.ps1` (SDK 10.0.401 fixado por SHA-512), lockfiles .NET com `RestorePackagesWithLockFile`, `scripts/semgrep/rodar.mjs` com saída 2 sem Docker | O contrato reaproveita esses pontos; não cria instalador nem novo runner do Semgrep |
 
-**Descartados:** `prking-rea-projeto-de-engenharia-reversa-com-rea-no-claude-c` — contexto geral, já no CLAUDE.md · `uo-classic-integridade-do-patcher-*`, `re-identificar-checksum-*`, `re-verificacao-de-assinatura-*` — achados de análise do alvo, não do controle · `export-renderiza-o-n-o-canal` — padrão de produto alheio · demais — outros projetos ou do próprio vault.
+**Descartados:** `classmate-connect-13-*` — gates de outro projeto (lint/test/build) sem relação com .NET ou runner · `fezinha-*`, `despensa-*`, `spec-v1-critique-*` — outros projetos · `benchmark-de-monetiza-o-*` — análise de alvo.
 
 ## 3. Plano preliminar
 
-**Workflow AIOX:** SDC, caminho curto (YOLO) — entrega P (plano de evolução §3 e §10): story enxuta, implementação e QA na mesma unidade.
+**Workflow AIOX:** SDC. As três MEL da etapa 2 são M (ciclo completo); nesta rodada as stories ficam em Draft para validação @po, e a primeira fatia da MEL-03 (contrato e verificador) é implementada porque a §12 a pede.
 
-**Unidades de sessão (D9):** uma só.
+**Unidades de sessão (D9):** uma só, com commits por entrega.
 
 | # | Unidade | Fase / executor | Entrega | Critério de aceitação preliminar | Limite de contexto |
 |---|---|---|---|---|---|
-| 0 | Fase 0 | — | este plano; plano anterior arquivado | seções 1–5 preenchidas | ~180k |
-| 1 | MEL-06a | SDC curto / @dev + @qa | `.claude/hooks/rea-gate.mjs` e teste; modelo `00-seguranca.md` e skill `protocolo-seguranca`; story `docs/stories/mel-06a-hash-admissao.story.md`; aceites no plano de evolução; commit `fix:` | 4 aceites da MEL-06a; `npm test` verde | ~180k |
-| 2 | Handoff | — | `docs/handoffs/2026-11-01-evolucao-etapa1-mel06a.md` | estado dos aceites, limitação, fatia de migração, métricas | — |
+| 0 | Fase 0 | — | este plano; plano MEL-06a arquivado | seções 1–5 preenchidas | ~180k |
+| 1 | Contrato MEL-03 | SDC / @dev + @qa | `reimplementacoes/notepad/global.json`, `.node-version`, `engines`, verificador `scripts/verificar/` e teste, `docs/contrato-ambiente.md` | `npm run verificar` distingue aprovado, falhou e não executado; requisito ausente sai com código não zero; teste do verificador no `npm test` | ~180k |
+| 2 | Desenho CI MEL-08 | @devops (desenho) | `docs/planos/2026-11-01-desenho-ci-mel08.md` | componentes, gatilhos, matriz, agregado; o que não roda em runner hospedado | — |
+| 3 | Linha de base | @qa | `docs/planos/2026-11-01-evolucao-linha-de-base.md` | tempos, resultados e requisitos ausentes de cada verificação | — |
+| 4 | Capacidade e stories | @sm (Draft) | `docs/stories/mel-03-*`, `mel-04-*`, `mel-08-*`; revisão de capacidade no plano de evolução | §12 marcada com evidência | — |
+| 5 | Handoff | — | `docs/handoffs/2026-11-01-evolucao-etapa2-preparacao.md` | entregas, pendências, métricas | — |
 
 **Capacidades por fase:**
 
 | Fase | Ativo | Sob demanda | Não carregar | Como ligar o que falta |
 |---|---|---|---|---|
-| SDC — implementar | nativas (Read, Edit, Bash), `node --test`, leitura dos schemas do REA por script temporário fora do repositório | Engram (salvar o padrão, se reaproveitável) | REA, Ghidra (MCP), browser, conectores, protocolos de alvo | nada |
-| SDC — QA | `npm test`, `pre-commit` | `/code-review` nativo | gstack `review` | nada |
+| Implementar e medir | nativas (Read, Edit, Bash), `node --test`, `dotnet` | Engram (salvar padrão reaproveitável) | REA, Ghidra, browser, conectores, protocolos de alvo | nada |
+| QA | `npm test`, verificador, `pre-commit` | `/code-review` | gstack `review` | nada |
 
 **Verificações:**
 
 | Entrega | Como provar |
 |---|---|
-| Aceite 1 | Teste: arquivo com hash registrado é liberado; o mesmo caminho com conteúdo trocado é negado; vários arquivos, cada um com o seu hash; diretório admitido confere cada arquivo |
-| Aceite 2 | Teste: registro sem a seção, com hash abreviado, com caminho repetido e hash diferente, ou com seção duplicada é negado com motivo que cita o protocolo; o `00-seguranca.md` da fixture fica byte a byte igual |
-| Aceite 3 | Regressões novas falham no hook antigo (`git show HEAD:…` em pasta temporária) e passam no novo; `npm test` verde |
-| Aceite 4 | Limitação no cabeçalho do hook, na story e no handoff: substituição depois da admissão e troca de programa no Ghidra só na MEL-06 |
+| `global.json` | `dotnet --version` em `reimplementacoes/notepad/` = 10.0.401; `global.json` sintético com SDK inexistente, em pasta temporária, falha com mensagem do host |
+| Verificador | Testes unitários (agregação, requisito ausente, lock divergente); execução real com Docker desligado mostra Semgrep "não executado" e código de saída não zero |
+| Validação travada | Lock npm divergente do `package.json` (fixture) reprovado; `dotnet restore --locked-mode` em uso |
+| Linha de base | Saída do verificador e tempos registrados no anexo |
+| §12 | Três itens marcados com links para os artefatos |
 
 **Riscos:**
 
-- Alvo ativo real (`uo-classic`) e os demais passam a ser bloqueados na admissão até a migração — enquadramento — é o comportamento pedido (fail-closed); fatia de migração registrada, com hashes da triagem e aprovação do responsável.
-- Recalcular arquivos grandes a cada chamada — plano de evolução — só argumentos de caminho em `alvos/` são conferidos; consultas sobre documento aberto não; leitura em blocos, sem carregar o arquivo inteiro.
-- Diretório admitido com arquivo fora da tabela ou com link — enquadramento — bloqueia (conteúdo sem identidade).
-- Saída derivada comparada ao pai — plano de evolução — `saidas/<slug>/` nunca é comparado; proveniência própria fica para a MEL-06.
+- UI WPF roubar foco ou clipboard do responsável — story MEL-02 — `ClipboardScope` dos testes restaura o conteúdo; build com `--artifacts-path` se houver PRKing Notepad aberto; nenhum processo do responsável é fechado.
+- Detecção de "não executável" frágil — plano de evolução §5 — nesta fatia só por pré-requisito detectável (plataforma, usuário do sandbox, daemon do Docker); a regra fina fica na MEL-08.
+- Verificador virar segundo `npm test` — precedente `padr-o-verificar-*` — ele chama os comandos existentes, não duplica listas de testes.
 
 ## 4. Custo da Fase 0
 
@@ -96,8 +101,8 @@ Saída de `node ~/.claude/skills/skill-budget/scripts/sessao.js` ao fim do passo
 
 | Chamadas | Contexto atual | Chamadas Engram | Resultados Engram no contexto |
 |---|---|---|---|
-| ~24 (estimado; a sessão inteira fechou com 42) | ~140k (máx. da sessão 219k) | 2 (`vault_deep_query_tool`) | ~3k |
+| ~16 | ~95k | 2 (`vault_deep_query_tool`) | ~5k |
 
 ## 5. Aprovação
 
-**Aprovado:** sim, pelo escopo da tarefa · **Por:** responsável, por meio da sessão `local_04e63149-3c4f-4a36-b81d-6fcde8a1728c` · **Em:** 2026-11-01 · **Ajustes pedidos:** nenhum. A tarefa fixa critérios, limites e o caminho curto; esta sessão não pediu nova aprovação para não parar a etapa. O plano fica sujeito a revisão no handoff.
+**Aprovado:** sim, pelo escopo da tarefa · **Por:** responsável, por meio da sessão `local_c49d87ce-8222-42b7-ab15-3969b7e9ebed` · **Em:** 2026-11-01 · **Ajustes pedidos:** nenhum. A tarefa fixa entregas, limites e critérios de pronto; esta sessão não pediu nova aprovação para não parar a etapa. O plano fica sujeito a revisão no handoff.
