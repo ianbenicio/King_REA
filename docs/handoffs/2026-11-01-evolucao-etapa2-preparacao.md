@@ -34,7 +34,8 @@ Os três itens abertos da §12 estão marcados com evidência.
 
 - [x] `dotnet --version` em `reimplementacoes/notepad/` = 10.0.401; SDK inexistente recusado pelo host.
 - [x] `packages.lock.json` adulterado (cópia temporária) → `dotnet restore --locked-mode` sai 1 (`NU1004`); lock npm divergente recusado nos testes.
-- [x] `npm run verificar` 2×: 9 aprovados (JS 184/184, Core 137/137, UI 76/76), 3 não executados (Semgrep, Docker desligado), saída 3; 45 s e 33 s.
+- [x] `npm run verificar` 2× com o Docker desligado: 9 aprovados (JS 184/184, Core 137/137, UI 76/76), 3 não executados (Semgrep), saída 3; 45 s e 33 s.
+- [x] Depois que o responsável ligou o Docker: Semgrep isolado 3/3 (267 s) e verificação completa 12/12, saída 0, 285 s (mutações 192 s).
 - [x] Sem `dotnet` no PATH → "requisito ausente" e dependentes "não executado", saída 3; componente desconhecido → saída 2.
 - [x] `npm test`: 184/184 (eram 173). `npm run test:notepad`: Core 137, UI 76.
 - [x] `pre-commit` passou nos 5 commits, sem `--no-verify`.
@@ -44,7 +45,6 @@ Clipboard: os testes de UI usam o `ClipboardScope`, que restaura o conteúdo. Ne
 ## Pendências
 
 - **Validação @po** das stories MEL-03, MEL-04 e MEL-08 (Draft). A fatia 1 da MEL-03 foi implementada antes da validação porque a §12 a pedia; fica registrado na story.
-- **Semgrep na linha de base:** ligar o Docker Desktop e rodar `npm run verificar -- --so semgrep-scan,semgrep-test,semgrep-mutacoes`.
 - **MEL-03 fatia 2:** auditoria e escolha de lint e tipos.
 - **Decisões do responsável para a MEL-08:** ativação, Semgrep no Ubuntu hospedado, proteção de branch, runner próprio (desenho §9).
 - **Clone limpo real** não exercitado (mesma máquina, `node_modules` já instalado).

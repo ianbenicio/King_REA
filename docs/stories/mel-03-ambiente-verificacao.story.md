@@ -64,6 +64,7 @@ Fatia 1, verificação do executor (QA @qa independente pendente com a validaç�
 | `node --test scripts/verificar/verificar.test.mjs` | 11/11 |
 | `npm test` | 184/184 (eram 173) |
 | `npm run verificar` (Docker desligado) | 9 aprovados, 3 não executados (Semgrep), saída 3, 45 s; ver [linha de base](../planos/2026-11-01-evolucao-linha-de-base.md) |
+| `npm run verificar` (Docker ligado) | 12/12 aprovados, saída 0, 285 s |
 
 ## Change Log
 

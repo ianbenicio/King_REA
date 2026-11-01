@@ -28,7 +28,7 @@ Ativar exige aprovação do responsável na conversa e push pelo @devops. Este d
 ## 3. Gatilhos, matriz e concorrência
 
 - **Gatilhos:** `pull_request` para `main`, `push` em `main`, `workflow_dispatch`. Sem `schedule` no início (o guia do REA já tem revisão mensal própria).
-- **Sem filtro de caminho no início:** todos os jobs rodam em toda mudança (a linha de base mede ~45 s locais; no runner, estimar 3–5 min com instalação). Filtro só depois, e cada filtro com teste que prove não ocultar verificação necessária (aceite da MEL-08).
+- **Sem filtro de caminho no início:** todos os jobs rodam em toda mudança (a linha de base mede ~35–45 s locais sem o Semgrep e 285 s com ele, dos quais 192 s são as mutações; no runner, o job `semgrep` é o mais lento e roda em paralelo aos outros). Filtro só depois, e cada filtro com teste que prove não ocultar verificação necessária (aceite da MEL-08).
 - **Matriz:** um eixo só por enquanto (a combinação suportada). Node 24 ou .NET de outra faixa não entram: o contrato não os declara.
 - **Concorrência:** `concurrency: ci-${{ github.ref }}` com `cancel-in-progress: true` em PR; em `main`, sem cancelar.
 - **Cache:** `actions/setup-node` com cache do npm pelo `package-lock.json`; NuGet pelo `packages.lock.json`. Cache não substitui `npm ci` nem `--locked-mode`.
