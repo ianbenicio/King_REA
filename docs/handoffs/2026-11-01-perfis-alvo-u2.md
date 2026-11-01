@@ -86,7 +86,7 @@ Feito pela sessão `f5cee9eb-0a9d-452f-8a5c-c59a1f571a51`, que abriu o piloto, a
 ```bash
 node -e '
 const t=require("fs").readFileSync("docs/catalogo-perfis-alvo.md","utf8").split(/\r?\n/);
-let h=null,ok=0,bad=[];const codes=new Set(["U1","GJ","BM","GR","CU","NV","PS","CL","PE","MF"]);
+let h=null,ok=0,bad=[];const codes=new Set(["U1","GJ","BM","GR","CU","NV","PS","CL","PE","MF","CB"]);
 t.forEach((l,i)=>{if(!l.startsWith("|")){h=null;return}
 const c=l.split("|").slice(1,-1).map(s=>s.trim());
 if(!h){h=c;return} if(/^-+$/.test(c[0].replace(/:/g,"")))return;

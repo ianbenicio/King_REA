@@ -98,6 +98,17 @@ A segunda consulta foi feita porque a relevância máxima da primeira ficou abai
 | U4 | Validação no próximo alvo | análise do alvo / responsável + @analyst | Seção de perfil preenchida no `00-seguranca.md` do alvo; medição em `docs/planos/<data>-perfis-alvo-validacao.md` | Comparar com um alvo parecido já analisado: chamadas a tools fora do pacote, protocolos invocados sem uso, retrabalho e custo (`sessao.js`). Veredito: aplicar, ajustar ou parar | conforme o alvo |
 | U5 | Aplicação (condicional) | @architect + @dev | Proposta: família de tool no `rea-niveis.json`, servidores por perfil em `settings.local.json` | Só se a U4 mostrar ganho, e com aprovação do responsável item a item. Fora do piloto | — |
 
+**Andamento (2026-11-01):**
+
+| # | Estado | Commit | Conferência pela sessão principal |
+|---|---|---|---|
+| U1 | feita | `d30c4a3` | commit com 2 arquivos |
+| U2 | feita | `ae3729e`, `b175d54` | checagem de fonte refeita (130 linhas, 0 problemas); busca por pilotos vazia |
+| U3 | feita, exceto a linha do `CLAUDE.md` | `141bc69` + catálogo v0.2 | `npm test` 164/164; script de cobertura refeito (`fora 0` nos 7; frações de 72%, 73% e 94%) |
+| U3, linha do `CLAUDE.md` | pendente | — | espera a outra sessão commitar o bloco "Delegação de busca"; texto pronto no handoff da U3 |
+| U4 | aguardando alvo novo | — | — |
+| U5 | condicional | — | — |
+
 **Capacidades por fase** (fonte: `H:\King\Harness\docs\catalogo\mapa-fases.md`):
 
 | Fase | Ativo | Sob demanda | Não carregar | Como ligar o que falta |

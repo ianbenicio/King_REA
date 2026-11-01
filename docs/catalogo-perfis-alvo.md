@@ -7,7 +7,9 @@ por sessões de análise cega: não cita resultado de alvo de piloto. A calibra�
 em docs/planos/, fora do alcance dessas sessões.
 -->
 
-**Versão:** 0.1 (piloto) · **Data:** 2026-11-01 · **Base:** calibração da U1 (`d30c4a3`)
+**Versão:** 0.2 (piloto) · **Data:** 2026-11-01 · **Base:** calibração da U1 (`d30c4a3`) e decisões da U3 (`141bc69`)
+
+**Mudanças da 0.2:** C7 reescrita; regra C10 nova; tratamento de recurso não citado, de testes de controle e de recursos operacionais (seção 0.1); a seção 6 aponta para o formato final no modelo; código [CB] na legenda.
 
 ## 0. Como usar
 
@@ -25,6 +27,11 @@ Mesmo vocabulário do Harness [MF], para o catálogo subir sem tradução:
 | **ativo** | Usado na sessão do alvo; carregar ou ter à mão desde o início | [MF] |
 | **sob demanda** | Não usar por padrão; usar quando a pergunta pedir, registrando o motivo | [MF] |
 | **não carregar** | Não se espera uso para esse valor de eixo. No piloto é só orientação: se for preciso, usar e registrar como "fora do pacote" | [PE §3] |
+| **não citado** | Recurso de análise que nenhum pacote do alvo cita. Conta como fora do pacote e soma com "não carregar" na fração | [CB §1] |
+
+Ficam fora do perfil, da cobertura e do registro C8 [CB §1]:
+- **testes de controle**, como uma chamada feita de propósito para conferir que o gate recusa. Vão ao diário como "teste de controle";
+- **recursos operacionais**, que não são de análise: push, configuração do Claude Code, revisão de código, QA loop e demonstração no navegador.
 
 ### 0.2 Grau de sustentação de cada entrada
 
@@ -50,6 +57,7 @@ Tipo sem alvo registrado nunca recebe `cal` [PE §3, riscos].
 | [CL] | `CLAUDE.md` do projeto, seção "Fluxo de trabalho por alvo" ou "Regras de segurança" |
 | [PE §n] | `docs/plano-de-execucao.md` (plano deste piloto), seção n |
 | [MF] | `H:\King\Harness\docs\catalogo\mapa-fases.md` |
+| [CB §n] | `docs/planos/2026-11-01-perfis-alvo-cobertura.md`, seção n (cobertura e decisões da U3) |
 
 ## 1. Base comum (todos os perfis)
 
@@ -289,9 +297,10 @@ A complexidade não muda o conjunto de ferramentas do tipo: muda o número de ro
 | C4 | O controle de risco vence o pacote: um recurso cujo nível não está em `niveis_aprovados`, ou que a classe de confiança proíbe, nunca fica ativo. Ele vira "sob demanda por adendo", e o adendo segue o protocolo de segurança | `doc` | [PS §3], [PS §7], [PE §1] |
 | C5 | As restrições do alvo vencem o pacote: alvo confidencial derruba WebSearch, WebFetch e pesquisa pública para "não carregar"; análise cega segue a lista de cegueira; jogo online com servidor oficial fica no estático, salvo aprovação caso a caso | `doc` | [PS §1], [CL], [GJ] |
 | C6 | Um "não carregar" de grau `hip` é lido como "sob demanda" até haver calibração. "Não carregar" firme só vem de `cal` (uso zero medido) ou de `doc` que diga que o recurso não se aplica ou não roda no host | `doc` | [PE §3, riscos] |
-| C7 | O objetivo `benchmark` roda depois da análise concluída, de preferência na sessão principal; o pacote dele não se soma ao da sessão de análise | `cal` | [CL], [U1 §5.4] |
+| C7 | O objetivo `benchmark` roda depois da análise concluída, de preferência na sessão principal. O pacote dele se soma à janela do benchmark, que começa com o `01-analise.md` concluído e o "sim" do responsável, em qualquer sessão | `cal` | [CL], [U1 §5.4], [CB §1] |
 | C8 | Recurso usado fora do pacote: usar e registrar no diário do `01-analise.md` ("fora do pacote: <recurso>, motivo"). Essa é a métrica de qualidade do piloto | `doc` | [PE §3] |
 | C9 | O perfil é recalculado em cada adendo que mude o tipo, o objetivo ou o escopo | `cal` (1 alvo mudou de escopo num adendo) | [U1 §2.2], [PS §7] |
+| C10 | O objetivo `especificacao` sobe a profundidade um nível, até alta. A complexidade de triagem não muda, e o ganho de profundidade só acrescenta itens "sob demanda" | `hip` (sustentado por 1 alvo) | [CB §1], [U1 §2.2] |
 
 ### 5.1 Exemplo de composição (só ilustração do método)
 
@@ -303,7 +312,7 @@ Alvo `nativo-pe`, objetivos `analise` + `especificacao`, complexidade alta, clas
 
 ## 6. Registro do perfil (proposta para a U3)
 
-Seção nova no `00-seguranca.md`, preenchida no fim da triagem, porque ela já tem os dados [PE §1, dúvidas]. A U3 decide o formato final.
+**Formato final:** seção 7 do modelo `registros/_modelos/00-seguranca.md`, preenchida pelo passo "Perfil do alvo" do protocolo de segurança [PS §2], [CB §1]. Os eixos entram no fim da triagem; o pacote entra depois da decisão, porque a C4 depende de `niveis_aprovados`. A tabela abaixo é a proposta original da U2; o modelo acrescentou os campos "Profundidade" e "Recalculado em" e as três listas do pacote.
 
 | Campo | Conteúdo | Fonte |
 |---|---|---|
