@@ -73,6 +73,39 @@ Engram: 1 chamada (`vault_query_tool`, 0 resultados). Nenhuma tool `rea` ou `ghi
 
 Os 11 conectores do claude.ai foram desligados no início da unidade e religados depois do commit: Supermetrics, Notion, Google Calendar, Claude Docs, viewmax.io, Gmail, Figma, Hugging Face, Supabase, Google Drive e AAR Maker.
 
+## Adendo — conferência pela sessão principal (2026-11-01)
+
+Feito pela sessão `f5cee9eb-0a9d-452f-8a5c-c59a1f571a51`, que abriu o piloto, antes de liberar a U3.
+
+**1. Checagem de fonte refeita, agora reproduzível.** O script da U2 ficou fora do repositório. A conferência independente abaixo deu **130 linhas com fonte válida e 0 problemas**, o mesmo número da U2. Para cada linha de tabela com coluna "Fonte", ela verifica quatro condições:
+- a fonte não está vazia;
+- "—" só aparece com grau `hip`;
+- todo código citado existe na legenda §0.3;
+- uma fonte sem código cita uma seção do próprio catálogo.
+
+```bash
+node -e '
+const t=require("fs").readFileSync("docs/catalogo-perfis-alvo.md","utf8").split(/\r?\n/);
+let h=null,ok=0,bad=[];const codes=new Set(["U1","GJ","BM","GR","CU","NV","PS","CL","PE","MF"]);
+t.forEach((l,i)=>{if(!l.startsWith("|")){h=null;return}
+const c=l.split("|").slice(1,-1).map(s=>s.trim());
+if(!h){h=c;return} if(/^-+$/.test(c[0].replace(/:/g,"")))return;
+const fi=h.indexOf("Fonte"); if(fi<0)return; const f=c[fi]||"",gi=h.indexOf("Grau"),g=gi>=0?c[gi]:"";
+const refs=[...f.matchAll(/\[([A-Z0-9]+)/g)].map(m=>m[1]);
+if(!f||(f==="—"&&!/hip/.test(g))||refs.some(r=>!codes.has(r))||(!refs.length&&!/seção|—/.test(f))) bad.push((i+1)+": "+f); else ok++;});
+console.log("ok",ok,"problemas",bad.length);bad.forEach(b=>console.log(b));'
+```
+
+Também conferido: `grep -nE "blocos-|encaixe-" docs/catalogo-perfis-alvo.md` voltou vazio, e o commit `ae3729e` traz só os dois arquivos da unidade.
+
+**2. Problema nos conectores.** A U2 desligou os 11 conectores às 17:16Z e religou às 17:23Z (transcript `98e969b3`). A sessão principal estava ociosa e não reiniciou, e mesmo assim apareceu com os 11 `disabled` às 17:23:35Z (transcript `f5cee9eb`). Eles só voltaram quando a própria sessão principal os religou. Conclusões:
+- O toggle é estado do app, não de uma sessão: o desligar chegou na outra sessão aberta, o religar não.
+- Sessões de outros projetos abertas no mesmo período provavelmente também perderam os conectores.
+
+Estado depois da correção: os 11 aparecem `connected` em `session_connectors_status`. A memória do projeto (`conectores-off-por-unidade`) foi corrigida: ela dizia que o toggle "não afeta outros projetos". Regra nova: depois que uma sessão filha termina, a sessão principal confere os conectores e religa os que estiverem desligados.
+
+**3. Plano atualizado.** As dúvidas da Fase 0 sobre os critérios de complexidade e o lugar do perfil, respondidas aqui, foram marcadas como resolvidas no `docs/plano-de-execucao.md`, seção 1. A de ligar sessão e alvo foi respondida pela U1.
+
 ## Próxima unidade
 
 **U3, integração no processo** (@dev, SDC). Entregas:

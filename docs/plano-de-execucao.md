@@ -55,9 +55,9 @@ O `CLAUDE.md` também está modificado desde as 09:47, antes desta sessão (bloc
 | Quais eixos? | sim | Tipo + objetivo + complexidade (responsável, 2026-11-01) |
 | Orientar ou aplicar? | sim | Orientar no piloto; aplicar depois, se a medição mostrar ganho (responsável, 2026-11-01) |
 | Em quais alvos testar? | sim | Retroativo nos alvos registrados + o próximo alvo novo (responsável, 2026-11-01) |
-| Quais critérios de complexidade dá para medir sem executar o alvo? | aberta | U2, a partir das triagens existentes |
-| Como ligar cada sessão antiga ao alvo dela, para contar o uso real? | aberta | U1, pelos handoffs (cada um traz o id da sessão) e pelo `uso.js` do Harness |
-| Onde o perfil entra no fluxo: nova seção do `00-seguranca.md` ou registro próprio? | aberta | U2. Proposta: seção nova no `00-seguranca.md`, porque a triagem já tem os dados |
+| Quais critérios de complexidade dá para medir sem executar o alvo? | sim (U2) | K1 a K5 (`docs/catalogo-perfis-alvo.md` §4.1): executáveis, módulos de script, tamanho, formatos próprios, ofuscação; vale o maior. Limites das faixas ainda `hip`, revisar na U4 |
+| Como ligar cada sessão antiga ao alvo dela, para contar o uso real? | sim (U1) | Pelos handoffs e transcripts; método e comandos em `docs/planos/2026-11-01-perfis-alvo-calibracao.md` |
+| Onde o perfil entra no fluxo: nova seção do `00-seguranca.md` ou registro próprio? | sim (U2), formato na U3 | Seção nova no `00-seguranca.md`, preenchida no fim da triagem (`docs/catalogo-perfis-alvo.md` §6). O formato final fica com a U3 |
 | Qual é o próximo alvo novo? | aberta | Depende do responsável. A U4 espera por ele |
 
 ## 2. Precedentes (Engram)
