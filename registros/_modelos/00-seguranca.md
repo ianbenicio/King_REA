@@ -60,6 +60,29 @@ data: <AAAA-MM-DD>
 
 <aprovado | aprovado com restrições | reprovado>, por <responsável>, em <data>. <observações>
 
+## 7. Perfil do alvo e recursos
+
+<!-- Piloto: o pacote só orienta. Não muda status, niveis_aprovados, a classe nem o gate. Eixos preenchidos no fim da triagem (seção 2); pacote composto depois da decisão, com os níveis aprovados. Catálogo: docs/catalogo-perfis-alvo.md. -->
+
+| Campo | Valor |
+|---|---|
+| Catálogo | `docs/catalogo-perfis-alvo.md` v<versão> |
+| Tipo(s) | <id do catálogo §2.1> — marcador que casou: <...> |
+| Atributo `jogo` | <não \| sim, engine <...>> |
+| Objetivo(s) | <ids do catálogo §3.1; `analise` sempre> |
+| Complexidade (triagem) | <baixa \| média \| alta> — K1 <n executáveis>, K2 <n módulos de script>, K3 <tamanho>, K4 <formatos próprios: não \| sim>, K5 <ofuscação: não \| sim> |
+| Profundidade | <igual à complexidade \| um nível acima, por `especificacao`> |
+| Desvios (C4 a C6) | <nenhum \| recurso → estado, regra> |
+| Recalculado em | <— \| datas dos adendos que mudaram tipo, objetivo ou escopo (C9)> |
+
+**Pacote sugerido** (união da base comum com os pacotes do tipo, dos objetivos e da profundidade; ativo vence sob demanda, que vence não carregar):
+
+- **Ativo:** <...>
+- **Sob demanda:** <...; "por adendo" quando o nível não está aprovado>
+- **Não carregar:** <...>
+
+Recurso de análise usado fora do pacote: usar e registrar no diário do `01-analise.md` ("fora do pacote: <recurso>, motivo"). Recurso que nenhum pacote cita conta como fora do pacote. Ficam fora do perfil os recursos operacionais (commit e push pelo @devops, configuração do Claude Code, revisão de código, QA de reimplementação) e os testes de controle (chamada feita para conferir que o gate recusa), que vão ao diário como "teste de controle".
+
 ## Adendos
 
 | Data | Tool | Nível | Motivo | Aprovação |

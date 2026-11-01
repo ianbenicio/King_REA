@@ -41,6 +41,17 @@ Classifique a confiança:
 - **C2 desconhecido:** falta algum dos critérios de C1, sem indício positivo de hostilidade.
 - **C3 suspeito ou hostil:** qualquer detecção, assinatura inválida, origem duvidosa, sinal de alerta forte, ou amostra de malware em estudo.
 
+### Perfil do alvo (piloto, só orienta)
+
+No fim da triagem, classifique o alvo nos três eixos de `docs/catalogo-perfis-alvo.md`, só com os dados que a identificação e a triagem já levantaram:
+
+1. **Tipo** (§2.1): vale a primeira linha da tabela cujo marcador casar; partes distintas de tipos diferentes recebem todos (C2). Anote o marcador que casou e o atributo `jogo`.
+2. **Objetivo** (§3.1): a partir das perguntas da seção 1. `analise` está sempre presente. `benchmark` só entra depois, com a análise concluída e o "sim" do responsável.
+3. **Complexidade** (§4.1): o maior nível entre K1 e K5, com o valor de cada critério.
+4. **Profundidade:** igual à complexidade; se os objetivos incluem `especificacao`, um nível acima (até alta). A complexidade de triagem fica como está.
+
+O pacote em si é composto na decisão (seção 6), porque depende dos níveis aprovados.
+
 ## 3. Plano de processos
 
 Liste os níveis do REA que o objetivo exige (mapa em `.claude/hooks/rea-niveis.json`) e, para cada um, os processos que serão criados:
@@ -78,11 +89,12 @@ Para cada nível do plano, registre risco e mitigação. N3 e N4b, mesmo aprovad
 
 ## 6. Decisão e registro
 
-1. Apresente o resumo: identificação, triagem, classe, plano por nível, isolamento, procedimentos aplicados e criados.
+1. Apresente o resumo: identificação, triagem, classe, perfil do alvo, plano por nível, isolamento, procedimentos aplicados e criados.
 2. Peça a decisão com `AskUserQuestion`: aprovar o plano, aprovar com menos níveis, ou reprovar.
 3. Crie `registros/<slug>/00-seguranca.md` a partir de `registros/_modelos/00-seguranca.md`, com `status` e `niveis_aprovados` exatamente como o responsável decidiu.
-4. Se aprovado, grave o slug em `registros/ALVO_ATIVO` e crie `registros/<slug>/01-analise.md` a partir do modelo.
-5. Commit local: `docs: security protocol for <slug>`.
+4. Preencha a seção 7 (perfil do alvo e recursos): os eixos da triagem e o pacote composto pelo catálogo (§5), com os níveis que o responsável aprovou. Recurso cujo nível não foi aprovado, ou que a classe proíbe, fica "sob demanda por adendo" (C4); alvo confidencial derruba a pesquisa externa para "não carregar" (C5). O pacote só orienta: não muda `status`, `niveis_aprovados`, a classe nem o gate, e o responsável não precisa aprová-lo.
+5. Se aprovado, grave o slug em `registros/ALVO_ATIVO` e crie `registros/<slug>/01-analise.md` a partir do modelo.
+6. Commit local: `docs: security protocol for <slug>`.
 
 Só altere `status` ou `niveis_aprovados` com aprovação explícita do responsável na conversa.
 
@@ -93,3 +105,4 @@ Quando o gate bloquear uma tool fora do plano:
 1. Pare e explique ao responsável qual tool, o nível e por que ela é necessária.
 2. Respeite os limites da classe de confiança. Se o nível estiver proibido para a classe, informe e não peça.
 3. Se aprovado, acrescente o nível a `niveis_aprovados` e uma linha na seção "Adendos" (data, tool, nível, motivo, aprovação).
+4. Se o adendo muda o tipo, o objetivo ou o escopo do alvo, recalcule a seção 7 (catálogo, C9) e anote a data em "Recalculado em". Um nível novo aprovado tira do "por adendo" os recursos daquele nível.
