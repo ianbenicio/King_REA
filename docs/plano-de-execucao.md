@@ -104,8 +104,8 @@ A segunda consulta foi feita porque a relevância máxima da primeira ficou abai
 |---|---|---|---|
 | U1 | feita | `d30c4a3` | commit com 2 arquivos |
 | U2 | feita | `ae3729e`, `b175d54` | checagem de fonte refeita (130 linhas, 0 problemas); busca por pilotos vazia |
-| U3 | feita, exceto a linha do `CLAUDE.md` | `141bc69` + catálogo v0.2 | `npm test` 164/164; script de cobertura refeito (`fora 0` nos 7; frações de 72%, 73% e 94%) |
-| U3, linha do `CLAUDE.md` | pendente | — | espera a outra sessão commitar o bloco "Delegação de busca"; texto pronto no handoff da U3 |
+| U3 | feita | `141bc69`, `26f5a3c` (catálogo v0.2), linha do `CLAUDE.md` (`ec40ced`) | `npm test` 164/164; script de cobertura refeito (`fora 0` nos 7; frações de 72%, 73% e 94%) |
+| Bloco "Delegação de busca" do `CLAUDE.md` | commitado | `ce2799d` | commitado pela sessão principal, com autorização do responsável; o bloqueio da U3 era esse bloco, sem commit desde 09:47 |
 | U4 | aguardando alvo novo | — | — |
 | U5 | condicional | — | — |
 
