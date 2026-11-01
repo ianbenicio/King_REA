@@ -1,7 +1,7 @@
 # Catálogo de perfis do alvo e pacotes de recursos
 
 <!--
-Unidade U2 do plano docs/plano-de-execucao.md (piloto "perfil do alvo e pacote de recursos").
+Unidade U2 do plano docs/planos/2026-11-01-perfis-alvo.md, antes docs/plano-de-execucao.md (piloto "perfil do alvo e pacote de recursos").
 Spec Pipeline SIMPLE: gather → spec (@architect) → critique (@qa). Este catálogo pode ser lido
 por sessões de análise cega: não cita resultado de alvo de piloto. A calibração por alvo fica
 em docs/planos/, fora do alcance dessas sessões.
@@ -55,7 +55,7 @@ Tipo sem alvo registrado nunca recebe `cal` [PE §3, riscos].
 | [NV] | `.claude/hooks/rea-niveis.json` e `.claude/hooks/ghidra-niveis.json` |
 | [PS §n] | `.claude/skills/protocolo-seguranca/SKILL.md`, seção n |
 | [CL] | `CLAUDE.md` do projeto, seção "Fluxo de trabalho por alvo" ou "Regras de segurança" |
-| [PE §n] | `docs/plano-de-execucao.md` (plano deste piloto), seção n |
+| [PE §n] | `docs/planos/2026-11-01-perfis-alvo.md` (plano deste piloto), seção n |
 | [MF] | `H:\King\Harness\docs\catalogo\mapa-fases.md` |
 | [CB §n] | `docs/planos/2026-11-01-perfis-alvo-cobertura.md`, seção n (cobertura e decisões da U3) |
 
