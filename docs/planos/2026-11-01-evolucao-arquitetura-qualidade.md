@@ -150,10 +150,12 @@ O risco é atual: o projeto roda cada alvo cego numa sessão própria, e todas l
 
 **Aceite:**
 
-- [ ] Arquivo substituído após a aprovação é bloqueado na admissão; o original continua liberado.
-- [ ] Alvo sem hash registrado é bloqueado com motivo claro, sem editar `status` nem `niveis_aprovados`.
-- [ ] Regressões novas em `rea-gate.test.mjs`; `npm test` verde.
-- [ ] Limitação documentada: substituição depois da admissão e troca de programa no Ghidra continuam cobertas só pela MEL-06.
+- [x] Arquivo substituído após a aprovação é bloqueado na admissão; o original continua liberado.
+- [x] Alvo sem hash registrado é bloqueado com motivo claro, sem editar `status` nem `niveis_aprovados`.
+- [x] Regressões novas em `rea-gate.test.mjs`; `npm test` verde.
+- [x] Limitação documentada: substituição depois da admissão e troca de programa no Ghidra continuam cobertas só pela MEL-06.
+
+Feito em 01/11, ver [story MEL-06a](../stories/mel-06a-hash-admissao.story.md): o hash vem da nova seção 8 "Identidade dos arquivos" do `00-seguranca.md`; todo argumento de caminho para `alvos/<slug>/` é admissão (arquivo ou cada arquivo de um diretório); `saidas/<slug>/` não é comparado; 5 regressões, `npm test` 173/173. A migração dos registros existentes, que ficam bloqueados na admissão até lá, é a fatia MEL-06a-m, alvo por alvo, com aprovação do responsável. O CLI (`cli-gate.mjs`) não confere hash: fica na MEL-07.
 
 **Dependências:** nenhuma. A MEL-06 parte desta conferência em vez de reimplementá-la. Mudança em `.claude/hooks/` exige `npm test`, conforme o CLAUDE.md.
 
@@ -496,10 +498,10 @@ Revisar prioridades ao fim de cada etapa. Se documentação e cache já resolver
 
 ## 12. Primeira rodada recomendada
 
-- [ ] Preparar stories de MEL-01, MEL-02 e MEL-06a pelo caminho curto (entregas P). A MEL-02 só segue o caminho curto enquanto continuar P; se a causa estiver no produto ou no harness, ela é reclassificada para M e passa ao ciclo completo.
+- [x] Preparar stories de MEL-01, MEL-02 e MEL-06a pelo caminho curto (entregas P). A MEL-02 só segue o caminho curto enquanto continuar P; se a causa estiver no produto ou no harness, ela é reclassificada para M e passa ao ciclo completo. Feito em 01/11: as três stories estão em `docs/stories/` (`mel-01-*`, `mel-02-*`, `mel-06a-*`); a MEL-02 continuou P.
 - [x] MEL-02, passos 1 e 2: build limpo e comparação de ambiente, antes de qualquer mudança no Notepad. Feito em 01/11: causa de ambiente, ver [story MEL-02](../stories/mel-02-regressao-wpf.story.md).
 - [ ] Definir o contrato de ambiente/verificação da MEL-03 (começando pelo `global.json`) e o desenho da CI MEL-08.
-- [ ] Corrigir assets, conferir hash na admissão e resolver a regressão WPF conforme a causa encontrada, preservando os critérios comportamentais.
+- [x] Corrigir assets, conferir hash na admissão e resolver a regressão WPF conforme a causa encontrada, preservando os critérios comportamentais. Feito em 01/11: MEL-01 e MEL-06a corrigidas; a MEL-02 teve causa de ambiente, sem mudança no Notepad. Falta a migração MEL-06a-m.
 - [x] Obter do responsável a decisão sobre clientes suportados: Claude Code e Codex (01/11/2026). A MEL-07 permanece como entrega G na etapa 3.
 - [ ] Executar verificações disponíveis, registrar requisitos ausentes e consolidar o baseline.
 - [ ] Revisar capacidade observada e detalhar as stories da etapa 2.

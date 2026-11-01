@@ -22,6 +22,8 @@ O `CLAUDE.md` também está modificado desde as 09:47, antes desta sessão (bloc
 
 **Sobreposição com o plano de evolução:** nenhum arquivo em comum até aqui. Ele cita o "perfil" como parte da chave de cache de evidência (seção de eficiência). O perfil do alvo deste plano pode alimentar essa chave depois; fica como ponto de coordenação, não como dependência.
 
+**Mudança registrada pela MEL-06a (2026-11-01, plano de evolução):** o gate passou a conferir, na admissão, o SHA-256 de cada arquivo de `alvos/<slug>/` contra a nova seção 8 do modelo `00-seguranca.md` ("Identidade dos arquivos"); a skill `protocolo-seguranca` ganhou o passo que a preenche. `rea-niveis.json` e a seção 7 (perfil do alvo) não mudaram. Efeito na U4: o protocolo do próximo alvo precisa preencher a seção 8, senão o gate bloqueia a admissão; os alvos já registrados ficam bloqueados até a migração (fatia MEL-06a-m, story `docs/stories/mel-06a-hash-admissao.story.md`).
+
 `git status` depois do arquivamento: `M CLAUDE.md` (outra sessão) · `R docs/plano-de-execucao.md -> docs/planos/2026-10-27-uo-classic.md` (esta sessão) · `?? docs/analises/`, `?? docs/planos/2026-11-01-evolucao-arquitetura-qualidade.md` (outra sessão).
 
 ## 1. Enquadramento

@@ -27,7 +27,7 @@ data: <AAAA-MM-DD>
 
 | Verificação | Resultado |
 |---|---|
-| SHA-256 | |
+| SHA-256 | Tabela da seção 8 |
 | Tipo real × extensão | |
 | Tamanho e conteúdo | |
 | Assinatura | |
@@ -82,6 +82,13 @@ data: <AAAA-MM-DD>
 - **Não carregar:** <...>
 
 Recurso de análise usado fora do pacote: usar e registrar no diário do `01-analise.md` ("fora do pacote: <recurso>, motivo"). Recurso que nenhum pacote cita conta como fora do pacote. Ficam fora do perfil os recursos operacionais (commit e push pelo @devops, configuração do Claude Code, revisão de código, QA de reimplementação) e os testes de controle (chamada feita para conferir que o gate recusa), que vão ao diário como "teste de controle".
+
+## 8. Identidade dos arquivos
+
+<!-- O gate (MEL-06a) confere o SHA-256 de cada arquivo admitido de alvos/<slug>/ contra esta tabela: arquivo fora dela, hash divergente, hash incompleto, caminho repetido com outro hash, seção ausente ou repetida bloqueiam. Uma linha por arquivo copiado para alvos/<slug>/, caminho relativo a essa pasta (com "/"), hash completo (64 hex) medido na triagem. Uma tool que recebe um diretório confere cada arquivo dele. Arquivo novo só entra por adendo aprovado. Saídas em saidas/<slug>/ não entram aqui. -->
+
+| Arquivo | SHA-256 |
+|---|---|
 
 ## Adendos
 

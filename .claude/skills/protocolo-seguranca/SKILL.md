@@ -27,7 +27,7 @@ Rode no PowerShell, registrando os resultados:
 
 | Verificação | Como |
 |---|---|
-| Hash | `Get-FileHash -Algorithm SHA256 <arquivo>` (cada arquivo relevante) |
+| Hash | `Get-FileHash -Algorithm SHA256 <arquivo>` em cada arquivo que vai para `alvos/<slug>/`, com o hash completo. Confira o hash da cópia contra o da origem |
 | Tipo real | Ler os primeiros bytes (magic) e comparar com a extensão: MZ (PE), `\x7fELF`, `PK` (zip/apk/jar/docx), `\xCA\xFE\xBA\xBE`/`\xCF\xFA\xED\xFE` (Mach-O), `asar`, script em texto |
 | Tamanho e conteúdo | Para compactados, listar entradas sem extrair (`[IO.Compression.ZipFile]::OpenRead(<arquivo>).Entries` ou `tar -tf`). Procurar caminho absoluto, `..` (zip-slip) e razão de compressão extrema (bomba) |
 | Assinatura | `Get-AuthenticodeSignature <arquivo>` em PE/MSI/scripts; anotar emissor e validade |
@@ -93,8 +93,9 @@ Para cada nível do plano, registre risco e mitigação. N3 e N4b, mesmo aprovad
 2. Peça a decisão com `AskUserQuestion`: aprovar o plano, aprovar com menos níveis, ou reprovar.
 3. Crie `registros/<slug>/00-seguranca.md` a partir de `registros/_modelos/00-seguranca.md`, com `status` e `niveis_aprovados` exatamente como o responsável decidiu.
 4. Preencha a seção 7 (perfil do alvo e recursos): os eixos da triagem e o pacote composto pelo catálogo (§5), com os níveis que o responsável aprovou. Recurso cujo nível não foi aprovado, ou que a classe proíbe, fica "sob demanda por adendo" (C4); alvo confidencial derruba a pesquisa externa para "não carregar" (C5). O pacote só orienta: não muda `status`, `niveis_aprovados`, a classe nem o gate, e o responsável não precisa aprová-lo.
-5. Se aprovado, grave o slug em `registros/ALVO_ATIVO` e crie `registros/<slug>/01-analise.md` a partir do modelo.
-6. Commit local: `docs: security protocol for <slug>`.
+5. Preencha a seção 8 (identidade dos arquivos): uma linha por arquivo copiado para `alvos/<slug>/`, caminho relativo a essa pasta e SHA-256 completo medido na triagem. O gate só admite arquivo que esteja nessa tabela e com o mesmo hash; tool que recebe um diretório confere cada arquivo dele. Nunca preencha a tabela com o hash do arquivo atual sem conferir com a triagem.
+6. Se aprovado, grave o slug em `registros/ALVO_ATIVO` e crie `registros/<slug>/01-analise.md` a partir do modelo.
+7. Commit local: `docs: security protocol for <slug>`.
 
 Só altere `status` ou `niveis_aprovados` com aprovação explícita do responsável na conversa.
 
@@ -106,3 +107,4 @@ Quando o gate bloquear uma tool fora do plano:
 2. Respeite os limites da classe de confiança. Se o nível estiver proibido para a classe, informe e não peça.
 3. Se aprovado, acrescente o nível a `niveis_aprovados` e uma linha na seção "Adendos" (data, tool, nível, motivo, aprovação).
 4. Se o adendo muda o tipo, o objetivo ou o escopo do alvo, recalcule a seção 7 (catálogo, C9) e anote a data em "Recalculado em". Um nível novo aprovado tira do "por adendo" os recursos daquele nível.
+5. Quando o gate bloquear por identidade (arquivo sem hash registrado em `alvos/<slug>/`), o adendo aprovado acrescenta à seção 8 o arquivo novo, com o SHA-256 conferido na origem, e anota a cópia na seção "Adendos". Hash divergente de um arquivo já registrado não se resolve por adendo: o conteúdo mudou depois da aprovação, e versão nova abre protocolo novo.
