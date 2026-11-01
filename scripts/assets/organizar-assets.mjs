@@ -13,6 +13,8 @@
 //        <destino>/_catalogo/catalogo.json, catalogo.csv, resumo.md
 // Regras do projeto: destino em saidas/<slug>/ (fora do git). Não executa nada da origem;
 // não segue links simbólicos/junções.
+// Código de saída: 0 tudo certo · 1 lote com problema por item (conflito, falhou, invalido),
+// com catálogo gravado · 2 uso errado ou erro fatal (origem ilegível, destino não gravável).
 import { createReadStream, promises as fs } from "node:fs";
 import { createHash } from "node:crypto";
 import { join, relative, dirname, extname, resolve, sep } from "node:path";
@@ -37,12 +39,27 @@ if (DESTINO === ORIGEM || DESTINO.startsWith(ORIGEM + sep)) {
   console.error("O destino não pode ficar dentro da origem.");
   process.exit(2);
 }
+// Erros de configuração param o lote antes da varredura: uma origem ilegível não pode virar
+// um catálogo vazio com aparência de sucesso.
+const fatal = (msg, e) => {
+  console.error(`${msg}${e ? ` (${e.code ?? "erro"}: ${e.message})` : ""}`);
+  process.exit(2);
+};
+const infoOrigem = await fs.stat(ORIGEM).catch((e) => fatal(`Origem inacessível: ${ORIGEM}`, e));
+if (!infoOrigem.isDirectory()) fatal(`A origem não é uma pasta: ${ORIGEM}`);
+await fs.readdir(ORIGEM).catch((e) => fatal(`Origem ilegível: ${ORIGEM}`, e));
+const pastaCat = join(DESTINO, "_catalogo");
+await fs.mkdir(pastaCat, { recursive: true }).catch((e) => fatal(`Destino não gravável: ${DESTINO}`, e));
+
+// Conteúdo reconhecido, mas com estrutura inconsistente (cabeçalho truncado, chunk maior que o
+// arquivo). O item fica no catálogo como "invalido" e não é gravado no destino.
+class Invalido extends Error {}
 
 // ---------- identificação por conteúdo ----------
 const ascii = (b, start, len) => b.subarray(start, start + len).toString("latin1");
 const has = (b, start, bytes) => bytes.every((v, i) => b[start + i] === v);
 
-/** @returns {{tipo: string, formato: string}} */
+/** @returns {{tipo: string, formato: string, invalido?: string}} */
 function identificar(head, ext) {
   const a4 = ascii(head, 0, 4);
   const riffType = a4 === "RIFF" || a4 === "RIFX" ? ascii(head, 8, 4) : "";
@@ -63,6 +80,9 @@ function identificar(head, ext) {
 
   // Áudio (e bancos de áudio)
   if (riffType === "WAVE") {
+    // O codec fica no offset 20 (primeiro campo do chunk fmt); sem esses bytes não há como ler.
+    if (head.length < 22)
+      return { tipo: "audio", formato: ext === ".wem" ? "wem (Wwise)" : "wav", invalido: `cabeçalho RIFF/WAVE truncado: ${head.length} bytes (mínimo 22)` };
     const codec = a4 === "RIFX" ? head.readUInt16BE(20) : head.readUInt16LE(20);
     if (a4 === "RIFX" || codec === 0xffff || ext === ".wem") return { tipo: "audio", formato: "wem (Wwise)" };
     if (codec === 0x0165 || codec === 0x0166) return { tipo: "audio", formato: "xma" };
@@ -196,25 +216,33 @@ function metadados(head, formato) {
   } catch {}
   return "";
 }
-async function duracaoWav(path) {
-  // percorre os chunks até achar fmt e data
+async function duracaoWav(path, tamanho) {
+  // Percorre os chunks até achar fmt e data. Chunk que passa do fim do arquivo, fmt curto
+  // demais ou WAVE sem fmt/data tornam o item inválido.
   const fh = await fs.open(path, "r");
   try {
-    const hdr = Buffer.alloc(12);
-    await fh.read(hdr, 0, 12, 0);
-    let pos = 12, byteRate = 0;
+    let pos = 12, byteRate = 0, temFmt = false;
     const ch = Buffer.alloc(8);
     for (let n = 0; n < 64; n++) {
       const { bytesRead } = await fh.read(ch, 0, 8, pos);
-      if (bytesRead < 8) break;
+      if (bytesRead === 0) break;
+      if (bytesRead < 8) throw new Invalido(`cabeçalho de chunk truncado no byte ${pos}`);
       const id = ch.toString("latin1", 0, 4), size = ch.readUInt32LE(4);
+      const restam = tamanho - pos - 8;
+      if (size > restam) throw new Invalido(`chunk '${id}' declara ${size} bytes, mas restam ${restam}`);
       if (id === "fmt ") {
+        if (size < 16) throw new Invalido(`chunk fmt com ${size} bytes (mínimo 16)`);
         const f = Buffer.alloc(16);
         await fh.read(f, 0, 16, pos + 8);
         byteRate = f.readUInt32LE(8);
-      } else if (id === "data" && byteRate > 0) return `${(size / byteRate).toFixed(2)} s`;
+        temFmt = true;
+      } else if (id === "data") {
+        if (!temFmt) throw new Invalido("chunk data antes do chunk fmt");
+        return byteRate > 0 ? `${(size / byteRate).toFixed(2)} s` : "";
+      }
       pos += 8 + size + (size % 2);
     }
+    if (pos >= tamanho) throw new Invalido(temFmt ? "sem chunk data" : "sem chunk fmt");
   } finally {
     await fh.close();
   }
@@ -222,12 +250,20 @@ async function duracaoWav(path) {
 }
 
 // ---------- varredura ----------
+// Pasta interna ilegível não para a varredura: vira um item "falhou" com o motivo.
 async function* percorrer(dir) {
-  for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
+  let entries;
+  try {
+    entries = await fs.readdir(dir, { withFileTypes: true });
+  } catch (e) {
+    yield { path: dir, erro: e };
+    return;
+  }
+  for (const entry of entries) {
     const full = join(dir, entry.name);
     if (entry.isSymbolicLink()) continue; // não segue links/junções
     if (entry.isDirectory()) yield* percorrer(full);
-    else if (entry.isFile()) yield full;
+    else if (entry.isFile()) yield { path: full };
   }
 }
 const sha256 = (path) =>
@@ -250,7 +286,9 @@ const PASTA = { "3d": "3d", imagem: "imagens", audio: "audio", video: "video" };
 // Grava no destino sem nunca sobrescrever. Destino já existente só é reaproveitado se tiver
 // o mesmo conteúdo; com conteúdo diferente fica como está e o item vira "conflito" (o
 // catálogo não pode afirmar um hash que o arquivo do destino não tem).
-// Estados: copiado | movido | reutilizado | conflito | falhou.
+// Estados de gravação: copiado | movido | reutilizado | conflito | falhou. Antes dela, o item
+// pode ficar como simulado, duplicata, invalido (conteúdo inconsistente) ou falhou (erro de
+// leitura, identificação ou hash); o campo erro começa pela etapa que falhou.
 async function gravar(path, alvo, item) {
   try {
     await fs.mkdir(dirname(alvo), { recursive: true });
@@ -265,7 +303,7 @@ async function gravar(path, alvo, item) {
   } catch (e) {
     if (e.code !== "EEXIST") {
       item.estado = "falhou";
-      item.erro = `${e.code ?? "erro"}: ${e.message}`;
+      item.erro = `gravação: ${e.code ?? "erro"}: ${e.message}`;
       return;
     }
   }
@@ -273,7 +311,7 @@ async function gravar(path, alvo, item) {
     item.sha256_destino = await sha256(alvo);
   } catch (e) {
     item.estado = "falhou";
-    item.erro = `destino existente ilegível: ${e.message}`;
+    item.erro = `gravação: destino existente ilegível: ${e.message}`;
     return;
   }
   item.estado = item.sha256_destino === item.sha256 ? "reutilizado" : "conflito";
@@ -282,22 +320,39 @@ async function gravar(path, alvo, item) {
 
 const catalogo = [];
 const vistos = new Map();
-for await (const path of percorrer(ORIGEM)) {
+const novoItem = (rel) => ({ caminho_original: rel.split(sep).join("/"), tipo: "", formato: "", tamanho: "", sha256: "", categoria: "", destino: "", duplicata_de: "", info: "", acao: "", estado: "", sha256_destino: "", erro: "" });
+for await (const { path, erro } of percorrer(ORIGEM)) {
   const rel = relative(ORIGEM, path);
-  const { size } = await fs.stat(path);
-  const head = await lerInicio(path);
-  const ext = extname(path).toLowerCase();
-  const { tipo, formato } = identificar(head, ext);
-  const item = { caminho_original: rel.split(sep).join("/"), tipo, formato, tamanho: size, sha256: "", categoria: "", destino: "", duplicata_de: "", info: "", acao: "", estado: "", sha256_destino: "", erro: "" };
+  const item = novoItem(rel);
+  catalogo.push(item);
+  if (erro) {
+    item.estado = "falhou";
+    item.erro = `listagem da pasta: ${erro.code ?? "erro"}: ${erro.message}`;
+    continue;
+  }
+  let etapa = "leitura";
+  try {
+    item.tamanho = (await fs.stat(path)).size;
+    const head = await lerInicio(path);
+    const ext = extname(path).toLowerCase();
+    etapa = "identificação";
+    const { tipo, formato, invalido } = identificar(head, ext);
+    Object.assign(item, { tipo, formato });
 
-  if (tipo === "conteiner") {
-    item.acao = `extrair com: ${FERRAMENTA[formato] ?? "ferramenta da engine"}`;
-  } else if (tipo === "outro") {
-    item.acao = "ignorado";
-  } else {
+    if (tipo === "conteiner") {
+      item.acao = `extrair com: ${FERRAMENTA[formato] ?? "ferramenta da engine"}`;
+      continue;
+    }
+    if (tipo === "outro") {
+      item.acao = "ignorado";
+      continue;
+    }
+    etapa = "hash";
     item.sha256 = await sha256(path);
     item.categoria = categorizar(tipo, rel);
-    item.info = formato === "wav" ? await duracaoWav(path) : metadados(head, formato);
+    etapa = "validação";
+    if (invalido) throw new Invalido(invalido);
+    item.info = formato === "wav" ? await duracaoWav(path, item.tamanho) : metadados(head, formato);
     if (CONVERSAO[formato]) item.acao = `converter: ${CONVERSAO[formato]}`;
     if (vistos.has(item.sha256)) {
       item.duplicata_de = vistos.get(item.sha256);
@@ -309,28 +364,35 @@ for await (const path of percorrer(ORIGEM)) {
       if (simular) item.estado = "simulado";
       else await gravar(path, alvo, item);
     }
+  } catch (e) {
+    // Erro de um item não derruba o lote: fica registrado e a varredura continua.
+    if (e instanceof Invalido) {
+      item.estado = "invalido";
+      item.erro = `${etapa}: ${e.message}`;
+    } else {
+      item.estado = "falhou";
+      item.erro = `${etapa}: ${e.code ?? "erro"}: ${e.message}`;
+    }
   }
-  catalogo.push(item);
 }
 
 // ---------- catálogo e resumo ----------
-const pastaCat = join(DESTINO, "_catalogo");
-await fs.mkdir(pastaCat, { recursive: true });
-await fs.writeFile(join(pastaCat, "catalogo.json"), JSON.stringify({ origem: ORIGEM, gerado_em: new Date().toISOString(), simulado: simular, itens: catalogo }, null, 2));
+const gravarCatalogo = (nome, conteudo) => fs.writeFile(join(pastaCat, nome), conteudo).catch((e) => fatal(`Não foi possível gravar ${join(pastaCat, nome)}`, e));
+await gravarCatalogo("catalogo.json", JSON.stringify({ origem: ORIGEM, gerado_em: new Date().toISOString(), simulado: simular, itens: catalogo }, null, 2));
 const cols = ["caminho_original", "tipo", "formato", "categoria", "tamanho", "info", "sha256", "destino", "duplicata_de", "acao", "estado", "sha256_destino", "erro"];
 const csvCell = (v) => (/[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
-await fs.writeFile(join(pastaCat, "catalogo.csv"), [cols.join(","), ...catalogo.map((i) => cols.map((c) => csvCell(i[c])).join(","))].join("\n") + "\n");
+await gravarCatalogo("catalogo.csv", [cols.join(","), ...catalogo.map((i) => cols.map((c) => csvCell(i[c])).join(","))].join("\n") + "\n");
 
 const conta = (fn) => catalogo.reduce((m, i) => { const k = fn(i); if (k) m[k] = (m[k] ?? 0) + 1; return m; }, {});
 const tabela = (obj, a, b) => [`| ${a} | ${b} |`, "|---|---|", ...Object.entries(obj).sort((x, y) => y[1] - x[1]).map(([k, v]) => `| ${k} | ${v} |`)].join("\n");
-const assets = catalogo.filter((i) => !["conteiner", "outro"].includes(i.tipo));
+const assets = catalogo.filter((i) => PASTA[i.tipo]);
 const conteineres = catalogo.filter((i) => i.tipo === "conteiner");
 const resumo = [
   `# Resumo de assets`,
   ``,
   `- Origem: \`${ORIGEM}\``,
   `- Modo: ${simular ? "simulação (nada copiado)" : mover ? "mover" : "copiar"}`,
-  `- Arquivos vistos: ${catalogo.length} · assets: ${assets.length} (únicos: ${assets.filter((i) => !i.duplicata_de).length}, duplicatas: ${assets.filter((i) => i.duplicata_de).length}) · contêineres: ${conteineres.length} · outros: ${catalogo.filter((i) => i.tipo === "outro").length}`,
+  `- Arquivos vistos: ${catalogo.length} · assets: ${assets.length} (únicos: ${assets.filter((i) => !i.duplicata_de).length}, duplicatas: ${assets.filter((i) => i.duplicata_de).length}) · contêineres: ${conteineres.length} · outros: ${catalogo.filter((i) => i.tipo === "outro").length}${catalogo.some((i) => !i.tipo) ? ` · sem leitura: ${catalogo.filter((i) => !i.tipo).length}` : ""}`,
   ``,
   `## Por tipo`,
   tabela(conta((i) => (i.tipo === "outro" ? "" : i.tipo)), "Tipo", "Arquivos"),
@@ -350,24 +412,24 @@ const resumo = [
     : "Nenhuma.",
   ``,
 ].join("\n");
-const problemas = catalogo.filter((i) => i.estado === "conflito" || i.estado === "falhou");
+const problemas = catalogo.filter((i) => ["conflito", "falhou", "invalido"].includes(i.estado));
 const gravacao = [
   `## Gravação`,
   tabela(conta((i) => i.estado), "Estado", "Arquivos"),
   ``,
   ...(problemas.length
     ? [
-        `### Conflitos e falhas (destino não alterado)`,
-        "| Destino | Estado | Detalhe |",
+        `### Conflitos, falhas e arquivos inválidos (destino não alterado)`,
+        "| Arquivo | Estado | Detalhe |",
         "|---|---|---|",
-        ...problemas.map((i) => `| ${i.destino} | ${i.estado} | ${i.estado === "conflito" ? `origem ${i.sha256.slice(0, 12)}… ≠ destino ${i.sha256_destino.slice(0, 12)}…` : i.erro} |`),
+        ...problemas.map((i) => `| ${i.destino || i.caminho_original} | ${i.estado} | ${i.estado === "conflito" ? `origem ${i.sha256.slice(0, 12)}… ≠ destino ${i.sha256_destino.slice(0, 12)}…` : i.erro} |`),
         ``,
       ]
     : []),
 ].join("\n");
-await fs.writeFile(join(pastaCat, "resumo.md"), `${resumo}\n${gravacao}`);
+await gravarCatalogo("resumo.md", `${resumo}\n${gravacao}`);
 console.log(`${resumo}\n${gravacao}`);
 if (problemas.length) {
-  console.error(`\n${problemas.length} arquivo(s) em conflito ou com falha. Use um --destino vazio ou resolva os conflitos listados em ${join(pastaCat, "resumo.md")}.`);
+  console.error(`\n${problemas.length} arquivo(s) em conflito, com falha ou inválido(s); o catálogo foi gravado. Veja a lista em ${join(pastaCat, "resumo.md")}: conflito pede --destino vazio ou decisão sobre a versão; falhou e invalido pedem tratamento do arquivo de origem.`);
   process.exit(1);
 }

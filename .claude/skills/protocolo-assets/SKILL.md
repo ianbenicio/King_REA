@@ -71,6 +71,14 @@ saidas/<slug>/assets/
 - A categoria é **inferida pelo caminho** (nomes de pasta e arquivo); prioridade: UI antes de armas e personagens. Revisar `outros`: cada jogo tem nomes próprios; se o responsável quiser, refinar com regras específicas do jogo e reorganizar.
 - Duplicatas (mesmo SHA-256) ficam só no catálogo, apontando para o original.
 - Reexecutar é seguro: nunca sobrescreve. Destino com o mesmo conteúdo fica como `reutilizado`; com conteúdo diferente, o item fica como `conflito` (destino preservado, `sha256_destino` no catálogo), o resumo lista os conflitos e o script sai com código 1. Resolver o conflito (destino novo e vazio, ou decidir qual versão vale) antes de registrar o inventário.
+- Arquivo com problema não derruba o lote. Cada item recebe um estado, e o campo `erro` começa pela etapa que falhou (`listagem da pasta`, `leitura`, `identificação`, `hash`, `validação`, `gravação`):
+
+  | Estado | Quando | O que fazer |
+  |---|---|---|
+  | `invalido` | Conteúdo reconhecido, mas inconsistente: WAV com cabeçalho truncado (menos de 22 bytes), chunk maior que o arquivo, `fmt` curto, WAVE sem `fmt` ou `data`. O item tem tipo, formato, tamanho e SHA-256, mas não é gravado no destino | Tratar o arquivo de origem (extração incompleta, outro formato com a mesma assinatura) e reexecutar |
+  | `falhou` | Erro de leitura, hash ou gravação, ou pasta interna ilegível | Ver a mensagem; corrigir permissão ou bloqueio e reexecutar |
+
+  O catálogo (JSON, CSV e resumo) é gravado mesmo assim, e o resumo lista esses itens junto com os conflitos. Códigos de saída: **0** tudo certo; **1** algum item em `conflito`, `falhou` ou `invalido`, com catálogo gravado; **2** uso errado ou erro fatal (origem inexistente, ilegível ou que não é pasta; destino não gravável), sem catálogo. Um código 2 nunca é um lote vazio. Registrar no `04-assets.md` os itens inválidos que ficaram sem tratamento.
 
 ## 5. Verificação
 
