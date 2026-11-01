@@ -31,7 +31,7 @@ Este documento descreve **o que** o Ultima Online fazia na era T2A, em palavras 
 |---|---|---|
 | Era | T2A | Regras até 2000-05-04. Trammel, Renaissance e Age of Shadows ficam FORA [M1][M15] |
 | Assets | Modelo misto (2026-10-28): conteúdo próprio como base e leitura opcional da cópia instalada em tempo de execução, como o ClassicUO, sem redistribuir. A Fase 0 tinha só a leitura da cópia | Seção 3. Placeholders até o cliente existir. Risco legal na seção 17 |
-| Nome | "Outrora" (proposto na Fase 0) | O PRKing_UO adota ou não. Nunca "Ultima", "Ultima Online" nem "Britannia" [E93][E96] |
+| Nome | "Outrora" (proposto na Fase 0; adotado pelo responsável em 2026-11-01, seção 17) | O PRKing_UO usa esse nome. Nunca "Ultima", "Ultima Online" nem "Britannia" [E93][E96] |
 | Unity | 6.6 (6000.6.7f1), decisão de 2026-10-28 que substitui a 2022.3 LTS da Fase 0 | O PRKing_UO hoje diz Unity 6.3 LTS: divergência listada no Anexo A. A 6.6 não é LTS (ver A19) |
 | Primeira versão jogável | Loop básico | Mundo isométrico navegável; stats e skills com ganho; combate corpo a corpo contra criaturas com IA simples; loot; morte e ressurreição; uma cidade com vendedor e banco; dia e noite; salvar e carregar |
 
@@ -117,7 +117,7 @@ O jogo combina as duas origens: **conteúdo próprio como base**, que é o padr�
 5. **Regras e números são sempre próprios.** As tabelas de regras da seção "Modelo numérico" valem nas duas origens. Da instalação vêm só gráfico, geometria do mapa e flags de tile, convertidas para o conjunto de flags próprio.
 6. **Testes com dados da instalação são só locais.** São pulados quando a instalação não existe e nunca viram fixture versionada nem rodam na integração contínua.
 
-**Pendente:** distribuir para outras pessoas um build com o leitor habilitado é decisão separada do responsável, depois de reavaliar a seção 17. Até lá, o leitor vale só para uso pessoal na máquina dele.
+**Pendente:** distribuir para outras pessoas um build com o leitor habilitado é decisão separada do responsável, depois de reavaliar a seção 17. Até lá, o leitor vale só para uso pessoal na máquina dele. *Adendo de 2026-11-01:* reavaliado (seção 17, adendo). O leitor fica aceito só para uso pessoal, e nenhum build sai da máquina por ora.
 
 ### 3.1 Localizar a instalação
 
@@ -666,9 +666,11 @@ Resumo para versões futuras, detalhes em [W] §6:
 - A reimplementação **DEVE** salvar e carregar o estado autoritativo da simulação (entidades, timers com tempo restante, relógio do mundo, semente do sorteio), nunca o estado visual (inferência a partir de [E39][E40]).
 - Nada lido da instalação do jogador **DEVE** ir para o save; o save guarda só identificadores (inferência; seção 17).
 
-## 16. Decisões pendentes (para o responsável)
+## 16. Decisões do responsável
 
-| # | Decisão | Opções e fontes | Recomendação |
+> **Adendo — decididas em 2026-11-01.** O responsável aceitou, na conversa, as 11 recomendações abaixo. Elas passam a valer como **DEVE**. A D3 continua adiada, como diz a própria recomendação: será decidida antes da magia, na segunda versão. As alternativas de D5, D6, D9 e D11 que a recomendação marca como configuráveis ficam como dado, não como código.
+
+| # | Decisão | Opções e fontes | Recomendação (aceita em 2026-11-01) |
 |---|---|---|---|
 | D1 | Ponto de referência dentro do T2A | lançamento (out/1998), mar/2000, ou "pré-AOS final" do emulador | mar/2000, com números do emulador onde não houver oficial (inferência) |
 | D2 | Vida máxima | 50 + força/2 [M19][M45] ou força (sem fonte) | 50 + força/2 |
@@ -683,6 +685,15 @@ Resumo para versões futuras, detalhes em [W] §6:
 | D11 | Tempo de corpos e itens no chão | 7 + 7 min e 1 h do emulador, ou 15 min e "minutos" do original [W84][W87][W27][W85] | corpos 7 + 7 min; itens 1 h (configurável) |
 
 ## 17. Riscos legais e de licença (não é parecer jurídico)
+
+> **Adendo — reavaliação do responsável (2026-11-01).** Decisões tomadas na conversa:
+>
+> 1. **Leitor da instalação: aceito, só para uso pessoal.** O leitor opcional da seção 3.0 pode existir, desligado por padrão, e roda só na máquina do responsável, lendo a cópia dele em tempo de execução. Valem todas as regras da seção 3.0: nada da EA no git, no build, no save ou em capturas versionadas. O risco dos termos descrito abaixo foi aceito para esse uso, e só para ele.
+> 2. **Distribuição: nada sai da máquina por ora.** Nenhum build é compartilhado, com ou sem o leitor, até uma nova avaliação do responsável. O repositório do PRKing_UO pode ser público, desde que contenha só código e conteúdo próprios.
+> 3. **Nome: "Outrora" adotado.** Nunca "Ultima", "Ultima Online" nem "Britannia", no produto, no repositório ou no material de divulgação.
+> 4. **Mitigações do precedente FreeSO mantidas como DEVE:** nenhuma marca da EA, nenhuma monetização (nem doação ligada ao jogo) e nenhum porte para outras plataformas sem nova avaliação.
+>
+> Com isso, a ressalva do D8 ("reavaliar com a seção 17") fica atendida: o recorte do mapa real vale para uso pessoal. Para qualquer build compartilhado no futuro, o mundo precisa vir do conteúdo próprio.
 
 - **Termos do UO:** cópias de fórum dos termos proíbem emuladores e ferramentas "derivadas de ou criadas para" o UO sem autorização escrita da EA, e jogar fora do serviço [E86]. Um jogo que lê os arquivos do cliente para oferecer outra forma de jogar se aproxima dessa cláusula (inferência) [E] §6.6. O texto oficial atual não foi lido (lacuna). O `00-seguranca.md` aceitou o risco da §2 dos termos só para análise estática; **a decisão de assets da Fase 0 amplia esse uso e precisa de nova avaliação do responsável.**
 - **Precedente FreeSO (2017):** motor que lia os arquivos do usuário, sem distribuir assets, recebeu pedido da EA centrado em marca, doações e porte para outras plataformas [E84]. Mitigação: nome próprio, nenhuma marca da EA no produto, sem monetização, cautela com outras plataformas.
