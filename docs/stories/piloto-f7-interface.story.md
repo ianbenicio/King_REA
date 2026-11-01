@@ -261,7 +261,7 @@ Script e saídas estão na pasta de notas da sessão-mãe, fora do repositório.
 | 6 | `problemasToque` não cobre a confirmação nem o toque duplo | corrigido na iteração 1 do QA loop |
 | 7 | Fechar do intersticial oculto por 5 s sem a duração informada (ambiguidade com MON-0021) | corrigido na iteração 1 do QA loop |
 | 8 | Fundo da recusa diferente do da ação principal ("destaque" do MON-0009) | corrigido na iteração 1 do QA loop |
-| 9 | `desenho.mjs` refaz o canvas e o DOM a cada redesenho | adiado pelo responsável (baixo) |
+| 9 | `desenho.mjs` refaz o canvas e o DOM a cada redesenho | encerrado sem correção pelo responsável em 2026-11-01 (baixo; o piloto já validou o método) |
 
 **Semgrep:**
 - `npm run semgrep`: 0 achados em 18 arquivos.
@@ -369,3 +369,4 @@ Script e saídas estão na pasta de notas da sessão-mãe, fora do repositório.
 | 2026-10-24 | @qa | Re-review: verificado no navegador embutido; demo do construtor ajustada à janela de toque; propostas 1 a 9 aplicadas com aprovação. Gate PASS (achado 9 adiado pelo responsável); status InReview → Done |
 | 2026-10-26 | @qa | Retomada depois da queda por limite de uso: estado conferido (alvos intactos; @dev completo), testes e navegador verificados de novo, nota no Engram, commits locais |
 | 2026-10-26 | @qa | Semgrep rodado de novo depois que o Docker voltou: 0 achados, `semgrep:test` 6/6 e `semgrep:mutacoes` 7/7 |
+| 2026-11-01 | sessão principal | Pendências encerradas sem fazer, por decisão do responsável ("Sim, nessa ordem", passo 4 do fechamento do REA): achado 9 e melhorias 6 e 9 do benchmark do `encaixe-2`. O piloto já validou o método; essas mudanças só melhorariam o produto de teste |

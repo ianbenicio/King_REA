@@ -143,10 +143,10 @@ Ordenadas por impacto ÷ esforço.
 | 3 | Aviso de duração no intersticial desde o início, ou fechar imediato | MON-0021 | médio | baixo | já aplicado no produto (`f368265`); [R10][R11] |
 | 4 | Janela de toque em toda troca de tela | toque acidental | médio | baixo | já aplicado no produto (`f368265`) |
 | 5 | Recusa com o mesmo estilo de preenchimento do aceite | MON-0009, regra 2 | baixo | baixo | já aplicado no produto (`f368265`); definição v3 do catálogo |
-| 6 | Mostrar a duração do rewarded ("Recompensa em N s") | duração não informada | baixo | baixo | 05 seção 5 |
+| 6 | Mostrar a duração do rewarded ("Recompensa em N s") | duração não informada | baixo | baixo | 05 seção 5; encerrada sem aplicar em 2026-11-01 (decisão do responsável) |
 | 7 | Grade e peças como botões no DOM, jogáveis pelo teclado | acessibilidade, testabilidade | médio | médio | já aplicado no produto (`f368265`); alvos ≥ 24×24 px [R12] |
 | 8 | Interface falando só com a sessão | arquitetura | baixo | médio | já aplicado no produto (`f368265`) |
-| 9 | Avaliar tirar as vidas, como fez o 1010! | fricção (MON-0011, B) | médio | médio | [R3] |
+| 9 | Avaliar tirar as vidas, como fez o 1010! | fricção (MON-0011, B) | médio | médio | [R3]; encerrada sem aplicar em 2026-11-01 (decisão do responsável) |
 
 ## 7. Referências
 
