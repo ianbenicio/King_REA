@@ -1,6 +1,6 @@
 # Relatório de estado — PRKing_REA em 2026-11-02
 
-**Data:** 2026-11-02 (atualizado depois da E2-4a) · **Branch:** `main` @ `694cc9a` + handoff da E2-4a, 4 commits locais à frente do `origin/main` (push pendente, pelo @devops) · **Testes:** `npm test` 203/203 · **Árvore:** limpa · **Repositório:** público (`ianbenicio/King_REA`)
+**Data:** 2026-11-02 (atualizado depois da E2-4b) · **Branch:** `main` @ `c6ea5b7` + handoff da E2-4b, 4 commits locais à frente do `origin/main` @ `841788f` (push pendente, pelo @devops) · **Testes:** `npm test` 203/203 · **Árvore:** limpa · **Repositório:** público (`ianbenicio/King_REA`)
 
 Este relatório reúne as demandas e os requisitos que estão abertos hoje, conferidos contra o git, as stories, os planos e os handoffs. Ele serve de entrada para a próxima sessão de construção do REA (prompt em [`2026-11-02-prompt-continuidade.md`](2026-11-02-prompt-continuidade.md)).
 
@@ -30,8 +30,8 @@ Ordem pela §3 do plano de evolução. Tamanho: P localizada, M vários arquivos
 | E2-2 | MEL-03 fatia 2: auditar e escolher lint e checagem de tipos (ferramenta nova exige auditoria e versão fixada) | MEL-03 | M | E2-1 | sim: aprovar a ferramenta |
 | E2-3 | MEL-04: módulo de publicação compartilhado entre `pre-commit` e CI | MEL-04 | M | E2-1 | sim: detector de segredos externo ou não |
 | E2-4a | ~~MEL-08 local: agregador (AC7) e sonda WPF (AC8)~~ **Feita em 2026-11-02** ([handoff](2026-11-02-e2-4a-mel08-local.md)); story MEL-08 em InProgress | MEL-08 | — | — | não |
-| E2-4b | MEL-08 local: auditoria das actions (AC9), só leitura e registro de versão e SHA | MEL-08 | P | E2-1 | não |
-| E2-5 | MEL-08 ativação: workflow em `.github/`, PRs com falha plantada, proteção de branch | MEL-08 | M | E2-3, E2-4b | sim: ativar CI, Semgrep no Ubuntu hospedado, proteção de branch, runner próprio (desenho §9); push pelo @devops |
+| E2-4b | ~~MEL-08 local: auditoria das actions (AC9)~~ **Feita em 2026-11-02:** cinco actions auditadas, SHAs fixados no documento, QA PASS ([handoff](2026-11-02-e2-4b-auditoria-actions.md), [auditoria](../seguranca/auditoria-actions-ci.md)); ponto de controle da fatia 1 atingido | MEL-08 | — | — | não |
+| E2-5 | MEL-08 ativação: workflow em `.github/`, PRs com falha plantada, proteção de branch | MEL-08 | M | E2-3 | sim: ativar CI, Semgrep no Ubuntu hospedado, proteção de branch, runner próprio (desenho §9), mecanismo do cache do NuGet (QA-E24B-01); push pelo @devops |
 | E2-6 | Clone limpo real (nunca exercitado: mesma máquina, `node_modules` já instalado); virou o AC6 da MEL-03 | MEL-03 | P | E2-2 | não |
 
 Condição para encerrar a etapa 2: clone limpo executa as verificações e a CI publica resultado agregado fiel.
@@ -87,7 +87,7 @@ Registradas para não se perderem; o trabalho acontece no PRKing_UO, em sessão 
 
 1. ~~**E2-1** (validação @po)~~: feita em 2026-11-02; E2-2 a E2-5 destravadas.
 2. **M-1 para o `uo-classic`**, se o PRKing_UO for mandar perguntas que exijam o binário; senão, deixar para quando o alvo voltar a ser usado.
-3. ~~**E2-4a**~~ (feita em 2026-11-02); **E2-4b** (auditoria das actions), que não depende de decisão.
+3. ~~**E2-4a**~~ e ~~**E2-4b**~~ (feitas em 2026-11-02). Não sobra unidade da etapa 2 sem decisão pendente.
 4. **E2-2** e **E2-3**, cada uma com a decisão de ferramenta tomada antes de começar.
 5. **E2-5** (ativação da CI), com as decisões do desenho §9.
 6. Depois da etapa 2: etapa 3, começando pela MEL-05.
