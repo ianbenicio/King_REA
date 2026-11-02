@@ -15,6 +15,7 @@
     "scripts/tipos/node-minimo.d.ts",
     ".claude/hooks/rea-gate.mjs",
     ".claude/hooks/cli-gate.mjs",
-    "scripts/monetizacao/verificar-perfis.mjs"
+    "scripts/monetizacao/verificar-perfis.mjs",
+    "scripts/publicacao/publicacao.mjs"
   ]
 }

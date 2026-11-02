@@ -1,33 +1,32 @@
-# Plano de execução — etapa 2 do plano de evolução: MEL-03 fatia 2, lint e tipos (E2-2)
+# Plano de execução — etapa 2 do plano de evolução: MEL-04, publicação compartilhada (E2-3)
 
 <!--
-Saída da Fase 0 (Harness D5, D30; skill fase-0). Unidade E2-2 do relatório de estado
-docs/handoffs/2026-11-02-estado-geral.md. O plano anterior (E2-4b, auditoria das actions) está em
-docs/planos/2026-11-02-e2-4b-auditoria-actions.md.
+Saída da Fase 0 (Harness D5, D30; skill fase-0). Unidade E2-3 do relatório de estado
+docs/handoffs/2026-11-02-estado-geral.md. O plano anterior (E2-2, lint e tipos) está em
+docs/planos/2026-11-02-e2-2-lint-tipos.md.
 -->
 
-**Data:** 2026-11-02 · **Sessão:** `0da91073` (aberta pela sessão `local_c49d87ce`) · **Projeto:** PRKing_REA · **Branch/commit:** `main` @ `a24971e`, igual ao `origin/main` (`0 0`)
+**Data:** 2026-11-02 · **Sessão:** `c237632e` (aberta pela sessão `local_c49d87ce`) · **Projeto:** PRKing_REA · **Branch/commit:** `main` @ `ffd8886`, igual ao `origin/main` (`0 0`)
 
 ## 0. Sessão concorrente
 
-Nenhuma escrevendo. `sessao.js --lista 5`: esta (17:48), e as sessões das 17:27, 17:00 e 12:19, que são as ligadas da família (`local_c49d87ce` e filhas), todas ociosas pelo app; a E2-4b deixou handoff (`2026-11-02-e2-4b-auditoria-actions.md`). `git status`: só `.claude/agent-memory/`, fora do git. Estado real igual ao relatório: `npm test` 203/203.
+Nenhuma escrevendo. `sessao.js --lista 5`: esta (18:32) e as sessões das 17:48, 17:27, 17:00 e 13:00, da mesma família (`local_c49d87ce` e filhas), todas ociosas pelo app; a E2-2 deixou handoff (`2026-11-02-e2-2-lint-tipos.md`). `git status`: só `.claude/agent-memory/`, fora do git.
 
 ## 1. Enquadramento
 
-**Objetivo:** fechar o AC4a (lint) e o AC4b (tipos) da MEL-03 com Biome e TypeScript (`checkJs`), auditados, fixados e ligados como componentes `lint` e `tipos` do `npm run verificar`; AC6 (clone limpo real) se couber.
+**Objetivo:** tirar a política de publicação de `.githooks/pre-commit.mjs` para `scripts/publicacao/`, com a mesma decisão no hook e na entrada da CI, mais caminhos proibidos, regras próprias de segredo e exceções versionadas; auditar o gitleaks e, se aprovado, ligá-lo como componente opcional.
 
-**Restrições:** decisão do responsável de 2026-11-02 (Biome; `tsc --noEmit` com `checkJs`, JSDoc só nos módulos de política); auditoria com problema → parar e perguntar; nenhuma tool `rea`/`ghidra`, nada em `alvos/`; hooks sem mudança de comportamento (só JSDoc e correções apontadas, testes dos gates verdes); nada ativo em `.github/`; nenhuma outra ferramenta nova; commits locais, push só pelo @devops com autorização.
+**Restrições:** política nova igual ou mais estrita, nunca `--no-verify`; nada ativo em `.github/`; binário do gitleaks fora do git, com hash; nenhuma tool `rea`/`ghidra`, nada em `alvos/`; fixtures de segredo montadas em tempo de teste; commits locais, push só pelo @devops com autorização.
 
-**Perfil do projeto:** domínio laboratório de engenharia reversa e processo de qualidade · stack Node 26 ESM (scripts, hooks), C# .NET 10 · integrações registro npm (só leitura de metadados e tarballs) · UI não · dados sensíveis nenhum · fase AIOX implementação (story MEL-03 Ready → InProgress) · complexidade STANDARD.
+**Perfil do projeto:** domínio laboratório de engenharia reversa e processo de qualidade · stack Node 26 ESM · integrações GitHub releases (só leitura, para a auditoria) · UI não · dados sensíveis nenhum (só fixtures sintéticas) · fase AIOX implementação (MEL-04 Ready → InProgress) · complexidade STANDARD.
 
 **Dúvidas:**
 
 | Dúvida | Resolvida? | Resposta / quando resolver |
 |---|---|---|
-| Qual ferramenta? | sim | Biome e TypeScript, decisão do responsável na conversa da sessão principal (2026-11-02) |
-| Qual versão? | sim | Política da auditoria do Semgrep: última da linha maior atual com pelo menos duas semanas de publicação |
-| Escopo dos tipos | sim | `checkJs` por lista explícita de arquivos (módulos de política), não o repositório inteiro |
-| O que fazer com achados do lint retroativo | sim | Corrigir se forem poucos; senão, pendência com escopo. Não desligar regra para esconder achado |
+| Detector externo? | sim | "Auditar o gitleaks", decisão do responsável em 2026-11-02; adoção só se a auditoria passar |
+| Formatos de segredo das regras próprias | sim | Os da story: chaves de API, tokens de GitHub, JWT, chave privada PEM |
+| Contexto da unidade | parcial | Prefixo 96k e 147k já na Fase 0: se apertar, o gitleaks vira a próxima unidade (autorizado na tarefa) |
 
 ## 2. Precedentes (Engram)
 
@@ -35,53 +34,50 @@ Nenhuma escrevendo. `sessao.js --lista 5`: esta (17:48), e as sessões das 17:27
 
 | Texto da consulta | Resultados | Relevância (mín–máx) |
 |---|---|---|
-| adotar linter Biome e TypeScript checkJs JSDoc em projeto Node ESM; auditoria de dependência npm, binário de plataforma, ignore-scripts, lint retroativo | 7 | 0,499–0,508 |
-| pacote npm com binário nativo por plataforma em optionalDependencies, provenance sigstore, verificar integridade sem executar postinstall | 7 | 0,498–0,540 |
+| pre-commit hook política de publicação repositório público detecção de segredos regex gitleaks módulo compartilhado CI testes de caracterização | 7 | 0,504–0,516 |
+| auditoria de ferramenta externa binário fixado checksum assinatura cosign release GitHub sem rede telemetria; fixtures de segredo sintético disparam secret scanning | 7 | 0,500–0,517 |
 
 **Usados:**
 
 | Nota (id) | O que diz | Força (D10) | Pré-condição vale aqui? | Efeito no plano |
 |---|---|---|---|---|
-| `auditoria-est-tica-de-pacote-npm-antes-de-instalar-supply-ch` | Runbook: `npm view`, `npm pack --ignore-scripts`, provenance pela API de atestações, hash do tarball × atestação, scripts, varredura, binários nativos, árvore via lockfile de projeto-sonda, instalar com `--save-exact --ignore-scripts` e conferir `integrity` | verificável (aplicado ao `rea-agents@6.4.0`, auditoria no repositório) | sim — mesmo projeto, mesmo registro npm; conferido lendo a nota | Método da auditoria: os 10 passos viram as seções do documento, junto com as do Semgrep |
+| `gate-de-tools-mcp-por-n-vel-de-risco-com-hook-pretooluse-fai` | Gate fail-closed por nível, com checagem de commit para repositório público | verificável (regressões no `npm test`) | sim — é este projeto | A política nova segue fail-closed: erro de leitura do índice bloqueia |
+| `auditoria-est-tica-de-pacote-npm-antes-de-instalar-supply-ch` | Runbook de auditoria sem executar: metadados, procedência, hash, varredura | verificável (`rea-agents@6.4.0`) | parcial — o gitleaks é binário de release do GitHub, não pacote npm; vale o método (hash, procedência, nada executado antes de conferir) | Seções da auditoria do gitleaks, junto com as do Semgrep |
 
-**Descartados:** `classmate-connect-13-*` — outro stack (Vitest/ESLint), sem método aplicável · `despensa-*`, `fezinha-*`, `uo-classic-*`, `re-verificacao-*`, `rea-6-4-0-store-*` — outro domínio · `padr-o-verificar-cobertura-existente-*` — genérico; já coberto pela leitura da story.
+**Descartados:** `conferir-hash-do-alvo-*` — gate do REA, outro problema · `classmate-connect-13-*`, `fezinha-*`, `spec-v1-*`, `01JVSDD4*` — outros projetos, sem método aplicável · `benchmark-de-monetiza-o-*`, `re-verificacao-*` — outro domínio · `padr-o-verificar-cobertura-*` — genérico.
 
 ## 3. Plano preliminar
 
-**Workflow AIOX:** SDC, fase 3 (@dev) e fase 4 (@qa) — story já validada (GO condicional, condição atendida pela decisão de ferramenta).
+**Workflow AIOX:** SDC, fase 3 (@dev) e fase 4 (@qa) — story validada (GO).
 
 **Unidades de sessão (D9):**
 
 | # | Unidade | Fase / executor | Entrega | Critério de aceitação preliminar | Limite de contexto |
 |---|---|---|---|---|---|
-| 1 | Auditoria Biome e TypeScript | implementação / @dev | `docs/seguranca/auditoria-biome-<v>.md`, `auditoria-typescript-<v>.md` | versão, integridade, procedência, dependências, binários com hash, scripts, rede, licença, conclusão | ~150k total |
-| 2 | Lint e tipos no verificador | implementação / @dev | `package.json`, lock, `biome.json`, `tsconfig.json`, `verificar.mjs`, testes | AC4a e AC4b; `npm test` verde | idem |
+| 1 | Caracterização e extração | implementação / @dev | `scripts/publicacao/`, testes, `pre-commit.mjs` fino | AC5 (testes antes e depois iguais), AC1 | ~180k total |
+| 2 | Caminhos proibidos, segredos, exceções, componente | implementação / @dev | regras, `excecoes.json`, componente `publicacao` | AC2, AC3, AC4, AC6 | idem |
 | 3 | Gate | QA / @qa | QA Results da story | gate registrado | idem |
-| 4 | Clone limpo real (AC6) | implementação / @dev | evidência na story | só se couber; senão, próxima unidade | — |
+| 4 | Auditoria do gitleaks | implementação / @dev | `docs/seguranca/auditoria-gitleaks-<v>.md`, componente opcional | checksum e assinatura conferidos; se não couber, próxima unidade | — |
 
-**Capacidades por fase:** implementação — Bash, Read, Edit, `npm`, `node --test`; sob demanda — subagente @qa para o gate; não carregar — REA, Ghidra, navegador, conectores do claude.ai (desligados nesta unidade).
+**Capacidades por fase:** implementação — Bash, Read, Edit, `node --test`, git; sob demanda — subagente @qa; não carregar — REA, Ghidra, navegador, conectores (desligados).
 
 **Verificações:**
 
 | Entrega | Como provar |
 |---|---|
-| Auditoria | `integrity` do lock igual ao `dist.integrity` auditado; hashes dos binários de plataforma registrados |
-| AC4a | violação plantada em cópia temporária reprova; sem a ferramenta, "requisito ausente"; teste no `npm test` |
-| AC4b | erro de tipo plantado em cópia temporária reprova; sem a ferramenta, "requisito ausente"; teste no `npm test` |
-| Regressão | `npm test` verde; `npm run verificar -- --so lint,tipos,js` aprovado |
+| Caracterização | testes em repositório git temporário rodando o `pre-commit.mjs` real; mesmos testes contra o módulo |
+| AC1 | mesma fixture pela entrada do hook (`git diff --cached`) e pela da CI (`git diff base...head`) dá a mesma decisão |
+| AC2–AC4, AC6 | testes unitários com fixtures montadas por partes; relatório sem o valor |
+| Regressão | `npm test` verde; `npm run verificar -- --so publicacao`; o próprio commit passa pelo hook novo |
 
-**Riscos:** binário nativo do Biome sem procedência conferível — runbook (`auditoria-est-tica-*`) — conferir provenance do pacote de plataforma e hash; se não houver, parar e perguntar · lint retroativo volumoso — story (Riscos) — corrigir o pouco, registrar o resto com escopo · contexto (~96k de prefixo) — relatório de estado §4 — entregar lint fechado antes de tipos, se apertar.
+**Riscos:** falso positivo de segredo em arquivo do repositório — varrer o repositório inteiro com as regras antes de ligar; exceção versionada com motivo · literal de segredo no teste disparar o push protection — montar por partes · contexto — entregar a parte fechada primeiro.
 
 ## 4. Custo da Fase 0
 
 | Chamadas | Contexto atual | Chamadas Engram | Resultados Engram no contexto |
 |---|---|---|---|
-| 14 | 153k (máximo por requisição; prefixo inicial 96k) | 2 (`deep`) | ~3k |
+| 16 | 147k (máximo por requisição; prefixo inicial 96k) | 2 (`deep`) | ~4k |
 
 ## 5. Aprovação
 
-Aprovação prévia: o escopo e as ferramentas foram decididos pelo responsável na conversa da sessão principal (2026-11-02) e repassados na tarefa desta sessão; a aprovação cobre auditar e adotar, com parada se a auditoria achar problema. Sem ajustes pedidos.
-
-## 6. Resultado
-
-Executado em 2026-11-02: AC4a, AC4b e AC6 entregues (`e46e822`, `f9f0f9d`, `d0238b3`); TypeScript 6.0.3 por decisão do responsável depois da parada na 7.0.2; MEL-03 Done com QA CONCERNS (débito QA-E22-01b). Detalhes no [handoff](handoffs/2026-11-02-e2-2-lint-tipos.md).
+Aprovação prévia: escopo e ordem decididos pelo responsável na conversa da sessão principal (2026-11-02) e repassados na tarefa desta sessão; a aprovação cobre auditar o gitleaks e adotá-lo só se a auditoria passar sem problema. Sem ajustes pedidos.

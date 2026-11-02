@@ -21,7 +21,7 @@ export const SAIDA = { aprovado: 0, falhou: 1, uso: 2, incompleto: 3 };
 // Pendências do contrato que o verificador ainda não cobre (story MEL-03). Aparecem em toda execução.
 export const PENDENCIAS = [
   "lint só em .claude/hooks/ e scripts/; reimplementacoes/puzzle-piloto/ e .githooks/ ainda fora (story MEL-03)",
-  "tipos só nos módulos de política (rea-gate, cli-gate, verificar-perfis), sem @types/node (APIs do Node como any) e sem noImplicitAny (57 erros com ele ligado) (story MEL-03)",
+  "tipos só nos módulos de política (rea-gate, cli-gate, verificar-perfis, publicacao), sem @types/node (APIs do Node como any) e sem noImplicitAny (57 erros com ele ligado) (story MEL-03)",
 ];
 
 // --- regras puras (testadas em verificar.test.mjs) -------------------------------------------
@@ -288,6 +288,17 @@ export const COMPONENTES = [
   componenteTipos(),
   { id: "js", descricao: "npm test: gates, assets, monetização e puzzle-piloto", depende: ["ambiente-node", "dependencias-npm"], executar: nodeRun("test", resumoNodeTest) },
   { id: "monetizacao", descricao: "checagem dos perfis de monetização", depende: ["ambiente-node"], executar: nodeRun("check:monetizacao") },
+  {
+    // Política de publicação (MEL-04) sobre todos os arquivos rastreados no HEAD. Na CI, a mesma decisão roda
+    // sobre o diff do PR: node scripts/publicacao/publicacao.mjs --base <base> --head <head>.
+    id: "publicacao",
+    descricao: "política de publicação sobre a árvore do HEAD (caminhos proibidos, segredos, registros/)",
+    depende: ["ambiente-node"],
+    executar: () =>
+      resultadoDe(rodar(process.execPath, [join(RAIZ, "scripts", "publicacao", "publicacao.mjs"), "--arvore"]), "publicacao --arvore", (s) =>
+        s.match(/(\d+) arquivo/)?.[1]?.concat(" arquivos"),
+      ),
+  },
   { id: "dotnet-restore", descricao: "restore .NET em modo travado (packages.lock.json)", requisito: motivoSemDotnet, executar: dotnet(["restore", "PRKingNotepad.slnx", "--locked-mode"]) },
   { id: "notepad-build", descricao: "build do Notepad (avisos são erros)", depende: ["dotnet-restore"], executar: dotnet(["build", "PRKingNotepad.slnx", "--no-restore", "--no-incremental"]) },
   { id: "notepad-core", descricao: "testes do PRKingNotepad.Core", depende: ["notepad-build"], executar: dotnet(["test", "tests/PRKingNotepad.Core.Tests/PRKingNotepad.Core.Tests.csproj", "--no-build"]) },
