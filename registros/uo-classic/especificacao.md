@@ -320,6 +320,18 @@ Leitura: ação difícil ensina mais, e o ganho desacelera perto dos caps (coere
 - Desde 1999-11-23: trava por skill com três estados — sobe, desce, para. A atrofia só ocorre quando outro skill sobe [M11].
 - Modelo (emulador): a cada ganho com o total no cap, um skill em "desce" perde o mesmo valor, com probabilidade T / c_T [M30].
 
+> **Adendo — corrigido (2026-11-02), pergunta de volta 2 do PRKing_UO.** Fonte: pesquisa pública [V1][V2][V5–V8]. Onde contradiz o item acima e a última regra do modelo da §5.4, vale este adendo.
+>
+> Ganho de skill e atrofia, nesta ordem (DEVE, salvo onde diz PODE):
+>
+> 1. O ganho só é tentado com a trava em "sobe" e o skill abaixo do próprio cap (§5.4). O tamanho do ganho `g` é sorteado primeiro (§5.4).
+> 2. **Atrofia antes da checagem do cap.** Com `T ≥ c_T`, antes de conferir se o ganho cabe, um skill perde `g` pontos. Isso abre o espaço do ganho na mesma ação [V5][V7][V8].
+> 3. **Qual skill desce:** o primeiro, na ordem fixa da lista de skills, que tem trava em "desce", não é o skill que está subindo e tem pelo menos `g` pontos. Só um por ganho. Skill em "desce" com menos de `g` é pulado: não desce em parte [V5][V7][V8]. A ordem de escolha fica em dados; a regra "menos usado", que valia antes das travas [V2], PODE ser alternativa (exige contar o uso de cada skill; inferência).
+> 4. **Nenhum skill pode descer:** não há atrofia, o ganho não cabe e nada muda, nem o skill que subiria nem os outros (oficial [V1]).
+> 5. **Não existe ganho parcial:** o skill sobe `g` inteiro se `T + g ≤ c_T`; senão, não sobe [V5][V7]. Abaixo do cap, quando `T + g > c_T` (só acontece com `s ≤ 10`, em que `g` vai até 0,4), não há atrofia nem ganho (emulador).
+> 6. **Correção do modelo:** a atrofia não é um sorteio com probabilidade `T / c_T` em qualquer total. No RunUO e no ServUO ela ocorre sempre que o total está no cap e nunca abaixo dele, o que bate com a regra oficial de que a atrofia só acontece quando outro skill sobe [V1]. O ModernUO usa de fato a probabilidade `T / c_T`, também abaixo do cap, e deixa o total passar do cap em até 0,3 **(conflito)** [V8]. Essa variante PODE existir como perfil de dados, não como padrão.
+> 7. O cap total vale só para o personagem do jogador; criaturas sobem sem ele (emulador) [V5].
+
 ## 6. Combate (pré-AOS)
 
 ### 6.1 Ritmo do golpe
