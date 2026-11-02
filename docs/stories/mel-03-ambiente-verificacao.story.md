@@ -1,6 +1,6 @@
 # Story MEL-03 — declarar ambiente e criar um contrato de verificação local
 
-**Status:** InProgress (fatia 2 iniciada em 2026-11-02 pela E2-2, com Biome e TypeScript aprovados pelo responsável; validação @po em 2026-11-02: GO condicional, 9,5/10; fatia 1 entregue em 2026-11-01)
+**Status:** Done (re-verificação @qa em 2026-11-02: CONCERNS, achados do gate resolvidos, QA-E22-01b baixa a registrar como débito; fatia 2 e AC6 entregues em 2026-11-02 pela E2-2; Biome e TypeScript aprovados pelo responsável; validação @po em 2026-11-02: GO condicional, 9,5/10; fatia 1 entregue em 2026-11-01)
 **Workflow:** SDC, ciclo completo (entrega M: @sm → @po → @dev → @qa) · **Plano:** [`docs/plano-de-execucao.md`](../plano-de-execucao.md) §3 · **Origem:** A07 e parte de A04 do [parecer de 01/11/2026](../analises/2026-11-01-arquitetura-cto-comparativo.md) · **Pacote:** MEL-03 do [plano de evolução](../planos/2026-11-01-evolucao-arquitetura-qualidade.md) §5
 **Complexidade:** STANDARD · estimativa M, em duas fatias · **Dependências:** nenhuma story antes; a fatia 2 depende da aprovação do responsável para cada ferramenta nova (plano de evolução §10); o encerramento é integrado com a [MEL-08](mel-08-ci-agregada.story.md), que usa o verificador como executor de cada job; a [MEL-04](mel-04-publicacao-compartilhada.story.md) acrescenta o componente `publicacao` ao verificador
 
@@ -31,7 +31,12 @@ Antes desta story: sem `global.json` (hipótese da MEL-02 descartada como causa,
   - [x] **AC4b (tipos)** — Dado o escopo de tipos decidido (`checkJs` com JSDoc nos módulos de política, ou outra ferramenta aprovada e auditada), quando o componente roda, então um erro de tipo plantado reprova; se o custo não compensar, a decisão de não adotar fica registrada nesta story com o motivo e a pendência continua impressa. Em nenhum caso um comando que só confere sintaxe se chama `typecheck`.
     Evidência (2026-11-02): TypeScript 6.0.3, escolhido pelo responsável depois de a auditoria achar a 7.0.2 com binário nativo sem procedência, auditado em [`docs/seguranca/auditoria-typescript-6.0.3.md`](../seguranca/auditoria-typescript-6.0.3.md). Componente `tipos` (`tsc --noEmit`, `checkJs`, `strict` sem `noImplicitAny`) sobre `rea-gate.mjs`, `cli-gate.mjs` e `verificar-perfis.mjs`, também `npm run tipos`. Sem `@types/node`: declarações mínimas em `scripts/tipos/node-minimo.d.ts`. Provas em `scripts/verificar/ferramentas.test.mjs`: cópia dos módulos aprova; `TS2322` plantado no `rea-gate` reprova; `decide("talvez", …)` no `cli-gate` reprova (`TS2345`, a anotação JSDoc é conferida); TypeScript ausente → "requisito ausente". Primeira rodada: 12 achados, corrigidos com JSDoc e uma guarda reordenada, sem mudar comportamento. O comando se chama `tipos`; nada se chama `typecheck`.
 - [x] **AC5** — `global.json` fixa o SDK do Notepad. Evidência: `dotnet --version` na pasta = `10.0.401`; `global.json` sintético pedindo `10.0.999` com `rollForward: disable` → "A compatible .NET SDK was not found".
-- [ ] **AC6** — Dado um clone novo do repositório numa pasta vazia, sem `node_modules`, quando o guia do contrato é seguido (`npm ci --ignore-scripts` e `npm run verificar`), então o resultado por componente é registrado nesta story e nenhum requisito ausente aparece como aprovado. Condição de saída da etapa 2 (plano de evolução §3); demanda E2-6 do relatório de 2026-11-02.
+- [x] **AC6** — Dado um clone novo do repositório numa pasta vazia, sem `node_modules`, quando o guia do contrato é seguido (`npm ci --ignore-scripts` e `npm run verificar`), então o resultado por componente é registrado nesta story e nenhum requisito ausente aparece como aprovado. Condição de saída da etapa 2 (plano de evolução §3); demanda E2-6 do relatório de 2026-11-02.
+  Evidência (2026-11-02): três execuções com `git clone` do repositório local em `%TEMP%\prking-clone-limpo-*`, sem `node_modules`, `core.autocrlf=true` (Git do sistema), `npm ci --ignore-scripts` (147 pacotes, 14–23 s), `git config core.hooksPath .githooks` e `node scripts/verificar/verificar.mjs`:
+  1. `f9f0f9d`, Docker desligado: 11 aprovados, Semgrep (3) "não executado — requisito ausente: daemon do Docker inacessível", saída 3. Nenhum requisito ausente virou aprovado.
+  2. `f9f0f9d`, Docker ligado: 13 aprovados, **`semgrep-mutacoes` falhou** (saída 1). Esta é a dependência implícita que o AC6 procurava: o checkout em CRLF quebrava o casamento dos trechos de `scripts/semgrep/mutacoes.mjs` ("trecho original não encontrado"), e no repositório principal passava. Corrigido em `d0238b3` (a cópia mutada é normalizada para LF).
+  3. `d0238b3`, Docker ligado: **14/14 aprovados, saída 0**, em 3 min 45 s; `js` 213/213, `notepad-core` 137/137, `notepad-ui` 76/76.
+  Limite: o clone é da mesma máquina (SDK .NET, Docker e cache do npm já presentes). Isso prova o repositório sem `node_modules` e sem estado local, não uma máquina nova; a máquina nova fica com a CI da MEL-08.
 
 ## Decisões
 
@@ -62,8 +67,9 @@ AC1–AC6 marcados com evidência; auditoria registrada em `docs/seguranca/` par
 - [x] Validação @po da story inteira (2026-11-02, GO condicional).
 - [x] Fatia 2, lint (AC4a): auditoria, instalação fixada, componente, provas, lint retroativo corrigido.
 - [x] Fatia 2, tipos (AC4b): auditoria, instalação fixada, `tsconfig.json`, JSDoc nos módulos de política, componente, provas.
-- [ ] Clone limpo real (AC6).
-- [ ] QA @qa da story inteira.
+- [x] Clone limpo real (AC6): três execuções; a segunda achou a falha das mutações em CRLF, corrigida em `d0238b3`.
+- [x] Correções dos achados QA-E22-01/02/03 (`d0238b3`).
+- [x] QA @qa da story inteira (re-verificação do gate da fatia 2).
 
 ## File List
 
@@ -75,6 +81,16 @@ AC1–AC6 marcados com evidência; auditoria registrada em `docs/seguranca/` par
 - `docs/stories/mel-03-ambiente-verificacao.story.md` — esta story.
 - Fatia 2: `docs/seguranca/auditoria-biome-2.5.15.md` (novo); `biome.json` (novo); `package.json` e `package-lock.json` (Biome em `devDependencies`, script `lint`, teste novo no `test`); `scripts/verificar/verificar.mjs` (componente `lint`, `ESCOPO_LINT`, pendências); `scripts/verificar/ferramentas.test.mjs` (novo); `docs/contrato-ambiente.md`; correções do lint retroativo em `.claude/hooks/rea-gate.mjs`, `.claude/hooks/rea-gate.test.mjs`, `.claude/hooks/cli-gate.test.mjs`, `scripts/assets/organizar-assets.mjs`, `scripts/monetizacao/verificar-perfis.mjs`, `scripts/verificar/verificar.test.mjs`.
 - Fatia 2, tipos: `docs/seguranca/auditoria-typescript-6.0.3.md` (novo); `tsconfig.json` e `scripts/tipos/node-minimo.d.ts` (novos); `package.json` e `package-lock.json` (TypeScript em `devDependencies`, script `tipos`); `scripts/verificar/verificar.mjs` (componente `tipos`); `scripts/verificar/ferramentas.test.mjs` (provas de tipos); JSDoc em `.claude/hooks/rea-gate.mjs`, `.claude/hooks/cli-gate.mjs` e `scripts/monetizacao/verificar-perfis.mjs`; `docs/seguranca/auditoria-biome-2.5.15.md` (limite de assinatura resolvido); `docs/contrato-ambiente.md`.
+- Correções do gate e AC6: `scripts/verificar/verificar.mjs` (`lint` e `tipos` dependem de `dependencias-npm`; pendência com os 57 erros); `scripts/verificar/ferramentas.test.mjs` (violação plantada nas duas pastas de `ESCOPO_LINT`; lock divergente bloqueia `lint` e `tipos`); `scripts/semgrep/mutacoes.mjs` (cópia mutada normalizada para LF); `docs/contrato-ambiente.md`; `docs/seguranca/auditoria-typescript-6.0.3.md`.
+
+## Dev Notes
+
+Resposta ao gate @qa da fatia 2 (commit `d0238b3`):
+
+- **QA-E22-01** (média): `lint` e `tipos` passam a depender de `ambiente-node` e `dependencias-npm`. Com o lock divergente, os dois ficam "não executado" com o motivo da dependência, em vez de rodar um binário que o lock não confere. Teste novo em `ferramentas.test.mjs`; contrato atualizado.
+- **QA-E22-02** (baixa): os 57 erros com `noImplicitAny` ligado (`rea-gate` 25, `verificar-perfis` 31, `cli-gate` 1) estão na pendência impressa pelo verificador, no contrato e na auditoria do TypeScript. A opção continua desligada; ligá-la é decisão futura.
+- **QA-E22-03** (baixa): a prova de lint planta a violação em cada pasta de `ESCOPO_LINT`, não só na primeira.
+- **AC6:** a falha de `semgrep-mutacoes` no clone vinha de `core.autocrlf=true` no gitconfig do sistema; a cópia mutada é normalizada para LF antes de casar os trechos. Não muda regra nem mutação.
 
 ## QA Results
 
@@ -136,11 +152,48 @@ Fatia 1, verificação do executor (QA @qa independente pendente com a validaç�
 
 Não foram usadas tools `rea` nem `ghidra`, `alvos/` não foi lido e a UI WPF não foi executada. As cópias temporárias foram apagadas.
 
+### Re-verificação @qa (2026-11-02)
+
+**Revisor:** Quinn (@qa), modo autônomo. **Escopo:** commit `d0238b3` (correções QA-E22-01/02/03 e normalização de fim de linha em `scripts/semgrep/mutacoes.mjs`) e a evidência do AC6 registrada pelo @dev.
+
+**Veredito: CONCERNS.** Os três achados do gate da fatia 2 estão resolvidos, com prova. AC1–AC6 atendidos. Fica uma observação baixa, herdada da recomendação do QA-E22-01, que não bloqueia: registrar como débito. Status InReview → Done.
+
+#### Achados do gate anterior
+
+| ID | Estado | Evidência |
+|---|---|---|
+| QA-E22-01 | Resolvido | `depende: ["ambiente-node", "dependencias-npm"]` em `componenteLint` e `componenteTipos`. `comDependencias(["lint"])` = `lint`, `ambiente-node`, `dependencias-npm`; `comDependencias(["tipos"])` = `tipos`, `ambiente-node`, `dependencias-npm`. Teste novo "lint e tipos não rodam com o lock divergente (QA-E22-01)": os dois ficam "não executado" com o motivo da dependência e o espião confirma que nenhum executou. Contrato §4 atualizado |
+| QA-E22-02 | Resolvido | `PENDENCIAS[1]` cita "sem noImplicitAny (57 erros com ele ligado)", impressa no fim da execução; contrato e auditoria do TypeScript citam os 57 (`rea-gate` 25, `verificar-perfis` 31, `cli-gate` 1). A frase da auditoria agora nomeia a exceção do `strict` |
+| QA-E22-03 | Resolvido | O teste de violação plantada é gerado por `for (const pasta of ESCOPO_LINT)` (`.claude/hooks` e `scripts`), com `pastaPlantada` em `copiaLint` e asserção extra de que o detalhe cita `plantado.mjs` |
+| QA-E22-01b (novo, baixa, segurança) | Aberto, não bloqueia | Parte da recomendação do QA-E22-01 ficou sem tratamento nem registro: `compararLockNpm` confere só as dependências diretas, então o pacote de plataforma `@biomejs/cli-win32-x64` (o executável nativo) não é conferido contra o lock. Registrar como débito com dono (MEL-03 expansão ou MEL-08) ou conferir versão/SHA-256 desse pacote |
+
+#### `mutacoes.mjs`
+
+A mudança é uma linha: o texto lido da cópia em `_mutacao-tmp` passa por `.replace(/\r\n/g, "\n")` antes do `includes`/`replace`. O array `MUTACOES`, o `EXTRA_R3`, as regras em `reimplementacoes/puzzle-piloto/semgrep/` e o critério de disparo não mudaram (`git diff d0238b3~1 d0238b3 -- semgrep/ scripts/semgrep/` toca só esse arquivo). O efeito fica na cópia temporária, apagada no `finally`; o arquivo mutado sai em LF, sem efeito nas regras.
+
+#### AC6
+
+A evidência basta: três execuções em clone novo sem `node_modules`, a terceira em `d0238b3` com 14/14 aprovados e saída 0; a primeira mostra Semgrep "não executado" com Docker desligado (nenhum requisito ausente virou aprovado). A segunda é o tipo de achado que o AC6 existe para pegar, e foi corrigida. O limite (mesma máquina, não máquina nova) está declarado e fica com a CI da MEL-08. O @qa não reexecutou o verificador completo nem o Semgrep.
+
+#### Comandos rodados
+
+| Comando | Resultado |
+|---|---|
+| `git show --stat d0238b3`; `git show d0238b3 -- scripts/ docs/contrato-ambiente.md docs/seguranca/` | 6 arquivos; diff lido |
+| `node -e` com `comDependencias(["lint"])` e `(["tipos"])` | os dois incluem `dependencias-npm` |
+| `node -e` com `PENDENCIAS` e `ESCOPO_LINT` | pendência com "57"; escopo `.claude/hooks`, `scripts` |
+| `npm test` | 213/213, 0 falhas |
+| `node scripts/verificar/verificar.mjs --so lint,tipos,monetizacao` | 5 aprovados (com `ambiente-node` e `dependencias-npm`), APROVADO, saída 0; `lint` 15 arquivos, `tipos` 4; pendências impressas |
+
+Não foram usadas tools `rea` nem `ghidra`, `alvos/` não foi lido e a UI WPF não foi executada.
+
 ## Change Log
 
 | Data | Mudança | Autor |
 |---|---|---|
+| 2026-11-02 | Re-verificação @qa: CONCERNS (QA-E22-01/02/03 resolvidos; QA-E22-01b baixa, a registrar como débito); status InReview → Done | sessão `0da91073` (@qa) |
 | 2026-11-01 | Story criada (Draft) a partir da MEL-03; fatia 1 implementada na preparação da etapa 2 (§12 do plano de evolução) | sessão `b0f09ab6` |
+| 2026-11-02 | Status InProgress → InReview: AC6 entregue (clone limpo, 14/14 em `d0238b3`, depois da correção de CRLF nas mutações); achados QA-E22-01/02/03 corrigidos | sessão `0da91073` (@dev) |
 | 2026-11-02 | AC4b entregue com TypeScript 6.0.3 (a 7.0.2 parou na auditoria: binário nativo sem procedência; o responsável escolheu a 6.0.3); AC4 fechado | sessão `0da91073` (@dev) |
 | 2026-11-02 | Status Ready → InProgress: fatia 2 iniciada (E2-2); AC4a entregue com Biome 2.5.15 | sessão `0da91073` (@dev) |
 | 2026-11-02 | Validação @po: 6,5/10 (NO-GO) como estava; correções aplicadas (dependências, AC4a/AC4b, AC6, Riscos, DoD, fronteira com a MEL-08); 9,5/10, GO condicional; status Draft → Ready | sessão `aade639a` (@po) |

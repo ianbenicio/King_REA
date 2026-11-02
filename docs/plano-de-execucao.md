@@ -81,3 +81,7 @@ Nenhuma escrevendo. `sessao.js --lista 5`: esta (17:48), e as sessões das 17:27
 ## 5. Aprovação
 
 Aprovação prévia: o escopo e as ferramentas foram decididos pelo responsável na conversa da sessão principal (2026-11-02) e repassados na tarefa desta sessão; a aprovação cobre auditar e adotar, com parada se a auditoria achar problema. Sem ajustes pedidos.
+
+## 6. Resultado
+
+Executado em 2026-11-02: AC4a, AC4b e AC6 entregues (`e46e822`, `f9f0f9d`, `d0238b3`); TypeScript 6.0.3 por decisão do responsável depois da parada na 7.0.2; MEL-03 Done com QA CONCERNS (débito QA-E22-01b). Detalhes no [handoff](handoffs/2026-11-02-e2-2-lint-tipos.md).
