@@ -210,7 +210,7 @@ O `global.json` do .NET tem prioridade: a falta dele é uma das hipóteses da re
 
 **Dependências:** pode começar junto da etapa 1; encerramento integrado com MEL-08. A declaração do ambiente não atualiza o REA nem instala ferramentas automaticamente.
 
-**Fatia 1 entregue em 01/11/2026** ([story MEL-03](../stories/mel-03-ambiente-verificacao.story.md), commit `5e71dbd`): `reimplementacoes/notepad/global.json` (SDK 10.0.401, `rollForward: patch`), `.node-version` (26.12.1), `engines`, `.npmrc`, `npm run verificar` e o [contrato de ambiente](../contrato-ambiente.md). Aceites 1–3 atendidos; o 4 (lint e tipos) está em etapas, com pendência visível. A story continua em Draft para a validação @po antes da fatia 2.
+**Fatia 1 entregue em 01/11/2026** ([story MEL-03](../stories/mel-03-ambiente-verificacao.story.md), commit `5e71dbd`): `reimplementacoes/notepad/global.json` (SDK 10.0.401, `rollForward: patch`), `.node-version` (26.12.1), `engines`, `.npmrc`, `npm run verificar` e o [contrato de ambiente](../contrato-ambiente.md). Aceites 1–3 atendidos; o 4 (lint e tipos) está em etapas, com pendência visível. Validação @po em 2026-11-02: GO condicional, story em Ready; a fatia 2 espera a aprovação da ferramenta ([handoff](../handoffs/2026-11-02-e2-1-validacao-po.md)).
 
 ### MEL-04 — transformar a política de publicação em verificação compartilhada
 
