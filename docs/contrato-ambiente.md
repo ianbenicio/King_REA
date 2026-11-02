@@ -74,7 +74,7 @@ Roda os componentes em ordem e imprime uma linha por componente com estado, dura
 | `dotnet-restore` | `dotnet restore --locked-mode` | `dotnet` com SDK compatível com o `global.json` | — |
 | `notepad-build` | `dotnet build --no-incremental` (avisos são erros) | — | `dotnet-restore` |
 | `notepad-core` | testes do `PRKingNotepad.Core` | — | `notepad-build` |
-| `notepad-ui` | testes de UI WPF | Windows, usuário interativo (não o sandbox do Codex), fora do GitHub Actions | `notepad-build` |
+| `notepad-ui` | testes de UI WPF | Windows, usuário interativo (não o sandbox do Codex) e sonda WPF aprovada (sessão interativa, sessão de usuário, foco de teclado, clipboard) | `notepad-build` |
 | `semgrep-scan`, `semgrep-test`, `semgrep-mutacoes` | os três scripts `semgrep*` do `package.json` | daemon do Docker respondendo | — |
 
 O build .NET do verificador grava em `%TEMP%\prking-verificar-notepad` (`--artifacts-path`), não em `bin/`: não trava nem sobrescreve um PRKing Notepad aberto. Os testes de UI usam o `ClipboardScope`, que restaura o conteúdo da área de transferência ao fim de cada teste.
@@ -108,4 +108,4 @@ Aparecem também no fim de toda execução do verificador:
 - **Lint de JavaScript:** não implantado. Ferramenta nova entra com auditoria em `docs/seguranca/`, versão fixada e `--ignore-scripts`; escopo inicial proposto: `.claude/hooks/` e `scripts/` (story MEL-03).
 - **Tipos:** não implantado. Avaliar `checkJs` com JSDoc nos módulos de política; até lá, nada se chama `typecheck`. `sintaxe-js` é só sintaxe.
 - **Semgrep sem Docker:** sem alternativa; fica "não executado".
-- **UI WPF fora da sessão interativa:** fica "não executado". A detecção atual (plataforma, usuário do sandbox do Codex, `GITHUB_ACTIONS`) é preliminar; a regra fina fica na MEL-08.
+- **UI WPF fora da sessão interativa:** fica "não executado", com o item que faltou. A detecção é a plataforma, o usuário do sandbox do Codex e a sonda `tests/PRKingNotepad.UiProbe` (MEL-08, AC8), que mede o pré-requisito em vez de reconhecer o ambiente. Sonda aprovada e asserção falhando é falha.

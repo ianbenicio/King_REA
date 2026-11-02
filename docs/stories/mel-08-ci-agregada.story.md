@@ -1,6 +1,6 @@
 # Story MEL-08 — implantar CI por componente com resultado agregado
 
-**Status:** Ready (validação @po em 2026-11-02: GO, 9,5/10 depois das correções; desenho pronto, nada ativado; fatia 1 local pode começar, fatia 2 aguarda as decisões do responsável)
+**Status:** InProgress (fatia 1 em andamento: E2-4a, agregador e sonda, entregue em 2026-11-02; E2-4b, auditoria das actions, em sessão própria; fatia 2 aguarda as decisões do responsável)
 **Workflow:** SDC, ciclo completo (entrega M: @sm → @po → @devops, critérios @qa) · **Origem:** A04 do [parecer de 01/11/2026](../analises/2026-11-01-arquitetura-cto-comparativo.md) · **Pacote:** MEL-08 do [plano de evolução](../planos/2026-11-01-evolucao-arquitetura-qualidade.md) §5 · **Desenho:** [`docs/planos/2026-11-01-desenho-ci-mel08.md`](../planos/2026-11-01-desenho-ci-mel08.md)
 **Complexidade:** STANDARD · estimativa M, em duas fatias (1: local — sonda, agregador, auditorias, E2-4 do relatório de 2026-11-02; 2: ativação — workflow, PRs de falha plantada, proteção de branch, E2-5) · **Dependências:** MEL-03 (fatia 1 entregue; o verificador é o executor de cada job), MEL-04 (job `publicacao`), pendências WPF da [story MEL-02](mel-02-regressao-wpf.story.md)
 
@@ -26,8 +26,8 @@
 
 Fatia 1 (local, sem `.github/` ativo):
 
-- [ ] **AC7** — Dados JSON sintéticos do verificador para cada situação da tabela do desenho §5 (todos aprovados; um obrigatório falhou; um obrigatório não executado; JSON faltando; só `wpf-interativo` não executado), quando o agregador roda, então o estado final, o código de saída e a tabela do resumo (componente, estado, duração, motivo) seguem a tabela; teste no `npm test`.
-- [ ] **AC8** — Dado um pré-requisito da UI ausente (simulado no teste: sessão não interativa, foco ou clipboard indisponível), quando a sonda roda, então a saída só tem booleanos e o item que faltou, e a categoria WPF fica "não executável neste runner", nunca aprovada; executada localmente como usuário interativo, a sonda passa e a suíte `notepad-ui` roda, com falha de asserção contada como falha (desenho §4).
+- [x] **AC7** — Dados JSON sintéticos do verificador para cada situação da tabela do desenho §5 (todos aprovados; um obrigatório falhou; um obrigatório não executado; JSON faltando; só `wpf-interativo` não executado), quando o agregador roda, então o estado final, o código de saída e a tabela do resumo (componente, estado, duração, motivo) seguem a tabela; teste no `npm test`.
+- [x] **AC8** — Dado um pré-requisito da UI ausente (simulado no teste: sessão não interativa, foco ou clipboard indisponível), quando a sonda roda, então a saída só tem booleanos e o item que faltou, e a categoria WPF fica "não executável neste runner", nunca aprovada; executada localmente como usuário interativo, a sonda passa e a suíte `notepad-ui` roda, com falha de asserção contada como falha (desenho §4).
 - [ ] **AC9** — Cada action do esboço (desenho §7) tem auditoria curta registrada em `docs/seguranca/`, com o SHA de commit que será fixado; nenhuma action entra por tag.
 
 Nota: AC2 (parte Semgrep) e AC3 (ambiente sem Docker) supõem o Semgrep no Ubuntu hospedado. Se o responsável recusar essa opção (desenho §9), esses dois aceites voltam ao @po para revisão com ele antes da fatia 2.
@@ -51,7 +51,7 @@ AC1–AC9 com evidência (AC1–AC6 com links de runs públicos); push e configu
 
 - [x] Desenho (componentes, gatilhos, matriz, agregado, o que não roda em runner hospedado) — 2026-11-01.
 - [x] Validação @po — 2026-11-02, GO.
-- [ ] Sonda WPF e agregador (locais, com teste).
+- [x] Sonda WPF e agregador (locais, com teste) — 2026-11-02, E2-4a.
 - [ ] Auditorias das actions e, se aprovado, adendo da auditoria do Semgrep.
 - [ ] Workflow e PRs de falha plantada (após aprovação).
 
@@ -59,6 +59,23 @@ AC1–AC9 com evidência (AC1–AC6 com links de runs públicos); push e configu
 
 - `docs/planos/2026-11-01-desenho-ci-mel08.md` — desenho.
 - `docs/stories/mel-08-ci-agregada.story.md` — esta story.
+- `scripts/verificar/agregar-ci.mjs` — agregador do job `resultado` (AC7): lê `verificar-<job>.json`, decide o estado e escreve a tabela do resumo; não copia o `detalhe`.
+- `scripts/verificar/agregar-ci.test.mjs` — 10 testes: as cinco situações do desenho §5, WPF com asserção falhando, JSON inválido ou incompleto, escape da tabela, coerência com o verificador.
+- `scripts/verificar/verificar.mjs` — `avaliarSonda`, `ITENS_SONDA`, sonda antes do `notepad-ui`; saiu a recusa por `GITHUB_ACTIONS` (desenho §4); `timeout` opcional no `rodar`.
+- `scripts/verificar/verificar.test.mjs` — 5 testes da sonda (item ausente simulado, saída inválida, efeito no plano); teste do GitHub Actions trocado.
+- `reimplementacoes/notepad/tests/PRKingNotepad.UiProbe/` — sonda (AC8): `Program.cs`, `.csproj` (liga o `ClipboardScope.cs` dos testes de UI), `packages.lock.json` (sem pacotes).
+- `reimplementacoes/notepad/PRKingNotepad.slnx` — sonda na solução (o `notepad-build` a compila).
+- `package.json` — `agregar-ci.test.mjs` no `npm test`.
+- `docs/contrato-ambiente.md`, `docs/planos/2026-11-01-desenho-ci-mel08.md` — requisito do `notepad-ui` e §4 atualizados.
+
+## Dev Notes (E2-4a, 2026-11-02)
+
+- **Decisão do responsável (2026-11-02):** sonda aprovada e asserção do WPF falhando deixa o `resultado` vermelho; a tabela do desenho §5 não cobria o caso.
+- **Regra do sandbox do Codex mantida:** a sonda mede pré-requisito; no Codex a falha da MEL-02 foi de asserção, então a sonda sozinha não protege ali.
+- **Jobs do agregador:** `js`, `dotnet` (obrigatórios) e `wpf-interativo` (dependente de ambiente), com os componentes do desenho §2. `semgrep` e `publicacao` entram na fatia 2.
+- **Evidência local (usuário interativo):** sonda direta `{"interativa":true,"sessao_de_usuario":true,"foco_de_teclado":true,"clipboard":true,"faltou":[]}`, clipboard do responsável igual antes e depois (hash conferido). `npm run verificar -- --so notepad-ui` aprovado 76/76 em três rodadas seguidas; `notepad-core` 137/137.
+- **Falha intermitente observada:** numa rodada de seis, `FileLifecycleTests.New_empties_the_document_with_default_encoding_and_crlf` falhou em `Input.WithModifiers` (esperado `Control`, veio `Control | Shift`): `Shift` físico pressionado durante a suíte. Contou como falha, como manda o plano §5. A sonda não mede o estado do teclado físico; fica como pendência.
+- **Para a fatia 2 (AC4):** o `detalhe` do verificador traz pilha com caminho absoluto do checkout; o agregador não o copia, mas o log do job `wpf-interativo`/`dotnet` imprimiria. Revisar antes de ativar.
 
 ## Change Log
 
@@ -66,6 +83,7 @@ AC1–AC9 com evidência (AC1–AC6 com links de runs públicos); push e configu
 |---|---|---|
 | 2026-11-01 | Story criada (Draft) com o desenho da CI, na preparação da etapa 2 | sessão `b0f09ab6` (@sm) |
 | 2026-11-02 | Validação @po: 8/10 como estava; correções aplicadas (duas fatias, AC7–AC9 da parte local, nota do Semgrep condicional, ponto de controle no DoD); 9,5/10, GO; status Draft → Ready | sessão `aade639a` (@po) |
+| 2026-11-02 | Status Ready → InProgress (@dev, início da fatia 1). E2-4a: agregador (AC7) e sonda WPF (AC8) com testes; AC9 fica para a E2-4b | sessão `24b25af1` (@dev) |
 
 ## Validação @po (2026-11-02)
 

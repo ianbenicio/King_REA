@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Sonda de pré-requisitos da suíte de UI WPF (story MEL-08, AC8; desenho da CI §4). Sem pacotes externos. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!-- A mesma cópia por formato da área de transferência que os testes de UI usam: o clipboard do usuário volta como estava. -->
+  <ItemGroup>
+    <Compile Include="..\PRKingNotepad.Ui.Tests\ClipboardScope.cs" Link="ClipboardScope.cs" />
+  </ItemGroup>
+
+</Project>

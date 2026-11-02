@@ -19,7 +19,7 @@ Ativar exige aprovação do responsável na conversa e push pelo @devops. Este d
 | `js` | `windows-2025` (plataforma suportada; o gate tem regra de caixa do Windows) | `ambiente-node`, `dependencias-npm`, `sintaxe-js`, `js`, `monetizacao` | obrigatória | sim |
 | `dotnet` | `windows-2025` | `dotnet-restore` (travado), `notepad-build`, `notepad-core` | obrigatória | sim |
 | `semgrep` | `ubuntu-24.04` | `semgrep-scan`, `semgrep-test`, `semgrep-mutacoes` | obrigatória depois da decisão abaixo | **não** no Windows hospedado (só containers Windows; a imagem é Linux). No Ubuntu hospedado é possível: `rodar.mjs` usa caminhos POSIX e já roda com `--network none`, usuário sem privilégio e repositório só leitura. Pendências: o pull por digest precisa de rede antes do `run`, e a auditoria do Semgrep cobre o Docker Desktop local, não o Docker Engine do runner. Decisão do responsável; até lá, "não executado" visível |
-| `wpf-interativo` | `windows-2025` | `notepad-ui` | dependente de ambiente | **não comprovado.** A suíte exige usuário interativo, foco de teclado e clipboard da sessão (story MEL-02: 72/76 no sandbox do Codex, 76/76 como usuário logado). O verificador marca "não executado" quando `GITHUB_ACTIONS=true`. Ver §4 |
+| `wpf-interativo` | `windows-2025` | `notepad-ui` | dependente de ambiente | **não comprovado.** A suíte exige usuário interativo, foco de teclado e clipboard da sessão (story MEL-02: 72/76 no sandbox do Codex, 76/76 como usuário logado). Desde a fatia 1 (E2-4a), a sonda decide; ver §4 |
 | `publicacao` | `ubuntu-24.04` | checagem compartilhada de publicação (MEL-04) sobre o diff do PR | obrigatória depois da MEL-04 | sim, com fixtures sintéticas |
 | `resultado` | `ubuntu-24.04` | lê os JSON de todos os jobs | agregador | sim |
 
@@ -42,7 +42,7 @@ Regra do plano: classificar como "não executável" exige pré-requisito ausente
 3. **Sonda reprovada →** "não executável neste runner", com o item que faltou. O job termina **vermelho** e fora dos checks obrigatórios: não bloqueia o merge, mas não aparece como aprovado.
 4. **Validação WPF completa** continua exigindo evidência local reproduzível: `npm run verificar` como usuário interativo, com o JSON anexado ao PR ou ao handoff. Runner próprio fica como opção a avaliar (plano §5), não como pré-requisito.
 
-Até a sonda existir, o verificador já recusa a UI com `GITHUB_ACTIONS=true`: o job fica "não executado", nunca aprovado.
+**Implementado na fatia 1 (E2-4a, 2026-11-02):** a sonda é `reimplementacoes/notepad/tests/PRKingNotepad.UiProbe` e o verificador a roda antes do `notepad-ui`; a recusa por `GITHUB_ACTIONS=true` saiu. Com a sonda aprovada e uma asserção falhando, o `resultado` agregado fica vermelho (decisão do responsável, 2026-11-02; caso que a tabela do §5 não cobria). O agregador do §5 é `scripts/verificar/agregar-ci.mjs`.
 
 ## 5. Resultado agregado
 

@@ -53,14 +53,38 @@ export function compararLockNpm({ pacote, lock, instalados }) {
   return problemas;
 }
 
-/** Motivo pelo qual a sessão não serve para os testes de UI WPF, ou null. Ver story MEL-02. */
-export function motivoSemSessaoInterativa({ plataforma, usuario, env }) {
+/**
+ * Motivo pelo qual a sessão não serve para os testes de UI WPF, ou null. Ver story MEL-02.
+ * O sandbox do Codex fica recusado mesmo com a sonda aprovada: lá a falha foi de asserção, não de pré-requisito.
+ * Runner do GitHub Actions não é recusado aqui: quem decide é a sonda (desenho da MEL-08, §4).
+ */
+export function motivoSemSessaoInterativa({ plataforma, usuario }) {
   if (plataforma !== "win32") return "os testes de UI WPF exigem Windows";
   if (/^CodexSandbox/i.test(usuario))
     return `processo rodando como "${usuario}" (sandbox do Codex): a suíte WPF só vale como usuário interativo (story MEL-02)`;
-  if (env.GITHUB_ACTIONS === "true")
-    return "runner do GitHub Actions: sessão interativa, foco e clipboard não comprovados (desenho da MEL-08)";
   return null;
+}
+
+// Itens medidos pela sonda tests/PRKingNotepad.UiProbe (story MEL-08, AC8), na ordem da saída dela.
+export const ITENS_SONDA = ["interativa", "sessao_de_usuario", "foco_de_teclado", "clipboard"];
+
+/**
+ * Lê a linha JSON da sonda WPF: null quando todos os pré-requisitos estão presentes; senão, o motivo com o que faltou.
+ * Só aceita booleanos nos itens conhecidos e uma lista "faltou" coerente com eles; qualquer outra coisa é saída inválida.
+ */
+export function avaliarSonda(texto) {
+  const invalida = "não executável neste runner: sonda WPF com saída inválida";
+  let dados;
+  try {
+    dados = JSON.parse(String(texto ?? "").trim().split(/\r?\n/).filter((l) => l.startsWith("{")).at(-1) ?? "");
+  } catch {
+    return invalida;
+  }
+  const chaves = Object.keys(dados ?? {});
+  if (chaves.length !== ITENS_SONDA.length + 1 || !ITENS_SONDA.every((k) => typeof dados[k] === "boolean")) return invalida;
+  const faltou = ITENS_SONDA.filter((k) => !dados[k]);
+  if (!Array.isArray(dados.faltou) || dados.faltou.length !== faltou.length || !faltou.every((k) => dados.faltou.includes(k))) return invalida;
+  return faltou.length ? `não executável neste runner: faltou ${faltou.join(", ")} (sonda WPF)` : null;
 }
 
 /** Executa os componentes em ordem, respeitando requisitos e dependências. */
@@ -121,8 +145,8 @@ const NOTEPAD = join(RAIZ, "reimplementacoes", "notepad");
 // Saída de build fora do repositório: não trava nem sobrescreve o bin/ de um Notepad aberto (lição da NB5).
 const ARTEFATOS = join(tmpdir(), "prking-verificar-notepad");
 
-function rodar(comando, args, { cwd = RAIZ } = {}) {
-  const r = spawnSync(comando, args, { cwd, encoding: "utf8", maxBuffer: 256 * 1024 * 1024, windowsHide: true });
+function rodar(comando, args, { cwd = RAIZ, timeout } = {}) {
+  const r = spawnSync(comando, args, { cwd, encoding: "utf8", maxBuffer: 256 * 1024 * 1024, windowsHide: true, timeout });
   if (r.error) return { ok: false, ausente: r.error.code === "ENOENT", motivo: r.error.message, saida: "" };
   const saida = `${r.stdout ?? ""}${r.stderr ?? ""}`;
   return { ok: r.status === 0, codigo: r.status, saida };
@@ -170,6 +194,15 @@ function motivoSemDocker() {
   return dockerMotivo;
 }
 
+// A sonda sai com 1 quando falta algo; o que vale é a linha JSON, lida por avaliarSonda.
+const SONDA = join(ARTEFATOS, "bin", "PRKingNotepad.UiProbe", "debug", "PRKingNotepad.UiProbe.dll");
+function motivoDaSonda() {
+  if (!existsSync(SONDA)) return "sonda WPF não encontrada na saída do build (tests/PRKingNotepad.UiProbe)";
+  const r = rodar("dotnet", [SONDA], { cwd: NOTEPAD, timeout: 60_000 });
+  if (r.motivo) return `sonda WPF não concluiu: ${r.motivo}`;
+  return avaliarSonda(r.saida);
+}
+
 const dotnet = (args) => () => resultadoDe(rodar("dotnet", [...args, "--artifacts-path", ARTEFATOS], { cwd: NOTEPAD }), `dotnet ${args[0]}`, resumoDotnet);
 const nodeRun = (script, resumo = () => undefined) => () =>
   resultadoDe(rodar(process.execPath, ["--run", script]), `node --run ${script}`, resumo);
@@ -214,9 +247,9 @@ export const COMPONENTES = [
   { id: "notepad-core", descricao: "testes do PRKingNotepad.Core", depende: ["notepad-build"], executar: dotnet(["test", "tests/PRKingNotepad.Core.Tests/PRKingNotepad.Core.Tests.csproj", "--no-build"]) },
   {
     id: "notepad-ui",
-    descricao: "testes de UI WPF (sessão interativa, foco e clipboard)",
+    descricao: "testes de UI WPF, depois da sonda de sessão interativa, foco e clipboard",
     depende: ["notepad-build"],
-    requisito: () => motivoSemSessaoInterativa({ plataforma: process.platform, usuario: userInfo().username, env: process.env }),
+    requisito: () => motivoSemSessaoInterativa({ plataforma: process.platform, usuario: userInfo().username }) ?? motivoDaSonda(),
     executar: dotnet(["test", "tests/PRKingNotepad.Ui.Tests/PRKingNotepad.Ui.Tests.csproj", "--no-build"]),
   },
   { id: "semgrep-scan", descricao: "Semgrep fixado: varredura das regras do puzzle", requisito: motivoSemDocker, executar: nodeRun("semgrep") },

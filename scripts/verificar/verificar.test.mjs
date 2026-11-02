@@ -5,7 +5,9 @@ import {
   COMPONENTES,
   ESTADOS,
   SAIDA,
+  ITENS_SONDA,
   agregar,
+  avaliarSonda,
   comDependencias,
   compararLockNpm,
   executarPlano,
@@ -93,12 +95,63 @@ test("instalado diferente do lock, ausente ou lock sem raiz são recusados", () 
   assert.match(compararLockNpm({ pacote, lock: { lockfileVersion: 1 }, instalados: {} })[0], /sem a entrada da raiz/);
 });
 
-test("sessão para UI WPF: sandbox do Codex, outro sistema e GitHub Actions não servem", () => {
-  const base = { plataforma: "win32", usuario: "ianfl", env: {} };
+test("sessão para UI WPF: sandbox do Codex e outro sistema não servem; o runner do GitHub fica com a sonda", () => {
+  const base = { plataforma: "win32", usuario: "ianfl" };
   assert.equal(motivoSemSessaoInterativa(base), null);
   assert.match(motivoSemSessaoInterativa({ ...base, usuario: "CodexSandboxOffline" }), /sandbox do Codex/);
   assert.match(motivoSemSessaoInterativa({ ...base, plataforma: "linux" }), /exigem Windows/);
-  assert.match(motivoSemSessaoInterativa({ ...base, env: { GITHUB_ACTIONS: "true" } }), /GitHub Actions/);
+  assert.equal(motivoSemSessaoInterativa({ ...base, usuario: "runneradmin" }), null, "reconhecer o runner não basta: a sonda decide");
+});
+
+const sonda = (trocas = {}) => {
+  const itens = Object.fromEntries(ITENS_SONDA.map((k) => [k, trocas[k] ?? true]));
+  return JSON.stringify({ ...itens, faltou: ITENS_SONDA.filter((k) => !itens[k]) });
+};
+
+test("sonda WPF: todos os pré-requisitos presentes liberam a suíte", () => {
+  assert.equal(avaliarSonda(sonda()), null);
+  assert.equal(avaliarSonda(`aviso do host\n${sonda()}\n`), null, "vale a linha JSON, não o resto da saída");
+});
+
+test("sonda WPF: pré-requisito ausente (sessão não interativa, foco ou clipboard) vira não executável, com o item", () => {
+  for (const item of ["interativa", "sessao_de_usuario", "foco_de_teclado", "clipboard"]) {
+    const motivo = avaliarSonda(sonda({ [item]: false }));
+    assert.equal(motivo, `não executável neste runner: faltou ${item} (sonda WPF)`);
+  }
+  assert.match(avaliarSonda(sonda({ foco_de_teclado: false, clipboard: false })), /faltou foco_de_teclado, clipboard/);
+});
+
+test("sonda WPF: saída fora do formato (texto, campo a mais, valor não booleano, lista incoerente) não libera a suíte", () => {
+  const casos = [
+    "",
+    "Unhandled exception",
+    JSON.stringify({ interativa: true, sessao_de_usuario: true, foco_de_teclado: true, clipboard: true }),
+    JSON.stringify({ ...JSON.parse(sonda()), usuario: "ianfl" }),
+    JSON.stringify({ ...JSON.parse(sonda()), clipboard: "sim" }),
+    JSON.stringify({ ...JSON.parse(sonda({ clipboard: false })), faltou: [] }),
+    JSON.stringify({ ...JSON.parse(sonda()), faltou: ["clipboard"] }),
+  ];
+  for (const texto of casos) assert.equal(avaliarSonda(texto), "não executável neste runner: sonda WPF com saída inválida", texto);
+});
+
+test("sonda WPF reprovada deixa o notepad-ui não executado, nunca aprovado, e não roda a suíte", () => {
+  let rodou = false;
+  const plano = [
+    { id: "notepad-build", executar: ok() },
+    { id: "notepad-ui", depende: ["notepad-build"], requisito: () => avaliarSonda(sonda({ foco_de_teclado: false })), executar: () => ((rodou = true), { ok: true }) },
+  ];
+  const [, ui] = executarPlano(plano, {}, relogio);
+  assert.equal(ui.estado, ESTADOS.naoExecutado);
+  assert.equal(ui.motivo, "requisito ausente: não executável neste runner: faltou foco_de_teclado (sonda WPF)");
+  assert.equal(rodou, false);
+  assert.equal(agregar([ui]).codigo, SAIDA.incompleto);
+});
+
+test("sonda WPF aprovada roda a suíte, e falha de asserção conta como falha", () => {
+  const plano = [{ id: "notepad-ui", requisito: () => avaliarSonda(sonda()), executar: () => ({ ok: false, motivo: "dotnet test saiu com código 1" }) }];
+  const [ui] = executarPlano(plano, {}, relogio);
+  assert.equal(ui.estado, ESTADOS.falhou);
+  assert.equal(agregar([ui]).codigo, SAIDA.falhou);
 });
 
 test("componentes declarados: ids únicos, dependências existentes e seleção com dependências", () => {
