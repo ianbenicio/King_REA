@@ -111,7 +111,7 @@ O jogo combina as duas origens: **conteúdo próprio como base**, que é o padr�
 
 **Regras (DEVE):**
 
-1. **Identificadores neutros.** Itens, criaturas, tiles e sons do jogo têm IDs próprios. Uma tabela de correspondência liga cada ID próprio ao asset próprio e, quando existir, ao gráfico da instalação. Save, regras e dados de jogo usam só IDs próprios (seção 15). Trocar a origem não quebra o save.
+1. **Identificadores neutros.** Itens, criaturas, tiles e sons do jogo têm IDs próprios. Uma tabela de correspondência liga cada ID próprio ao asset próprio e, quando existir, ao gráfico da instalação. Save, regras e dados de jogo usam só IDs próprios (seção 15). Trocar a origem não quebra o save. *Adendo de 2026-11-02 (D12, pergunta de volta 1 do PRKing_UO):* "não quebra o save" quer dizer que os IDs de itens, criaturas, tiles e sons continuam válidos. Como mapa e arte vêm da mesma origem (regra 2) e o mapa próprio não copia o da instalação (regra 4), trocar a origem é sempre trocar de mundo: o save só carrega no mundo em que foi criado (seção 16, D12).
 2. **Uma origem por mundo.** A configuração escolhe o pacote de conteúdo do mundo, "próprio" ou "instalação", para o mapa e a arte. Não se misturam sprites das duas origens na mesma cena. A exceção é o recurso que falta na instalação: esse cai no conteúdo próprio, como na seção 3.8.
 3. **Leitura só em tempo de execução.** Não há importador que converta ou guarde em cache arquivos da instalação dentro do projeto. Nada lido da instalação vai para `Assets/`, para o git, para o build, para o save ou para capturas versionadas. Isso substitui a ideia de "importador offline" dos documentos do PRKing_UO (Anexo A, A5), porque uma conversão para disco criaria cópia derivada.
 4. **Conteúdo próprio não deriva da EA.** Arte, mapa e textos próprios são criados do zero. Não se decalca sprite, não se copia o desenho do mapa e não se usa a instalação como molde.
@@ -688,6 +688,7 @@ Resumo para versões futuras, detalhes em [W] §6:
 - O servidor emulado salva por instantâneo do mundo inteiro, com versão por tipo de entidade, em thread separada do laço [E37][E40][E44].
 - A reimplementação **DEVE** salvar e carregar o estado autoritativo da simulação (entidades, timers com tempo restante, relógio do mundo, semente do sorteio), nunca o estado visual (inferência a partir de [E39][E40]).
 - Nada lido da instalação do jogador **DEVE** ir para o save; o save guarda só identificadores (inferência; seção 17).
+- *Adendo de 2026-11-02 (D12):* o save **DEVE** guardar a identidade do mundo (a origem do conteúdo e o pacote do mundo) e a revisão da geometria do mapa, e **DEVE** recusar, com mensagem, o carregamento em outro mundo ou em outra revisão da geometria. Levar personagem e inventário para outro mundo é **PODE**, fora da primeira versão (seção 16, D12).
 
 ## 16. Decisões do responsável
 
@@ -706,6 +707,9 @@ Resumo para versões futuras, detalhes em [W] §6:
 | D9 | Curva de luz | crepúsculos de 2 h do emulador, sem transição, ou dia das 6h à meia-noite [W20][W19] | emulador, com a alternativa em dados |
 | D10 | Bônus mágico de dano | +9 no nível máximo [W80] ou +5 [W82] | emulador (+1 a +9) |
 | D11 | Tempo de corpos e itens no chão | 7 + 7 min e 1 h do emulador, ou 15 min e "minutos" do original [W84][W87][W27][W85] | corpos 7 + 7 min; itens 1 h (configurável) |
+| D12 | Troca de origem entre mundos de geometria diferente (§3.0, §15; pergunta de volta 1 do PRKing_UO) | (a) save preso ao mundo em que foi criado; (b) migrar posições, regiões, spawns e containers para a outra geometria; (c) save preso ao mundo, com transferência só de personagem e inventário | (c), aceita em 2026-11-02: o save guarda a identidade do mundo e a revisão da geometria e só carrega no mesmo mundo (DEVE); levar personagem e inventário para outro mundo, num ponto de chegada do mundo novo, é PODE e fica fora da primeira versão; migrar posições, regiões, spawns e containers entre geometrias fica FORA (inferência de projeto a partir das regras 1, 2 e 4 da §3.0) |
+
+> **Adendo — D12 decidida em 2026-11-02.** O responsável aceitou, na conversa, a recomendação da D12 (pergunta de volta 1 do PRKing_UO). Pelas regras 2 e 4 da §3.0, mapa e arte vêm da mesma origem e o mapa próprio não copia o da instalação, então trocar a origem é trocar de mundo. A regra 1 garante que os IDs continuam válidos, o que permite a transferência de personagem e inventário como PODE. Os adendos da §3.0 (regra 1) e da §15 aplicam a decisão.
 
 ## 17. Riscos legais e de licença (não é parecer jurídico)
 
