@@ -51,7 +51,7 @@ Diferente do Semgrep, o Biome roda direto na máquina, sem contêiner: é um exe
 ## Limites
 
 - Não foi feito build reprodutível a partir do commit `0b4c11f`; a ligação entre código-fonte e binário é a da atestação SLSA.
-- A assinatura Sigstore das atestações não foi verificada criptograficamente (`npm audit signatures` não foi rodado); foram conferidos o conteúdo do envelope e os digests.
+- Na auditoria, foram conferidos o conteúdo do envelope e os digests. Depois, com o TypeScript também instalado, `npm audit signatures` verificou as atestações instaladas: 34 pacotes com atestação válida (entre eles os do Biome), 147 com assinatura do registro e 0 inválidas ([auditoria do TypeScript](auditoria-typescript-6.0.3.md)).
 - Sem captura de rede durante a execução.
 
 ## Atualizar

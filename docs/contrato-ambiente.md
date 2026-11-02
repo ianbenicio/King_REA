@@ -12,6 +12,7 @@ Diz quais versões o projeto suporta, como preparar um clone limpo e como saber,
 | npm | o que vem com o Node (validado: 11.20.0) | — | `npm ci --ignore-scripts` (o `.npmrc` também liga `ignore-scripts`) |
 | REA (`rea-agents`) | 6.4.0 exata | `package.json`, integridade no `package-lock.json` | Atualizar só pela regra do CLAUDE.md (auditoria, `--save-exact --ignore-scripts`, reclassificar tools) |
 | Biome (`@biomejs/biome`) | 2.5.15 exata, em `devDependencies` | `package.json`, integridade no `package-lock.json`; configuração em `biome.json` | Auditoria em `docs/seguranca/auditoria-biome-2.5.15.md`; atualizar só repetindo a auditoria, com `--save-exact --ignore-scripts` |
+| TypeScript (`typescript`) | 6.0.3 exata, em `devDependencies` | `package.json`, integridade no `package-lock.json`; configuração em `tsconfig.json` | Auditoria em `docs/seguranca/auditoria-typescript-6.0.3.md`. A linha 7 (binário nativo sem procedência no npm) não foi adotada |
 | .NET SDK | 10.0.401 | `reimplementacoes/notepad/global.json` | `rollForward: "patch"`: usa a 10.0.401 se instalada; sem ela, a maior correção da faixa 10.0.4xx; outra faixa ou major falha. Sem prévia (`allowPrerelease: false`) |
 | Runtimes .NET | Microsoft.NETCore.App e WindowsDesktop.App 10.0.12 | Vêm com o SDK 10.0.401 | `net10.0` (Core) e `net10.0-windows` (WPF) |
 | Pacotes NuGet | os do `packages.lock.json` de cada projeto | `Directory.Build.props` (`RestorePackagesWithLockFile`) | Validação com `dotnet restore --locked-mode`: grafo diferente do lock falha |
@@ -71,6 +72,7 @@ Roda os componentes em ordem e imprime uma linha por componente com estado, dura
 | `dependencias-npm` | `package.json` × `package-lock.json` × `node_modules` | — | — |
 | `sintaxe-js` | `node --check` em `.claude/hooks`, `.githooks`, `scripts`, `reimplementacoes/puzzle-piloto` | — | `ambiente-node` |
 | `lint` | `biome lint --error-on-warnings` em `.claude/hooks` e `scripts` (regras recomendadas; avisos reprovam). Também `npm run lint` | Biome instalado em `node_modules` | `ambiente-node` |
+| `tipos` | `tsc -p tsconfig.json --noEmit` com `checkJs` nos arquivos de `files` (módulos de política). Também `npm run tipos` | TypeScript instalado em `node_modules` | `ambiente-node` |
 | `js` | `npm test` (gates, assets, monetização, verificador e puzzle-piloto) | — | `ambiente-node`, `dependencias-npm` |
 | `monetizacao` | `npm run check:monetizacao` | — | `ambiente-node` |
 | `dotnet-restore` | `dotnet restore --locked-mode` | `dotnet` com SDK compatível com o `global.json` | — |
@@ -108,6 +110,6 @@ O build .NET do verificador grava em `%TEMP%\prking-verificar-notepad` (`--artif
 Aparecem também no fim de toda execução do verificador:
 
 - **Lint de JavaScript:** implantado em `.claude/hooks/` e `scripts/` (Biome 2.5.15, 2026-11-02). Fora por enquanto: `reimplementacoes/puzzle-piloto/` e `.githooks/`; a expansão é gradual (story MEL-03). O verificador não repassa `BIOME_BINARY` ao Biome (auditoria).
-- **Tipos:** não implantado. Avaliar `checkJs` com JSDoc nos módulos de política; até lá, nada se chama `typecheck`. `sintaxe-js` é só sintaxe.
+- **Tipos:** implantado só nos módulos de política (`rea-gate`, `cli-gate`, `verificar-perfis`; TypeScript 6.0.3, 2026-11-02). Sem `@types/node`: as APIs do Node entram como `any` por `scripts/tipos/node-minimo.d.ts`. Ampliar o escopo ou adotar `@types/node` é decisão futura. `sintaxe-js` continua sendo só sintaxe, e nada se chama `typecheck`.
 - **Semgrep sem Docker:** sem alternativa; fica "não executado".
 - **UI WPF fora da sessão interativa:** fica "não executado", com o item que faltou. A detecção é a plataforma, o usuário do sandbox do Codex e a sonda `tests/PRKingNotepad.UiProbe` (MEL-08, AC8), que mede o pré-requisito em vez de reconhecer o ambiente. Sonda aprovada e asserção falhando é falha.

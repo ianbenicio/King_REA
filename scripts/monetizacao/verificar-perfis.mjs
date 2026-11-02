@@ -38,10 +38,11 @@ export function lerCatalogo(texto) {
   const aliases = new Map();
   const erros = [];
   const versao = Number(texto.match(/^versao:\s*(\d+)\s*$/m)?.[1]);
+  /** @type {{ id: string, nome: string, classe: string | null, infantojuvenil: "proibido" | "permitido" | null, somenteAdulto: boolean } | null} */
   let atual = null;
   const fechar = () => {
     if (!atual) return;
-    if (!["A", "B", "C"].includes(atual.classe)) erros.push(`${CATALOGO}: ${atual.id} sem "Classe" A, B ou C`);
+    if (!/** @type {(string | null)[]} */ (["A", "B", "C"]).includes(atual.classe)) erros.push(`${CATALOGO}: ${atual.id} sem "Classe" A, B ou C`);
     else if (atual.classe !== "C" && atual.infantojuvenil === null)
       erros.push(`${CATALOGO}: ${atual.id} sem a linha "Infantojuvenil"`);
     if (atual.classe === "C") atual.infantojuvenil = "proibido";
@@ -61,7 +62,8 @@ export function lerCatalogo(texto) {
       atual = null;
       continue;
     }
-    const campo = atual && linha.match(CAMPO);
+    if (!atual) continue;
+    const campo = linha.match(CAMPO);
     if (!campo) continue;
     const [, nomeCampo, valor] = campo;
     if (nomeCampo === "Classe") atual.classe = valor.trim().toUpperCase();
@@ -162,7 +164,7 @@ function verificarPerfil({ caminho, conteudo }, catalogo, declarados, problemas,
   try {
     perfil = JSON.parse(conteudo);
   } catch (error) {
-    problemas.push(`${caminho}: JSON inválido (${error.message})`);
+    problemas.push(`${caminho}: JSON inválido (${/** @type {Error} */ (error).message})`);
     return;
   }
   if (typeof perfil !== "object" || perfil === null || Array.isArray(perfil)) {
@@ -276,7 +278,7 @@ if (import.meta.main) {
     try {
       process.stdout.write(`${hashPerfil(JSON.parse(readFileSync(process.argv[i + 1], "utf8")))}\n`);
     } catch (error) {
-      process.stderr.write(`[monetizacao] Não consegui calcular o hash: ${error.message}\n`);
+      process.stderr.write(`[monetizacao] Não consegui calcular o hash: ${/** @type {Error} */ (error).message}\n`);
       process.exit(1);
     }
     process.exit(0);
@@ -286,7 +288,7 @@ if (import.meta.main) {
   try {
     texto = readFileSync(join(raizProjeto, CATALOGO), "utf8");
   } catch (error) {
-    process.stderr.write(`[monetizacao] Não consegui ler ${CATALOGO}: ${error.message}\n`);
+    process.stderr.write(`[monetizacao] Não consegui ler ${CATALOGO}: ${/** @type {Error} */ (error).message}\n`);
     process.exit(1);
   }
   const resultado = verificarProjetos({ catalogo: lerCatalogo(texto), arquivos: lerArvore(raizProjeto) });

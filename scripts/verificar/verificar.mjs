@@ -21,7 +21,7 @@ export const SAIDA = { aprovado: 0, falhou: 1, uso: 2, incompleto: 3 };
 // Pendências do contrato que o verificador ainda não cobre (story MEL-03). Aparecem em toda execução.
 export const PENDENCIAS = [
   "lint só em .claude/hooks/ e scripts/; reimplementacoes/puzzle-piloto/ e .githooks/ ainda fora (story MEL-03)",
-  "checagem de tipos não implantada; 'sintaxe-js' é só node --check, não análise de tipos (story MEL-03)",
+  "tipos só nos módulos de política (rea-gate, cli-gate, verificar-perfis), sem @types/node: APIs do Node como any (story MEL-03)",
 ];
 
 // --- regras puras (testadas em verificar.test.mjs) -------------------------------------------
@@ -226,6 +226,26 @@ export function componenteLint({ raiz = RAIZ, biome = BIOME } = {}) {
   };
 }
 
+// Tipos (MEL-03, AC4b): TypeScript 6.0.3 com checkJs, auditado em docs/seguranca/auditoria-typescript-6.0.3.md.
+// Os arquivos conferidos ficam em "files" do tsconfig.json (módulos de política); sem @types/node, as APIs do
+// Node vêm de scripts/tipos/node-minimo.d.ts.
+const TSC = join(RAIZ, "node_modules", "typescript", "bin", "tsc");
+
+/** Componente tipos para uma raiz e um tsc dados (parâmetros existem para os testes com cópia temporária). */
+export function componenteTipos({ raiz = RAIZ, tsc = TSC } = {}) {
+  return {
+    id: "tipos",
+    descricao: "tsc --noEmit com checkJs nos módulos de política (tsconfig.json)",
+    depende: ["ambiente-node"],
+    requisito: () => (existsSync(tsc) ? null : "TypeScript não instalado em node_modules (rode npm ci --ignore-scripts)"),
+    executar() {
+      const arquivos = JSON.parse(readFileSync(join(raiz, "tsconfig.json"), "utf8")).files?.length ?? 0;
+      const r = rodar(process.execPath, [tsc, "-p", "tsconfig.json", "--noEmit", "--pretty", "false"], { cwd: raiz });
+      return resultadoDe(r, "tsc", () => `${arquivos} arquivos`);
+    },
+  };
+}
+
 const dotnet = (args) => () => resultadoDe(rodar("dotnet", [...args, "--artifacts-path", ARTEFATOS], { cwd: NOTEPAD }), `dotnet ${args[0]}`, resumoDotnet);
 const nodeRun = (script, resumo = () => undefined) => () =>
   resultadoDe(rodar(process.execPath, ["--run", script]), `node --run ${script}`, resumo);
@@ -264,6 +284,7 @@ export const COMPONENTES = [
     },
   },
   componenteLint(),
+  componenteTipos(),
   { id: "js", descricao: "npm test: gates, assets, monetização e puzzle-piloto", depende: ["ambiente-node", "dependencias-npm"], executar: nodeRun("test", resumoNodeTest) },
   { id: "monetizacao", descricao: "checagem dos perfis de monetização", depende: ["ambiente-node"], executar: nodeRun("check:monetizacao") },
   { id: "dotnet-restore", descricao: "restore .NET em modo travado (packages.lock.json)", requisito: motivoSemDotnet, executar: dotnet(["restore", "PRKingNotepad.slnx", "--locked-mode"]) },

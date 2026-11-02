@@ -16,6 +16,10 @@ import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
+/**
+ * Responde ao Claude Code e encerra o hook; nunca retorna.
+ * @type {(permissionDecision: "allow" | "deny" | "ask", reason: string) => never}
+ */
 const decide = (permissionDecision, reason) => {
   process.stdout.write(
     JSON.stringify({
