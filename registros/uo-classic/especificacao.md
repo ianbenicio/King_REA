@@ -76,7 +76,7 @@ No jogo original o cliente só pede e o servidor decide tudo: movimento, dano, g
 ### 2.1 Tempo
 
 - O servidor emulado roda toda a lógica numa thread só; a cada volta lê o relógio, processa as filas de mudança, dispara timers vencidos e, se pedido, salva [E37]. Timers vão de "todo tick" a 1 minuto em baldes de prioridade (RunUO) ou numa roda com base de 8 ms (ModernUO) [E39][E43].
-- A simulação **DEVE** rodar em passos de tempo próprios, independentes da taxa de quadros, com timers guardados como "tempo restante" para que salvar e carregar preserve o estado (inferência a partir de [E39]).
+- A simulação **DEVE** rodar em passos de tempo próprios, independentes da taxa de quadros, com timers guardados como "tempo restante" para que salvar e carregar preserve o estado (inferência a partir de [E39]). *Decidido (2026-11-02): passo de 25 ms para timers de ação e IA, sistemas pesados em fatias de 10 Hz (Anexo A, A.6)*.
 - O relógio do mundo **DEVE** ser determinístico com semente fixa nos testes (inferência).
 
 ### 2.2 Movimento
@@ -755,12 +755,12 @@ Lidos em `H:\King\Clientes e Projetos\PRKing_UO`, sem edição: `README.md`, `do
 | # | Classe | Situação | O que mudou |
 |---|---|---|---|
 | A1 | (a) | resolvido | O PRKing_UO virou repositório git (commit `597062d`, 2026-10-28) |
-| A2 | (c) | **pendente** | Story 1.2 sem relação com o jogo; ver A.5 |
+| A2 | (c) | resolvido (A.6) | Story 1.2 sem relação com o jogo; saiu do PRKing_UO |
 | A3 | (a) | resolvido | Seção duplicada removida do `README.md`; o caminho do pacote ausente ficou como texto, ligado à A2 |
 | A4 | (a) | resolvido | `README.md`, arquitetura, roadmap e Story 1.1 dizem Unity 6.6 (6000.6.7f1) desde `597062d` |
 | A5 | (a) | resolvido | README, PRD, arquitetura, dossiê e ledger descrevem o modelo misto: sem importador nem cache em disco; leitor opcional só em tempo de execução, desligado por padrão e só para uso pessoal |
 | A6 | (a) | resolvido | Perfil T2A no estado de março de 2000 (D1); Renaissance, Trammel e AOS fora |
-| A7 | (a) e (c) | resolvido em parte | Produto chamado "Outrora" no README e no PRD. **Pendente:** nome da pasta do repositório e dos arquivos que citam o jogo; ver A.5 |
+| A7 | (a) e (c) | resolvido (A.6) | Produto chamado "Outrora" no README e no PRD; arquivos renomeados para nomes neutros. A pasta e o repositório são renomeados antes de o repositório ficar público |
 | A8 | (a) | resolvido | PRD §8–§10, roadmap e Story 1.1 seguem o loop básico da seção 1; magia, coleta e crafting viraram a segunda versão (Fase 4); pets, casa, quests e agentes ficam depois |
 | A9 | (a) | resolvido | A Story 1.1 é a primeira fatia da primeira versão; ganho de skill e stat e o leitor da instalação entram em stories seguintes da mesma versão (roadmap, Fases 2 e 3) |
 | A10 | (a) | resolvido | Dossiê aponta as 49 skills da seção 5.1 (46 no lançamento) como perfil T2A; a lista moderna fica como contexto |
@@ -771,7 +771,7 @@ Lidos em `H:\King\Clientes e Projetos\PRKing_UO`, sem edição: `README.md`, `do
 | A15 | (a) | resolvido | UO Offline: se deriva do ModernUO, herda a GPL-3.0 (inferência); só referência de comportamento |
 | A16 | (a) | resolvido | Chunks de 32 × 32 mantidos, sempre múltiplos de 8, com a ordem de blocos da seção 3.5; IA ativada por setores de 16 × 16 |
 | A17 | (a) | resolvido | A arquitetura usa a ordem de desenho da seção 3.9 no lugar da chave por `screenY` |
-| A18 | (c) | **pendente** | Tique da simulação; ver A.5. A arquitetura marca o 10 Hz como provisório |
+| A18 | (c) | resolvido (A.6) | Passo de 25 ms para timers de ação e IA; sistemas pesados em fatias de 10 Hz |
 | A19 | (a) | resolvido | Arquitetura e README dizem que a 6.6 não é LTS; o roadmap prevê a migração para a 6.7 LTS |
 | A20 | (a) | resolvido | README, PRD e arquitetura apontam a especificação como fonte única das regras, com os perfis "T2A estrito" e "pré-AOS final" e as decisões D1–D11 |
 
@@ -784,9 +784,11 @@ Lidos em `H:\King\Clientes e Projetos\PRKing_UO`, sem edição: `README.md`, `do
 | A23 | O save previa `screenshot.png`, que com a origem "instalação" seria cópia derivada (seções 3.0 e 15) | (a) | resolvido: a imagem só é gravada com a origem "próprio" |
 | A24 | O PRKing_UO não tinha `.gitignore` para os formatos de dados do jogo (entrega a repositório externo, protocolo de especificação) | (a) | resolvido no commit de entrega da cópia |
 | A25 | O cabeçalho desta especificação dizia que nenhum binário do alvo foi lido, mas os adendos de 2026-10-28 e 2026-10-29 vêm da análise estática da cópia instalada; e a linha "Unity" da seção 1 ainda dava a divergência como aberta | (b) | adendo: cabeçalho corrigido e linha "Unity" marcada como resolvida |
-| A26 | Licença do próprio Outrora, aberta desde a Fase 0 | (c) | **pendente**; ver A.5 |
+| A26 | Licença do próprio Outrora, aberta desde a Fase 0 | (c) | resolvido por ora (A.6): todos os direitos reservados enquanto local |
 
 ### A.5 Decisões pendentes do Anexo A (2026-11-02)
+
+*Decididas no mesmo dia; ver A.6. A tabela fica como registro das opções.*
 
 | # | Decisão | Opções | Recomendação |
 |---|---|---|---|
@@ -796,3 +798,14 @@ Lidos em `H:\King\Clientes e Projetos\PRKing_UO`, sem edição: `README.md`, `do
 | A26 | Licença do Outrora | (1) todos os direitos reservados enquanto o repositório for local; (2) licença permissiva ao publicar; (3) licença copyleft ao publicar | (1) agora, e decidir entre (2) e (3) antes de o repositório ficar público. A sala limpa vale em qualquer caso: nenhuma licença permite copiar código de terceiros |
 
 A D3 (resistência a magia) continua adiada até a magia, como decidido em 2026-11-01. A direção de arte autoral é decisão do PRKing_UO, não desta especificação, e segue aberta lá (PRD §12).
+
+### A.6 Decisões do responsável sobre o Anexo A (adendo de 2026-11-02)
+
+> **Adendo — decididas em 2026-11-02.** O responsável aceitou, na conversa, as quatro recomendações do A.5. Elas passam a valer como **DEVE**. O PRKing_UO aplicou as decisões no commit `771cb05` daquele repositório. Com isso, o Anexo A fica resolvido. Resta uma ação com prazo: renomear a pasta e o repositório antes de o repositório ficar público.
+
+| # | Decisão (2026-11-02) | Efeito |
+|---|---|---|
+| A2 | Opção (1): a Story 1.2 (gadget de temperatura) sai do PRKing_UO | Story e seção "Ferramentas auxiliares" removidas do PRKing_UO |
+| A7 | Opção (2): arquivos agora, pasta depois | O PRD virou `docs/prd/prd.md` e o dossiê virou `docs/research/dossie-pesquisa-inicial.md`, com as referências atualizadas. A pasta e o repositório `PRKing_UO` **DEVEM** ganhar nome neutro antes de o repositório ficar público; nessa hora, o item 8 do `CLAUDE.md` do PRKing_REA acompanha. Fica confirmado o alcance da seção 17 que o A.5 dava como inferência: menção descritiva ao jogo é permitida, nunca como nome, título, identificador de código, namespace ou marca |
+| A18 | Opção (3): passo de 25 ms com fatias de 10 Hz | A simulação **DEVE** usar passo de 25 ms para timers de ação e de IA, com os sistemas pesados em fatias de 10 Hz. O intervalo de golpe da seção 6.1 continua contínuo e é agendado no passo mais próximo, com erro de até 12,5 ms. Os números continuam em dados. Complementa a seção 2, que pede passos de tempo próprios sem fixar o valor |
+| A26 | Opção (1) por ora | O Outrora fica com todos os direitos reservados enquanto o projeto for local. A licença (permissiva ou copyleft) **DEVE** ser decidida pelo responsável antes de o repositório ficar público. A sala limpa vale em qualquer caso |
