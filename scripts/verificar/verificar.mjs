@@ -70,9 +70,10 @@ export const ITENS_SONDA = ["interativa", "sessao_de_usuario", "foco_de_teclado"
 
 /**
  * Lê a linha JSON da sonda WPF: null quando todos os pré-requisitos estão presentes; senão, o motivo com o que faltou.
- * Só aceita booleanos nos itens conhecidos e uma lista "faltou" coerente com eles; qualquer outra coisa é saída inválida.
+ * Só aceita booleanos nos itens conhecidos, uma lista "faltou" coerente com eles e, quando informado, o código de saída
+ * coerente com a lista (0 sem falta, 1 com falta); qualquer outra coisa é saída inválida.
  */
-export function avaliarSonda(texto) {
+export function avaliarSonda(texto, codigo) {
   const invalida = "não executável neste runner: sonda WPF com saída inválida";
   let dados;
   try {
@@ -84,6 +85,7 @@ export function avaliarSonda(texto) {
   if (chaves.length !== ITENS_SONDA.length + 1 || !ITENS_SONDA.every((k) => typeof dados[k] === "boolean")) return invalida;
   const faltou = ITENS_SONDA.filter((k) => !dados[k]);
   if (!Array.isArray(dados.faltou) || dados.faltou.length !== faltou.length || !faltou.every((k) => dados.faltou.includes(k))) return invalida;
+  if (codigo !== undefined && codigo !== (faltou.length ? 1 : 0)) return invalida;
   return faltou.length ? `não executável neste runner: faltou ${faltou.join(", ")} (sonda WPF)` : null;
 }
 
@@ -200,7 +202,7 @@ function motivoDaSonda() {
   if (!existsSync(SONDA)) return "sonda WPF não encontrada na saída do build (tests/PRKingNotepad.UiProbe)";
   const r = rodar("dotnet", [SONDA], { cwd: NOTEPAD, timeout: 60_000 });
   if (r.motivo) return `sonda WPF não concluiu: ${r.motivo}`;
-  return avaliarSonda(r.saida);
+  return avaliarSonda(r.saida, r.codigo);
 }
 
 const dotnet = (args) => () => resultadoDe(rodar("dotnet", [...args, "--artifacts-path", ARTEFATOS], { cwd: NOTEPAD }), `dotnet ${args[0]}`, resumoDotnet);

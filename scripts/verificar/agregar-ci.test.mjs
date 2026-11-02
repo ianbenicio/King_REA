@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { ESTADOS, SAIDA } from "./verificar.mjs";
-import { AVISO_WPF, JOBS, agregarCi } from "./agregar-ci.mjs";
+import { AVISO_WPF, AVISO_WPF_SEM_JSON, JOBS, agregarCi } from "./agregar-ci.mjs";
 
 const aprovado = (id) => ({ id, estado: ESTADOS.aprovado, duracao_s: 1.5, detalhe: "ok" });
 const json = (resultados) => JSON.stringify({ data: "2026-11-02T00:00:00.000Z", total: {}, resultados });
@@ -86,6 +86,34 @@ test("JSON inválido, sem resultados, componente ausente ou estado desconhecido 
     assert.equal(r.decisao.codigo, SAIDA.incompleto, String(motivo));
     assert.match(linhaDe(r, "notepad-core").motivo, motivo);
   }
+});
+
+test("componente repetido no JSON não esconde a falha (QA-E24A-02)", () => {
+  const falha = { id: "notepad-core", estado: ESTADOS.falhou, motivo: "dotnet test saiu com código 1" };
+  const entradas = todos();
+  entradas.set("dotnet", json([aprovado("dotnet-restore"), aprovado("notepad-build"), falha, aprovado("notepad-core")]));
+  const r = agregarCi(entradas);
+  assert.notEqual(r.decisao.codigo, SAIDA.aprovado);
+  assert.match(linhaDe(r, "notepad-core").motivo, /componente repetido/);
+});
+
+test("cabeçalho do npm run antes do JSON é inválido; BOM é tolerado (QA-E24A-01)", () => {
+  const cabecalho = todos();
+  cabecalho.set("dotnet", `\n> prking-rea@0.1.0 verificar\n> node scripts/verificar/verificar.mjs --so notepad-core --json\n\n${job("dotnet")}`);
+  const r = agregarCi(cabecalho);
+  assert.equal(r.decisao.codigo, SAIDA.incompleto);
+  assert.match(linhaDe(r, "notepad-core").motivo, /JSON do job inválido/);
+  const bom = todos();
+  bom.set("dotnet", `﻿${job("dotnet")}`);
+  assert.equal(agregarCi(bom).decisao.codigo, SAIDA.aprovado);
+});
+
+test("WPF sem JSON (job cancelado) tem aviso próprio, não o de pré-requisito ausente (QA-E24A-05)", () => {
+  const entradas = todos();
+  entradas.delete("wpf-interativo");
+  const r = agregarCi(entradas);
+  assert.equal(r.decisao.codigo, SAIDA.aprovado);
+  assert.deepEqual(r.decisao.observacoes, [`${AVISO_WPF_SEM_JSON}.`]);
 });
 
 test("falha vence incompleto; nenhum JSON é incompleto, não verde", () => {

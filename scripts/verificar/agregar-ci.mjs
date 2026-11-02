@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Resultado agregado da CI (MEL-08; desenho em docs/planos/2026-11-01-desenho-ci-mel08.md, §5).
-// Lê o JSON que cada job publicou com `npm run verificar -- --so … --json` e decide o estado final.
+// Lê o JSON que cada job publicou com `node scripts/verificar/verificar.mjs --so … --json` (ou
+// `npm run -s verificar -- …`: sem `-s`, o npm põe um cabeçalho antes do JSON) e decide o estado final.
 // Falha vence tudo; obrigatório não executado (requisito ausente, job cancelado, JSON faltando ou
 // inválido) deixa incompleto; o WPF é categoria própria: não executado não reprova, mas fica dito
 // no resumo, e falha de asserção reprova (decisão do responsável em 2026-11-02).
@@ -25,6 +26,8 @@ export const JOBS = [
 ];
 
 export const AVISO_WPF = "WPF: não executável neste runner, validação local pendente";
+// Job sem JSON (cancelado, travado ou sem artefato) não é pré-requisito ausente: dito à parte.
+export const AVISO_WPF_SEM_JSON = "WPF: job sem resultado legível (cancelado, travado ou sem artefato), validação local pendente";
 
 const ESTADOS_VALIDOS = new Set(Object.values(ESTADOS));
 
@@ -33,12 +36,16 @@ function lerResultados(texto) {
   if (texto === undefined || texto === null) return { motivo: "JSON do job ausente (job cancelado, não concluído ou sem artefato)" };
   let dados;
   try {
-    dados = JSON.parse(texto);
+    // BOM tolerado (redirecionamento do PowerShell); cabeçalho do `npm run` sem `-s`, não: o job tem de gerar JSON puro.
+    dados = JSON.parse(texto.replace(/^﻿/, ""));
   } catch {
     return { motivo: "JSON do job inválido" };
   }
   if (!Array.isArray(dados?.resultados)) return { motivo: "JSON do job sem a lista de resultados" };
-  return { porId: new Map(dados.resultados.filter((r) => typeof r?.id === "string").map((r) => [r.id, r])) };
+  const comId = dados.resultados.filter((r) => typeof r?.id === "string");
+  // Id repetido deixaria a última linha esconder uma falha anterior.
+  if (new Set(comId.map((r) => r.id)).size !== comId.length) return { motivo: "JSON do job inválido: componente repetido" };
+  return { porId: new Map(comId.map((r) => [r.id, r])) };
 }
 
 /** Uma linha por componente esperado. Componente que não veio, ou com estado desconhecido, não conta como aprovado. */
@@ -67,7 +74,9 @@ export function decidir(linhas) {
     const faltando = obrigatorias.filter((l) => l.estado === ESTADOS.naoExecutado).length;
     observacoes.push(obrigatorias.length === 0 ? "Incompleto: nenhum componente obrigatório declarado." : `Incompleto: ${faltando} componente(s) obrigatório(s) não executado(s).`);
   } else total = { estado: "aprovado", codigo: SAIDA.aprovado };
-  if (ambiente.some((l) => l.estado === ESTADOS.naoExecutado)) observacoes.push(`${AVISO_WPF}.`);
+  const wpfSemJson = ambiente.filter((l) => l.estado === ESTADOS.naoExecutado && l.motivo.startsWith("JSON do job"));
+  if (wpfSemJson.length) observacoes.push(`${AVISO_WPF_SEM_JSON}.`);
+  else if (ambiente.some((l) => l.estado === ESTADOS.naoExecutado)) observacoes.push(`${AVISO_WPF}.`);
   return { ...total, observacoes };
 }
 

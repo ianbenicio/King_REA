@@ -6,7 +6,7 @@ Ativar exige aprovação do responsável na conversa e push pelo @devops. Este d
 
 ## 1. Princípios
 
-- **A CI chama o mesmo verificador do clone local** (`npm run verificar -- --so … --json`). Nenhuma lista de testes duplicada no YAML: o que muda no contrato muda nos dois lugares.
+- **A CI chama o mesmo verificador do clone local** (`node scripts/verificar/verificar.mjs --so … --json`, o mesmo do `npm run verificar`, chamado direto para o JSON sair sem o cabeçalho do npm). Nenhuma lista de testes duplicada no YAML: o que muda no contrato muda nos dois lugares.
 - **Três estados, sempre.** Cada job publica o JSON do verificador; "não executado" nunca vira verde.
 - **Repositório público** (`ianbenicio/King_REA`): logs e artefatos de Actions são públicos. Nada de conteúdo, variáveis de ambiente ou caminhos de `alvos/` e `saidas/`; relatórios citam caminho e tipo de ocorrência.
 - **Mínimo de privilégio:** `permissions: contents: read` no workflow; sem `pull_request_target`; sem segredos; `persist-credentials: false` no checkout.
@@ -79,13 +79,13 @@ jobs:
       - run: node -e "for (const d of ['alvos','saidas']) if (require('fs').existsSync(d)) process.exit(1)"
       - uses: actions/setup-node@<sha>      # node-version-file: .node-version, cache: npm
       - run: npm ci --ignore-scripts
-      - run: npm run verificar -- --so js,monetizacao,sintaxe-js --json > verificar-js.json
+      - run: node scripts/verificar/verificar.mjs --so js,monetizacao,sintaxe-js --json > verificar-js.json  # sem npm run: o cabeçalho dele invalida o JSON
       - uses: actions/upload-artifact@<sha> # if: always(), retention-days: 7
   dotnet:
     runs-on: windows-2025
     steps:
       # checkout, guarda, setup-node, setup-dotnet (global-json-file: reimplementacoes/notepad/global.json)
-      - run: npm run verificar -- --so notepad-core --json > verificar-dotnet.json
+      - run: node scripts/verificar/verificar.mjs --so notepad-core --json > verificar-dotnet.json
   resultado:
     needs: [js, dotnet]                     # + semgrep, wpf-interativo, publicacao quando entrarem
     if: always()

@@ -134,6 +134,15 @@ test("sonda WPF: saída fora do formato (texto, campo a mais, valor não boolean
   for (const texto of casos) assert.equal(avaliarSonda(texto), "não executável neste runner: sonda WPF com saída inválida", texto);
 });
 
+test("sonda WPF: código de saída incoerente com a lista do que faltou é saída inválida (QA-E24A-04)", () => {
+  const invalida = "não executável neste runner: sonda WPF com saída inválida";
+  assert.equal(avaliarSonda(sonda(), 0), null);
+  assert.match(avaliarSonda(sonda({ clipboard: false }), 1), /faltou clipboard/);
+  assert.equal(avaliarSonda(sonda(), 1), invalida);
+  assert.equal(avaliarSonda(sonda({ clipboard: false }), 0), invalida);
+  assert.equal(avaliarSonda(sonda(), null), invalida, "processo encerrado sem código (sinal)");
+});
+
 test("sonda WPF reprovada deixa o notepad-ui não executado, nunca aprovado, e não roda a suíte", () => {
   let rodou = false;
   const plano = [
