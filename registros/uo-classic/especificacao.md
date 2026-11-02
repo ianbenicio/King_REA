@@ -687,6 +687,8 @@ Resumo para versões futuras, detalhes em [W] §6:
 
 - O servidor emulado salva por instantâneo do mundo inteiro, com versão por tipo de entidade, em thread separada do laço [E37][E40][E44].
 - A reimplementação **DEVE** salvar e carregar o estado autoritativo da simulação (entidades, timers com tempo restante, relógio do mundo, semente do sorteio), nunca o estado visual (inferência a partir de [E39][E40]).
+
+> **Adendo — corrigido (2026-11-02), pergunta de volta 4 do PRKing_UO.** Onde o item acima diz "semente do sorteio", vale: o save **DEVE** guardar o **estado atual** do gerador de sorteio, que deixa a sequência continuar de onde parou, e não só a semente inicial, que faria cada carregamento repetir o começo da sequência. O save **DEVE** gravar também a versão do gerador usado pelas regras, para que uma troca de gerador entre versões do jogo seja percebida ao carregar. Continua sendo inferência a partir de [E39][E40]. Decisão do responsável na conversa de 2026-11-02.
 - Nada lido da instalação do jogador **DEVE** ir para o save; o save guarda só identificadores (inferência; seção 17).
 - *Adendo de 2026-11-02 (D12):* o save **DEVE** guardar a identidade do mundo (a origem do conteúdo e o pacote do mundo) e a revisão da geometria do mapa, e **DEVE** recusar, com mensagem, o carregamento em outro mundo ou em outra revisão da geometria. Levar personagem e inventário para outro mundo é **PODE**, fora da primeira versão (seção 16, D12).
 
