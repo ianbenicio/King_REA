@@ -340,6 +340,14 @@ Leitura: ação difícil ensina mais, e o ganho desacelera perto dos caps (coere
 - Modelo (emulador): intervalo em segundos = 15000 / ((estamina_atual + 100) · V), com V = velocidade da arma. Com estamina 100: katana (V 58) ≈ 1,29 s; arco (V 20) 3,75 s; punhos (V 30) 2,5 s [M29][M57][M58][M59].
 - Só se inicia ataque contra alvo a até 15 tiles e com linha de visão (jan/1999) [M4].
 
+> **Adendo — pergunta de volta 3 do PRKing_UO (2026-11-02).** Fonte: pesquisa pública [V3][V4][V9–V13].
+>
+> - **Alcance de contato (DEVE):** cada arma tem um alcance máximo em tiles, em dados. Armas corpo a corpo, inclusive lanças e armas de haste, e luta desarmada: 1 tile [V10]. Para quando houver arma à distância: arco 10, besta 8 [V12]. A distância é a maior das diferenças em x e em y, então 1 tile cobre as oito casas vizinhas; a altura não entra nesse teste [V9][V11]. Os 15 tiles do item acima valem só para iniciar o ataque [V3].
+> - **Quando se confere (DEVE):** a cada tentativa de golpe, não só ao iniciar. Vencido o intervalo do golpe, confere-se nesta ordem: alvo ainda válido (vivo, no mesmo mapa e visível; senão, o combate termina), alvo dentro do alcance da arma, linha de visão. Passou tudo, o golpe sai [V9][V11].
+> - **Sem checagem no impacto (DEVE):** desde fev/1999, acerto e dano se resolvem no início do golpe (oficial [V4]), no mesmo instante da conferência acima [V10].
+> - **Timer com o alvo fora do alcance (DEVE):** o intervalo continua correndo; vencido, o golpe fica pronto e espera, conferido de novo a cada tique da simulação. Quando o alvo volta ao alcance, o golpe sai na hora, e o intervalo seguinte conta a partir dele. Golpes não se acumulam: esperar vários intervalos rende um golpe só [V9][V11].
+> - **Troca de arma (DEVE):** equipar ou tirar a arma reinicia a espera com o intervalo inteiro da arma que fica na mão (emulador [V10]; a nota oficial diz só "curto tempo de preparação" [V4]).
+
 ### 6.2 Acerto
 
 Modelo (emulador) [M29], com A = skill de arma do atacante e D = skill de arma do defensor (Wrestling se desarmado), cada um com piso de −49,9:
@@ -610,6 +618,8 @@ Com `s` skill, `[s_min, s_max]` faixa do item e `c₀` chance mínima do sistema
 | Animal | Ataca alvo válido; foge com vida < 10%; animais pacíficos só reagem a agressor | [W61][W78] |
 | Mago (PODE) | Cura-se quando falta vida; sorteia magias de dano, veneno, maldição e paralisia; teleporta quando bloqueado | [W62] |
 | Arqueiro (PODE) | Existe no emulador; detalhes não lidos | [W35] |
+
+> *Adendo de 2026-11-02 (pergunta de volta 3):* o "1 tile" da perseguição no corpo a corpo é a distância de luta da criatura, igual ao alcance de contato da §6.1 (adendo): maior das diferenças em x e y, oito direções [V9][V13].
 
 - **Escolha de alvo** por modo: só agressores, mais forte, mais fraco, mais próximo, ou "maligno" [W35].
 - **Chance de fuga** no corpo a corpo, rolada abaixo do limiar: 10% + diferença de vida em pontos percentuais se estiver em desvantagem, senão 10% [W60]. O comportamento do mago no emulador tem provável erro; não reproduzir [W62].
