@@ -2,8 +2,8 @@
 alvo: uo-classic
 destino: projeto Unity próprio em H:\King\Clientes e Projetos\PRKing_UO (fora deste repositório; exceção do item 8 do CLAUDE.md)
 era_de_referencia: T2A (The Second Age, 1998-10-01 a 2000-05-04)
-fontes: só fontes públicas (docs/research/2026-10-27-uo/); nenhum binário do alvo foi lido
-data: 2026-10-28
+fontes: pesquisa pública (docs/research/2026-10-27-uo/); os adendos de 2026-10-28 e 2026-10-29 vêm da análise estática da cópia instalada (registros/uo-classic/01-analise.md); o texto original de 2026-10-28 não leu binário do alvo
+data: 2026-10-28 (adendos até 2026-11-02)
 ---
 
 # Especificação de comportamento — RPG isométrico local inspirado no Ultima Online, era T2A (sala limpa)
@@ -32,7 +32,7 @@ Este documento descreve **o que** o Ultima Online fazia na era T2A, em palavras 
 | Era | T2A | Regras até 2000-05-04. Trammel, Renaissance e Age of Shadows ficam FORA [M1][M15] |
 | Assets | Modelo misto (2026-10-28): conteúdo próprio como base e leitura opcional da cópia instalada em tempo de execução, como o ClassicUO, sem redistribuir. A Fase 0 tinha só a leitura da cópia | Seção 3. Placeholders até o cliente existir. Risco legal na seção 17 |
 | Nome | "Outrora" (proposto na Fase 0; adotado pelo responsável em 2026-11-01, seção 17) | O PRKing_UO usa esse nome. Nunca "Ultima", "Ultima Online" nem "Britannia" [E93][E96] |
-| Unity | 6.6 (6000.6.7f1), decisão de 2026-10-28 que substitui a 2022.3 LTS da Fase 0 | O PRKing_UO hoje diz Unity 6.3 LTS: divergência listada no Anexo A. A 6.6 não é LTS (ver A19) |
+| Unity | 6.6 (6000.6.7f1), decisão de 2026-10-28 que substitui a 2022.3 LTS da Fase 0 | O PRKing_UO hoje diz Unity 6.3 LTS: divergência listada no Anexo A. A 6.6 não é LTS (ver A19). *Resolvido (2026-11-02): o PRKing_UO usa a 6.6 e prevê a migração para a 6.7 LTS (Anexo A, A.4)* |
 | Primeira versão jogável | Loop básico | Mundo isométrico navegável; stats e skills com ganho; combate corpo a corpo contra criaturas com IA simples; loot; morte e ressurreição; uma cidade com vendedor e banco; dia e noite; salvar e carregar |
 
 Fora da primeira versão (FORA): magia (seção 7 fica especificada para a segunda), crafting e coleta (seção 12), housing e barcos (seção 14), pets e domesticação, guildas, multijogador, protocolo de rede.
@@ -747,3 +747,52 @@ Lidos em `H:\King\Clientes e Projetos\PRKing_UO`, sem edição: `README.md`, `do
 | A18 | Tique autoritativo de 10 Hz | Compatível com passos de 400, 200 e 100 ms (múltiplos de 100 ms) e com o tique de IA de 0,175 s só se arredondado (inferência) | arquitetura l. 219; seções 2.2 e 13.1 [E45][W26] |
 | A19 | Unity 6.3 LTS "com suporte até dezembro de 2027" | Não verificado. A versão escolhida, 6.6, é "supported release", não LTS: recebe correções até sair a 6.7 LTS, prevista para o quarto trimestre de 2026; a migração para a 6.7 entra no plano do PRKing_UO | arquitetura l. 18; anúncio da Unity, https://discussions.unity.com/t/unity-6-6-is-now-available/1735357 (acesso 2026-10-28) |
 | A20 | Nenhuma menção às fórmulas da era (acerto, dano, ganho, regeneração) nem a que perfil numérico usar | Seções 4–9 desta especificação, com o aviso de que os números vêm do emulador pré-AOS | seção "Modelo numérico" |
+
+### A.4 Resolução (adendo de 2026-11-02)
+
+> **Adendo — resolução do Anexo A (2026-11-02).** Os documentos do PRKing_UO foram alinhados no commit `217fa1b` daquele repositório, a partir das decisões do responsável (seção 1, seção 3.0, seções 16 e 17). Classes: **(a)** o PRKing_UO se ajusta à especificação; **(b)** a especificação recebe adendo; **(c)** decisão pendente do responsável. Onde este adendo diz "resolvido", vale ele sobre as tabelas A.1 a A.3, que ficam como registro.
+
+| # | Classe | Situação | O que mudou |
+|---|---|---|---|
+| A1 | (a) | resolvido | O PRKing_UO virou repositório git (commit `597062d`, 2026-10-28) |
+| A2 | (c) | **pendente** | Story 1.2 sem relação com o jogo; ver A.5 |
+| A3 | (a) | resolvido | Seção duplicada removida do `README.md`; o caminho do pacote ausente ficou como texto, ligado à A2 |
+| A4 | (a) | resolvido | `README.md`, arquitetura, roadmap e Story 1.1 dizem Unity 6.6 (6000.6.7f1) desde `597062d` |
+| A5 | (a) | resolvido | README, PRD, arquitetura, dossiê e ledger descrevem o modelo misto: sem importador nem cache em disco; leitor opcional só em tempo de execução, desligado por padrão e só para uso pessoal |
+| A6 | (a) | resolvido | Perfil T2A no estado de março de 2000 (D1); Renaissance, Trammel e AOS fora |
+| A7 | (a) e (c) | resolvido em parte | Produto chamado "Outrora" no README e no PRD. **Pendente:** nome da pasta do repositório e dos arquivos que citam o jogo; ver A.5 |
+| A8 | (a) | resolvido | PRD §8–§10, roadmap e Story 1.1 seguem o loop básico da seção 1; magia, coleta e crafting viraram a segunda versão (Fase 4); pets, casa, quests e agentes ficam depois |
+| A9 | (a) | resolvido | A Story 1.1 é a primeira fatia da primeira versão; ganho de skill e stat e o leitor da instalação entram em stories seguintes da mesma versão (roadmap, Fases 2 e 3) |
+| A10 | (a) | resolvido | Dossiê aponta as 49 skills da seção 5.1 (46 no lançamento) como perfil T2A; a lista moderna fica como contexto |
+| A11 | (a) | resolvido | Dossiê aponta o mapa 0 recortado a 6144 × 4096 e o recorte da primeira versão (D8) |
+| A12 | (a) | resolvido | Dossiê §10 traz termos do UO, FreeSO, depósitos de marca de 2026 e direitos em 2027, citando a seção 17 |
+| A13 | (a) | resolvido | Ledger e dossiê listam MobileUO, POL e xrip/uo-client com as restrições da seção 17 |
+| A14 | (a) | resolvido | ClassicUO com LICENSE BSD-2-Clause e README "BSD 4"; UOFiddler "Beerware" só no README. A licença do Ultima SDK Python segue não verificada: a seção 17 não diz se o "Ultima SDK" citado é esse pacote |
+| A15 | (a) | resolvido | UO Offline: se deriva do ModernUO, herda a GPL-3.0 (inferência); só referência de comportamento |
+| A16 | (a) | resolvido | Chunks de 32 × 32 mantidos, sempre múltiplos de 8, com a ordem de blocos da seção 3.5; IA ativada por setores de 16 × 16 |
+| A17 | (a) | resolvido | A arquitetura usa a ordem de desenho da seção 3.9 no lugar da chave por `screenY` |
+| A18 | (c) | **pendente** | Tique da simulação; ver A.5. A arquitetura marca o 10 Hz como provisório |
+| A19 | (a) | resolvido | Arquitetura e README dizem que a 6.6 não é LTS; o roadmap prevê a migração para a 6.7 LTS |
+| A20 | (a) | resolvido | README, PRD e arquitetura apontam a especificação como fonte única das regras, com os perfis "T2A estrito" e "pré-AOS final" e as decisões D1–D11 |
+
+**Achados novos desta revisão** (não estavam em A.1 a A.3):
+
+| # | Achado | Classe | Situação |
+|---|---|---|---|
+| A21 | Ledger e dossiê autorizavam estudar o código de ClassicUO, ModernUO, Ultima SDK e UO Offline e pesquisar fontes públicas para criar regras, contra a regra de sala limpa do início deste documento | (a) | resolvido: o ledger diz que regras e formatos vêm só da especificação e que pergunta sem resposta segue a pergunta de volta |
+| A22 | A arquitetura previa preços por faixa-base, estoque, demanda e reputação, contra o modelo de tabela que a seção 11.3 manda usar | (a) | resolvido: a primeira versão usa a seção 11.3; o modelo dinâmico fica para a Fase 4 como perfil próprio |
+| A23 | O save previa `screenshot.png`, que com a origem "instalação" seria cópia derivada (seções 3.0 e 15) | (a) | resolvido: a imagem só é gravada com a origem "próprio" |
+| A24 | O PRKing_UO não tinha `.gitignore` para os formatos de dados do jogo (entrega a repositório externo, protocolo de especificação) | (a) | resolvido no commit de entrega da cópia |
+| A25 | O cabeçalho desta especificação dizia que nenhum binário do alvo foi lido, mas os adendos de 2026-10-28 e 2026-10-29 vêm da análise estática da cópia instalada; e a linha "Unity" da seção 1 ainda dava a divergência como aberta | (b) | adendo: cabeçalho corrigido e linha "Unity" marcada como resolvida |
+| A26 | Licença do próprio Outrora, aberta desde a Fase 0 | (c) | **pendente**; ver A.5 |
+
+### A.5 Decisões pendentes do Anexo A (2026-11-02)
+
+| # | Decisão | Opções | Recomendação |
+|---|---|---|---|
+| A2 | Destino da Story 1.2 (gadget de temperatura) | (1) tirar a story e a seção "Ferramentas auxiliares" do PRKing_UO, levando-as ao repositório onde o código do gadget estiver; (2) manter como registro histórico, marcada "fora do projeto; código fora deste repositório"; (3) trazer o pacote para `packages/` | (1): não tem relação com o jogo, e a File List cita um executável publicado, que não deve ir para o git (inferência) |
+| A7 | Nome da pasta do repositório (`PRKing_UO`) e dos arquivos `uo-offline-prd.md` e `ultima-online-dossier.md`; alcance da regra "nunca no repositório" | (1) renomear agora pasta e arquivos para nomes neutros, atualizando o item 8 do `CLAUDE.md` do PRKing_REA; (2) renomear os arquivos agora e a pasta antes de o repositório ficar público; (3) manter | (2). Menção descritiva ao jogo nos documentos de pesquisa e na cópia desta especificação fica permitida; nunca como nome, título, identificador de código, namespace ou marca (inferência sobre o alcance da seção 17, a confirmar pelo responsável) |
+| A18 | Tique autoritativo da simulação | (1) manter 10 Hz e arredondar os ritmos de IA (0,175 → 0,2 s; 0,25 e 0,35 → 0,2/0,3 e 0,3/0,4 s) e os intervalos de golpe a 100 ms; (2) 20 Hz, que representa todos os ritmos menos 0,175 s; (3) passo de 25 ms (40 Hz) para timers de ação e IA, com os sistemas pesados em fatias de 10 Hz, como a arquitetura já prevê | (3): os tempos fixos das seções 2.2, 7.2 e 13.1 caem em múltiplos de 25 ms, e o intervalo de golpe da seção 6.1, que é contínuo, arredonda com erro de até 12,5 ms; os números continuam em dados (inferência de projeto) |
+| A26 | Licença do Outrora | (1) todos os direitos reservados enquanto o repositório for local; (2) licença permissiva ao publicar; (3) licença copyleft ao publicar | (1) agora, e decidir entre (2) e (3) antes de o repositório ficar público. A sala limpa vale em qualquer caso: nenhuma licença permite copiar código de terceiros |
+
+A D3 (resistência a magia) continua adiada até a magia, como decidido em 2026-11-01. A direção de arte autoral é decisão do PRKing_UO, não desta especificação, e segue aberta lá (PRD §12).
