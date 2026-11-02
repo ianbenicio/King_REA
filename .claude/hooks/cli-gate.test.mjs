@@ -19,7 +19,9 @@ const projeto = (ativo) => {
 };
 const comAlvo = projeto(true);
 const semAlvo = projeto(false);
-test.after(() => [comAlvo, semAlvo].forEach((r) => rmSync(r, { recursive: true, force: true })));
+test.after(() => {
+  for (const r of [comAlvo, semAlvo]) rmSync(r, { recursive: true, force: true });
+});
 
 const decidir = (command, root = comAlvo, raw) => {
   const out = execFileSync(process.execPath, [HOOK], {

@@ -9,8 +9,9 @@
   "scripts": {
     "rea": "rea",
     "doctor": "rea mcp doctor",
-    "test": "node --test .claude/hooks/rea-gate.test.mjs .claude/hooks/cli-gate.test.mjs scripts/assets/organizar-assets.test.mjs scripts/monetizacao/verificar-perfis.test.mjs scripts/verificar/verificar.test.mjs scripts/verificar/agregar-ci.test.mjs reimplementacoes/puzzle-piloto/tests/prng-pecas-dificuldade.test.mjs reimplementacoes/puzzle-piloto/tests/jogo.test.mjs reimplementacoes/puzzle-piloto/tests/simulacao.test.mjs reimplementacoes/puzzle-piloto/tests/monetizacao.test.mjs reimplementacoes/puzzle-piloto/tests/sessao.test.mjs reimplementacoes/puzzle-piloto/tests/invariancia.test.mjs reimplementacoes/puzzle-piloto/tests/interface.test.mjs reimplementacoes/puzzle-piloto/tests/interface-navegador.test.mjs",
+    "test": "node --test .claude/hooks/rea-gate.test.mjs .claude/hooks/cli-gate.test.mjs scripts/assets/organizar-assets.test.mjs scripts/monetizacao/verificar-perfis.test.mjs scripts/verificar/verificar.test.mjs scripts/verificar/ferramentas.test.mjs scripts/verificar/agregar-ci.test.mjs reimplementacoes/puzzle-piloto/tests/prng-pecas-dificuldade.test.mjs reimplementacoes/puzzle-piloto/tests/jogo.test.mjs reimplementacoes/puzzle-piloto/tests/simulacao.test.mjs reimplementacoes/puzzle-piloto/tests/monetizacao.test.mjs reimplementacoes/puzzle-piloto/tests/sessao.test.mjs reimplementacoes/puzzle-piloto/tests/invariancia.test.mjs reimplementacoes/puzzle-piloto/tests/interface.test.mjs reimplementacoes/puzzle-piloto/tests/interface-navegador.test.mjs",
     "verificar": "node scripts/verificar/verificar.mjs",
+    "lint": "node scripts/verificar/verificar.mjs --so lint",
     "puzzle:interface": "node reimplementacoes/puzzle-piloto/interface/servidor.mjs",
     "test:notepad": "cd reimplementacoes/notepad && dotnet test PRKingNotepad.slnx",
     "check:monetizacao": "node scripts/monetizacao/verificar-perfis.mjs",
@@ -20,5 +21,8 @@
   },
   "dependencies": {
     "rea-agents": "6.4.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.15"
   }
 }

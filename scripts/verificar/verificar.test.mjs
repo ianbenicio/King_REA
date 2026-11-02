@@ -38,7 +38,10 @@ test("agregado: aprovado só quando todos passam", () => {
 
 test("requisito ausente vira não executado, com motivo, e não roda o componente", () => {
   let rodou = false;
-  const [r] = executarPlano([{ id: "semgrep", requisito: () => "daemon do Docker inacessível", executar: () => ((rodou = true), { ok: true }) }], {}, relogio);
+  const [r] = executarPlano([{ id: "semgrep", requisito: () => "daemon do Docker inacessível", executar: () => {
+    rodou = true;
+    return { ok: true };
+  } }], {}, relogio);
   assert.equal(r.estado, ESTADOS.naoExecutado);
   assert.match(r.motivo, /^requisito ausente: daemon do Docker/);
   assert.equal(rodou, false);
@@ -147,7 +150,10 @@ test("sonda WPF reprovada deixa o notepad-ui não executado, nunca aprovado, e n
   let rodou = false;
   const plano = [
     { id: "notepad-build", executar: ok() },
-    { id: "notepad-ui", depende: ["notepad-build"], requisito: () => avaliarSonda(sonda({ foco_de_teclado: false })), executar: () => ((rodou = true), { ok: true }) },
+    { id: "notepad-ui", depende: ["notepad-build"], requisito: () => avaliarSonda(sonda({ foco_de_teclado: false })), executar: () => {
+      rodou = true;
+      return { ok: true };
+    } },
   ];
   const [, ui] = executarPlano(plano, {}, relogio);
   assert.equal(ui.estado, ESTADOS.naoExecutado);

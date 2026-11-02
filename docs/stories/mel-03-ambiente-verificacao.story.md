@@ -1,6 +1,6 @@
 # Story MEL-03 — declarar ambiente e criar um contrato de verificação local
 
-**Status:** Ready (validação @po em 2026-11-02: GO condicional, 9,5/10 depois das correções; fatia 1 entregue em 2026-11-01 pela §12 do plano de evolução; fatia 2 aguarda a aprovação da ferramenta de lint e tipos)
+**Status:** InProgress (fatia 2 iniciada em 2026-11-02 pela E2-2, com Biome e TypeScript aprovados pelo responsável; validação @po em 2026-11-02: GO condicional, 9,5/10; fatia 1 entregue em 2026-11-01)
 **Workflow:** SDC, ciclo completo (entrega M: @sm → @po → @dev → @qa) · **Plano:** [`docs/plano-de-execucao.md`](../plano-de-execucao.md) §3 · **Origem:** A07 e parte de A04 do [parecer de 01/11/2026](../analises/2026-11-01-arquitetura-cto-comparativo.md) · **Pacote:** MEL-03 do [plano de evolução](../planos/2026-11-01-evolucao-arquitetura-qualidade.md) §5
 **Complexidade:** STANDARD · estimativa M, em duas fatias · **Dependências:** nenhuma story antes; a fatia 2 depende da aprovação do responsável para cada ferramenta nova (plano de evolução §10); o encerramento é integrado com a [MEL-08](mel-08-ci-agregada.story.md), que usa o verificador como executor de cada job; a [MEL-04](mel-04-publicacao-compartilhada.story.md) acrescenta o componente `publicacao` ao verificador
 
@@ -26,7 +26,8 @@ Antes desta story: sem `global.json` (hipótese da MEL-02 descartada como causa,
 - [x] **AC2** — Mudança não aprovada de dependências faz a validação travada falhar. Evidência: npm, `compararLockNpm` recusa versão divergente, dependência sem lock e instalado ≠ lock (3 testes); .NET, cópia temporária com `packages.lock.json` adulterado → `dotnet restore --locked-mode` sai 1 com `NU1004` ("arquivo de bloqueio de pacotes é inconsistente"); o verificador usa `--locked-mode`.
 - [x] **AC3** — Agregador distingue aprovado, falhou e não executado; requisito ausente nunca vira sucesso. Evidência: 5 testes de `executarPlano`/`agregar`; execução real com Docker desligado → Semgrep "não executado", saída 3; sem `dotnet` no PATH → `dotnet-restore` "requisito ausente" e dependentes "não executado", saída 3; componente desconhecido → saída 2.
 - [ ] **AC4** — Lint e tipos têm escopo explícito, ou decisão de implantação em etapas com pendências visíveis. Parcial: decisão em etapas registrada e pendências impressas em toda execução; falta escolher, auditar e fixar as ferramentas (fatia 2). Fecha quando AC4a e AC4b fecharem:
-  - [ ] **AC4a (lint)** — Dada uma ferramenta de lint aprovada pelo responsável, auditada em `docs/seguranca/`, com versão fixada no lock e instalada com `--ignore-scripts`, quando `npm run verificar` roda, então o componente `lint` cobre ao menos `.claude/hooks/` e `scripts/` e reprova uma violação plantada numa cópia temporária; sem a ferramenta instalada, o componente sai "requisito ausente", nunca aprovado.
+  - [x] **AC4a (lint)** — Dada uma ferramenta de lint aprovada pelo responsável, auditada em `docs/seguranca/`, com versão fixada no lock e instalada com `--ignore-scripts`, quando `npm run verificar` roda, então o componente `lint` cobre ao menos `.claude/hooks/` e `scripts/` e reprova uma violação plantada numa cópia temporária; sem a ferramenta instalada, o componente sai "requisito ausente", nunca aprovado.
+    Evidência (2026-11-02): Biome 2.5.15 auditado em [`docs/seguranca/auditoria-biome-2.5.15.md`](../seguranca/auditoria-biome-2.5.15.md) (procedência SLSA do pacote e dos binários, integridade do lock igual à auditada, sem scripts); componente `lint` em `scripts/verificar/verificar.mjs` (`--error-on-warnings`, escopo `ESCOPO_LINT`), também `npm run lint`; `scripts/verificar/ferramentas.test.mjs` no `npm test`: cópia limpa aprova, erro plantado (`noAssignInExpressions`) e aviso plantado (`noCommaOperator`) reprovam com saída 1, Biome ausente → "requisito ausente", saída 3. Lint retroativo: 11 achados em 6 arquivos (7 erros, 2 avisos, 2 informativos), todos corrigidos sem desligar regra e sem mudar comportamento (`npm test` 207/207).
   - [ ] **AC4b (tipos)** — Dado o escopo de tipos decidido (`checkJs` com JSDoc nos módulos de política, ou outra ferramenta aprovada e auditada), quando o componente roda, então um erro de tipo plantado reprova; se o custo não compensar, a decisão de não adotar fica registrada nesta story com o motivo e a pendência continua impressa. Em nenhum caso um comando que só confere sintaxe se chama `typecheck`.
 - [x] **AC5** — `global.json` fixa o SDK do Notepad. Evidência: `dotnet --version` na pasta = `10.0.401`; `global.json` sintético pedindo `10.0.999` com `rollForward: disable` → "A compatible .NET SDK was not found".
 - [ ] **AC6** — Dado um clone novo do repositório numa pasta vazia, sem `node_modules`, quando o guia do contrato é seguido (`npm ci --ignore-scripts` e `npm run verificar`), então o resultado por componente é registrado nesta story e nenhum requisito ausente aparece como aprovado. Condição de saída da etapa 2 (plano de evolução §3); demanda E2-6 do relatório de 2026-11-02.
@@ -58,7 +59,8 @@ AC1–AC6 marcados com evidência; auditoria registrada em `docs/seguranca/` par
 - [x] Contrato e guia de clone limpo.
 - [x] Provas negativas (lock adulterado, SDK inexistente, `dotnet` ausente, Docker desligado).
 - [x] Validação @po da story inteira (2026-11-02, GO condicional).
-- [ ] Fatia 2: auditoria e escolha de lint e tipos (AC4a, AC4b), depois da aprovação da ferramenta.
+- [x] Fatia 2, lint (AC4a): auditoria, instalação fixada, componente, provas, lint retroativo corrigido.
+- [ ] Fatia 2, tipos (AC4b).
 - [ ] Clone limpo real (AC6).
 - [ ] QA @qa da story inteira.
 
@@ -70,6 +72,7 @@ AC1–AC6 marcados com evidência; auditoria registrada em `docs/seguranca/` par
 - `scripts/verificar/verificar.mjs`, `scripts/verificar/verificar.test.mjs` — novos.
 - `docs/contrato-ambiente.md` — novo.
 - `docs/stories/mel-03-ambiente-verificacao.story.md` — esta story.
+- Fatia 2: `docs/seguranca/auditoria-biome-2.5.15.md` (novo); `biome.json` (novo); `package.json` e `package-lock.json` (Biome em `devDependencies`, script `lint`, teste novo no `test`); `scripts/verificar/verificar.mjs` (componente `lint`, `ESCOPO_LINT`, pendências); `scripts/verificar/ferramentas.test.mjs` (novo); `docs/contrato-ambiente.md`; correções do lint retroativo em `.claude/hooks/rea-gate.mjs`, `.claude/hooks/rea-gate.test.mjs`, `.claude/hooks/cli-gate.test.mjs`, `scripts/assets/organizar-assets.mjs`, `scripts/monetizacao/verificar-perfis.mjs`, `scripts/verificar/verificar.test.mjs`.
 
 ## QA Results
 
@@ -87,6 +90,7 @@ Fatia 1, verificação do executor (QA @qa independente pendente com a validaç�
 | Data | Mudança | Autor |
 |---|---|---|
 | 2026-11-01 | Story criada (Draft) a partir da MEL-03; fatia 1 implementada na preparação da etapa 2 (§12 do plano de evolução) | sessão `b0f09ab6` |
+| 2026-11-02 | Status Ready → InProgress: fatia 2 iniciada (E2-2); AC4a entregue com Biome 2.5.15 | sessão `0da91073` (@dev) |
 | 2026-11-02 | Validação @po: 6,5/10 (NO-GO) como estava; correções aplicadas (dependências, AC4a/AC4b, AC6, Riscos, DoD, fronteira com a MEL-08); 9,5/10, GO condicional; status Draft → Ready | sessão `aade639a` (@po) |
 
 ## Validação @po (2026-11-02)

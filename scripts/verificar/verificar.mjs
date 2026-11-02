@@ -20,7 +20,7 @@ export const SAIDA = { aprovado: 0, falhou: 1, uso: 2, incompleto: 3 };
 
 // Pendências do contrato que o verificador ainda não cobre (story MEL-03). Aparecem em toda execução.
 export const PENDENCIAS = [
-  "lint de JavaScript não implantado (ferramenta nova exige auditoria em docs/seguranca/; story MEL-03)",
+  "lint só em .claude/hooks/ e scripts/; reimplementacoes/puzzle-piloto/ e .githooks/ ainda fora (story MEL-03)",
   "checagem de tipos não implantada; 'sintaxe-js' é só node --check, não análise de tipos (story MEL-03)",
 ];
 
@@ -147,8 +147,8 @@ const NOTEPAD = join(RAIZ, "reimplementacoes", "notepad");
 // Saída de build fora do repositório: não trava nem sobrescreve o bin/ de um Notepad aberto (lição da NB5).
 const ARTEFATOS = join(tmpdir(), "prking-verificar-notepad");
 
-function rodar(comando, args, { cwd = RAIZ, timeout } = {}) {
-  const r = spawnSync(comando, args, { cwd, encoding: "utf8", maxBuffer: 256 * 1024 * 1024, windowsHide: true, timeout });
+function rodar(comando, args, { cwd = RAIZ, timeout, env } = {}) {
+  const r = spawnSync(comando, args, { cwd, encoding: "utf8", maxBuffer: 256 * 1024 * 1024, windowsHide: true, timeout, env });
   if (r.error) return { ok: false, ausente: r.error.code === "ENOENT", motivo: r.error.message, saida: "" };
   const saida = `${r.stdout ?? ""}${r.stderr ?? ""}`;
   return { ok: r.status === 0, codigo: r.status, saida };
@@ -205,6 +205,27 @@ function motivoDaSonda() {
   return avaliarSonda(r.saida, r.codigo);
 }
 
+// Lint (MEL-03, AC4a): Biome fixado no lock, auditado em docs/seguranca/auditoria-biome-2.5.15.md.
+// Configuração em biome.json; o escopo fica aqui, numa lista só, e cresce aos poucos (plano de evolução §10).
+export const ESCOPO_LINT = [".claude/hooks", "scripts"];
+const BIOME = join(RAIZ, "node_modules", "@biomejs", "biome", "bin", "biome");
+
+/** Componente lint para uma raiz e um Biome dados (parâmetros existem para os testes com cópia temporária). */
+export function componenteLint({ raiz = RAIZ, biome = BIOME } = {}) {
+  return {
+    id: "lint",
+    descricao: `Biome lint (regras recomendadas, avisos reprovam) em ${ESCOPO_LINT.join(", ")}`,
+    depende: ["ambiente-node"],
+    requisito: () => (existsSync(biome) ? null : "Biome não instalado em node_modules (rode npm ci --ignore-scripts)"),
+    executar() {
+      // BIOME_BINARY trocaria o binário auditado por outro qualquer: o verificador não repassa essa variável.
+      const { BIOME_BINARY, ...env } = process.env;
+      const r = rodar(process.execPath, [biome, "lint", "--error-on-warnings", "--colors=off", ...ESCOPO_LINT], { cwd: raiz, env });
+      return resultadoDe(r, "biome lint", (s) => s.match(/Checked (\d+) files?/)?.[1]?.concat(" arquivos"));
+    },
+  };
+}
+
 const dotnet = (args) => () => resultadoDe(rodar("dotnet", [...args, "--artifacts-path", ARTEFATOS], { cwd: NOTEPAD }), `dotnet ${args[0]}`, resumoDotnet);
 const nodeRun = (script, resumo = () => undefined) => () =>
   resultadoDe(rodar(process.execPath, ["--run", script]), `node --run ${script}`, resumo);
@@ -242,6 +263,7 @@ export const COMPONENTES = [
       return ruins.length ? { ok: false, motivo: `${ruins.length} arquivo(s) com erro de sintaxe`, detalhe: ruins.join("\n") } : { ok: true, detalhe: `${arquivos.length} arquivos` };
     },
   },
+  componenteLint(),
   { id: "js", descricao: "npm test: gates, assets, monetização e puzzle-piloto", depende: ["ambiente-node", "dependencias-npm"], executar: nodeRun("test", resumoNodeTest) },
   { id: "monetizacao", descricao: "checagem dos perfis de monetização", depende: ["ambiente-node"], executar: nodeRun("check:monetizacao") },
   { id: "dotnet-restore", descricao: "restore .NET em modo travado (packages.lock.json)", requisito: motivoSemDotnet, executar: dotnet(["restore", "PRKingNotepad.slnx", "--locked-mode"]) },

@@ -381,7 +381,7 @@ const gravarCatalogo = (nome, conteudo) => fs.writeFile(join(pastaCat, nome), co
 await gravarCatalogo("catalogo.json", JSON.stringify({ origem: ORIGEM, gerado_em: new Date().toISOString(), simulado: simular, itens: catalogo }, null, 2));
 const cols = ["caminho_original", "tipo", "formato", "categoria", "tamanho", "info", "sha256", "destino", "duplicata_de", "acao", "estado", "sha256_destino", "erro"];
 const csvCell = (v) => (/[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
-await gravarCatalogo("catalogo.csv", [cols.join(","), ...catalogo.map((i) => cols.map((c) => csvCell(i[c])).join(","))].join("\n") + "\n");
+await gravarCatalogo("catalogo.csv", `${[cols.join(","), ...catalogo.map((i) => cols.map((c) => csvCell(i[c])).join(","))].join("\n")}\n`);
 
 const conta = (fn) => catalogo.reduce((m, i) => { const k = fn(i); if (k) m[k] = (m[k] ?? 0) + 1; return m; }, {});
 const tabela = (obj, a, b) => [`| ${a} | ${b} |`, "|---|---|", ...Object.entries(obj).sort((x, y) => y[1] - x[1]).map(([k, v]) => `| ${k} | ${v} |`)].join("\n");

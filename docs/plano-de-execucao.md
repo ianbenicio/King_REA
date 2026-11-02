@@ -1,32 +1,33 @@
-# Plano de execução — etapa 2 do plano de evolução: MEL-08, auditoria das actions (E2-4b)
+# Plano de execução — etapa 2 do plano de evolução: MEL-03 fatia 2, lint e tipos (E2-2)
 
 <!--
-Saída da Fase 0 (Harness D5, D30; skill fase-0). Unidade E2-4b do relatório de estado
-docs/handoffs/2026-11-02-estado-geral.md. O plano anterior (E2-4a, agregador e sonda WPF) está em
-docs/planos/2026-11-02-e2-4a-mel08-local.md.
+Saída da Fase 0 (Harness D5, D30; skill fase-0). Unidade E2-2 do relatório de estado
+docs/handoffs/2026-11-02-estado-geral.md. O plano anterior (E2-4b, auditoria das actions) está em
+docs/planos/2026-11-02-e2-4b-auditoria-actions.md.
 -->
 
-**Data:** 2026-11-02 · **Sessão:** `8345181b` (aberta pela sessão `local_c49d87ce`) · **Projeto:** PRKing_REA · **Branch/commit:** `main` @ `841788f`, igual ao `origin/main` (`0 0`)
+**Data:** 2026-11-02 · **Sessão:** `0da91073` (aberta pela sessão `local_c49d87ce`) · **Projeto:** PRKing_REA · **Branch/commit:** `main` @ `a24971e`, igual ao `origin/main` (`0 0`)
 
 ## 0. Sessão concorrente
 
-Nenhuma escrevendo. Transcripts das últimas horas, identificados pelo conteúdo: `8345181b` (esta), `f5cee9eb` (sessão-mãe `local_c49d87ce`), `24b25af1` (E2-4a, com handoff `2026-11-02-e2-4a-mel08-local.md`, ociosa), `ff5a739b` e `b0f09ab6` (sessões ligadas ociosas). `git status`: só `.claude/agent-memory/`, que fica fora do git. Estado real igual ao relatório: `npm test` 203/203.
+Nenhuma escrevendo. `sessao.js --lista 5`: esta (17:48), e as sessões das 17:27, 17:00 e 12:19, que são as ligadas da família (`local_c49d87ce` e filhas), todas ociosas pelo app; a E2-4b deixou handoff (`2026-11-02-e2-4b-auditoria-actions.md`). `git status`: só `.claude/agent-memory/`, fora do git. Estado real igual ao relatório: `npm test` 203/203.
 
 ## 1. Enquadramento
 
-**Objetivo:** cumprir o AC9 da MEL-08: auditoria curta, em `docs/seguranca/`, de cada action do esboço do desenho da CI (§7), com o SHA de commit completo que será fixado.
+**Objetivo:** fechar o AC4a (lint) e o AC4b (tipos) da MEL-03 com Biome e TypeScript (`checkJs`), auditados, fixados e ligados como componentes `lint` e `tipos` do `npm run verificar`; AC6 (clone limpo real) se couber.
 
-**Restrições:** só leitura das actions; nada em `.github/`, sem segredo, runner ou proteção de branch (E2-5); auditar não é adotar; nenhuma tool `rea`/`ghidra`, nada em `alvos/`; não mexer em `00-seguranca.md`; não contornar gate, `cli-gate`, monetização ou `pre-commit`; commits locais, push só pelo @devops com autorização.
+**Restrições:** decisão do responsável de 2026-11-02 (Biome; `tsc --noEmit` com `checkJs`, JSDoc só nos módulos de política); auditoria com problema → parar e perguntar; nenhuma tool `rea`/`ghidra`, nada em `alvos/`; hooks sem mudança de comportamento (só JSDoc e correções apontadas, testes dos gates verdes); nada ativo em `.github/`; nenhuma outra ferramenta nova; commits locais, push só pelo @devops com autorização.
 
-**Perfil do projeto:** domínio laboratório de engenharia reversa e processo de qualidade · stack Node 26 (scripts, hooks), C# .NET 10 (WPF) · integrações GitHub (repositório público), Docker (Semgrep) · UI não (nesta unidade) · dados sensíveis nenhum nesta unidade (só metadados públicos das actions) · fase AIOX implementação (story MEL-08 InProgress) · complexidade SIMPLE.
+**Perfil do projeto:** domínio laboratório de engenharia reversa e processo de qualidade · stack Node 26 ESM (scripts, hooks), C# .NET 10 · integrações registro npm (só leitura de metadados e tarballs) · UI não · dados sensíveis nenhum · fase AIOX implementação (story MEL-03 Ready → InProgress) · complexidade STANDARD.
 
 **Dúvidas:**
 
 | Dúvida | Resolvida? | Resposta / quando resolver |
 |---|---|---|
-| Quais actions? | sim | Desenho §7 e handoff da E2-4a: `checkout`, `setup-node`, `setup-dotnet`, `upload-artifact`, `download-artifact` |
-| Um arquivo por action ou um só? | sim | Um documento com uma seção por action: o AC9 pede "auditoria curta", e as cinco têm o mesmo mantenedor e o mesmo modelo de distribuição |
-| Qual versão escolher? | sim | Mesma política da auditoria do Semgrep: não pegar publicação de poucos dias. Última versão da linha maior atual com pelo menos duas semanas; todas as cinco cumprem |
+| Qual ferramenta? | sim | Biome e TypeScript, decisão do responsável na conversa da sessão principal (2026-11-02) |
+| Qual versão? | sim | Política da auditoria do Semgrep: última da linha maior atual com pelo menos duas semanas de publicação |
+| Escopo dos tipos | sim | `checkJs` por lista explícita de arquivos (módulos de política), não o repositório inteiro |
+| O que fazer com achados do lint retroativo | sim | Corrigir se forem poucos; senão, pendência com escopo. Não desligar regra para esconder achado |
 
 ## 2. Precedentes (Engram)
 
@@ -34,47 +35,49 @@ Nenhuma escrevendo. Transcripts das últimas horas, identificados pelo conteúdo
 
 | Texto da consulta | Resultados | Relevância (mín–máx) |
 |---|---|---|
-| auditoria de GitHub Actions fixadas por SHA de commit, supply chain, checkout/setup-node/upload-artifact, permissões mínimas, persist-credentials, repositório público | 7 | 0,493–0,501 |
-| GitHub Actions pinning, tag mutável, tj-actions comprometida, verificar SHA da tag com `git ls-remote`, tag anotada | 7 | 0,495–0,513 |
+| adotar linter Biome e TypeScript checkJs JSDoc em projeto Node ESM; auditoria de dependência npm, binário de plataforma, ignore-scripts, lint retroativo | 7 | 0,499–0,508 |
+| pacote npm com binário nativo por plataforma em optionalDependencies, provenance sigstore, verificar integridade sem executar postinstall | 7 | 0,498–0,540 |
 
 **Usados:**
 
 | Nota (id) | O que diz | Força (D10) | Pré-condição vale aqui? | Efeito no plano |
 |---|---|---|---|---|
-| `auditoria-est-tica-de-pacote-npm-antes-de-instalar-supply-ch` | Auditoria sem executar: metadados, procedência, hash, leitura estática do código | relatada (aplicada ao `rea-agents@6.4.0`) | parcial: lá era tarball npm; aqui é repositório git. O método (origem, procedência, conferência do identificador, leitura sem executar) vale | Estrutura de cada seção: origem, conferência do SHA por duas vias, leitura estática do `action.yml` e do `dist/`, nada executado |
+| `auditoria-est-tica-de-pacote-npm-antes-de-instalar-supply-ch` | Runbook: `npm view`, `npm pack --ignore-scripts`, provenance pela API de atestações, hash do tarball × atestação, scripts, varredura, binários nativos, árvore via lockfile de projeto-sonda, instalar com `--save-exact --ignore-scripts` e conferir `integrity` | verificável (aplicado ao `rea-agents@6.4.0`, auditoria no repositório) | sim — mesmo projeto, mesmo registro npm; conferido lendo a nota | Método da auditoria: os 10 passos viram as seções do documento, junto com as do Semgrep |
 
-**Descartados:** `conferir-hash-do-alvo-na-admiss-o-em-gate-pretooluse-manifes` — hash de alvo, não de dependência de CI · `classmate-connect-13-*`, `despensa-*`, `01HZ_HANDOFF_*`, `FU-002`, `re-verificacao-de-assinatura-proprietaria` — outro domínio. Nenhuma nota sobre GitHub Actions no vault.
+**Descartados:** `classmate-connect-13-*` — outro stack (Vitest/ESLint), sem método aplicável · `despensa-*`, `fezinha-*`, `uo-classic-*`, `re-verificacao-*`, `rea-6-4-0-store-*` — outro domínio · `padr-o-verificar-cobertura-existente-*` — genérico; já coberto pela leitura da story.
 
 ## 3. Plano preliminar
 
-**Workflow AIOX:** SDC, caminho curto (entrega P): @dev registra, @qa confere, QA gate na story. Story já validada (E2-1).
+**Workflow AIOX:** SDC, fase 3 (@dev) e fase 4 (@qa) — story já validada (GO condicional, condição atendida pela decisão de ferramenta).
 
 **Unidades de sessão (D9):**
 
 | # | Unidade | Fase / executor | Entrega | Critério de aceitação preliminar | Limite de contexto |
 |---|---|---|---|---|---|
-| 1 | E2-4b | implementação / @dev; revisão / @qa | `docs/seguranca/auditoria-actions-ci.md`, story MEL-08 (AC9, File List, Change Log, QA Results), handoff | Cada action com versão, SHA completo conferido por duas vias, permissões, código de terceiros e downloads, mantenedor, veredito, fontes com data de acesso; nada em `.github/` | ~180k |
+| 1 | Auditoria Biome e TypeScript | implementação / @dev | `docs/seguranca/auditoria-biome-<v>.md`, `auditoria-typescript-<v>.md` | versão, integridade, procedência, dependências, binários com hash, scripts, rede, licença, conclusão | ~150k total |
+| 2 | Lint e tipos no verificador | implementação / @dev | `package.json`, lock, `biome.json`, `tsconfig.json`, `verificar.mjs`, testes | AC4a e AC4b; `npm test` verde | idem |
+| 3 | Gate | QA / @qa | QA Results da story | gate registrado | idem |
+| 4 | Clone limpo real (AC6) | implementação / @dev | evidência na story | só se couber; senão, próxima unidade | — |
 
-**Capacidades por fase:** `gh` e `git ls-remote` (leitura pública), Read/Grep/Bash; subagente `aiox-qa` para a conferência. Não carregar: tools `rea`/`ghidra`, conectores do claude.ai (desligados nesta unidade), skills de navegador.
+**Capacidades por fase:** implementação — Bash, Read, Edit, `npm`, `node --test`; sob demanda — subagente @qa para o gate; não carregar — REA, Ghidra, navegador, conectores do claude.ai (desligados nesta unidade).
 
 **Verificações:**
 
 | Entrega | Como provar |
 |---|---|
-| SHA de cada tag | `git ls-remote https://github.com/actions/<nome> refs/tags/<tag>*` igual a `gh api repos/actions/<nome>/git/ref/tags/<tag>`; o @qa refaz uma das duas |
-| Commit assinado | `gh api repos/actions/<nome>/commits/<sha>` → `verification.verified` |
-| Nada ativo | `git status` sem `.github/`; `npm test` sem regressão; `pre-commit` sem `--no-verify` |
+| Auditoria | `integrity` do lock igual ao `dist.integrity` auditado; hashes dos binários de plataforma registrados |
+| AC4a | violação plantada em cópia temporária reprova; sem a ferramenta, "requisito ausente"; teste no `npm test` |
+| AC4b | erro de tipo plantado em cópia temporária reprova; sem a ferramenta, "requisito ausente"; teste no `npm test` |
+| Regressão | `npm test` verde; `npm run verificar -- --so lint,tipos,js` aprovado |
 
-**Riscos:** tag movida depois da auditoria — enquadramento — a CI usa o SHA, não a tag; a auditoria registra as duas · download sem verificação de integridade nas actions de setup — leitura estática — registrar como ressalva e apontar a conferência de versão que o verificador já faz.
+**Riscos:** binário nativo do Biome sem procedência conferível — runbook (`auditoria-est-tica-*`) — conferir provenance do pacote de plataforma e hash; se não houver, parar e perguntar · lint retroativo volumoso — story (Riscos) — corrigir o pouco, registrar o resto com escopo · contexto (~96k de prefixo) — relatório de estado §4 — entregar lint fechado antes de tipos, se apertar.
 
 ## 4. Custo da Fase 0
 
-Saída de `sessao.js` ao fim do passo 3 (inclui a coleta de dados das actions, feita junto):
-
 | Chamadas | Contexto atual | Chamadas Engram | Resultados Engram no contexto |
 |---|---|---|---|
-| 25 | 149k (máx) | 2 (`deep`, sem síntese) | 14 |
+| 14 | 153k (máximo por requisição; prefixo inicial 96k) | 2 (`deep`) | ~3k |
 
 ## 5. Aprovação
 
-O escopo, as restrições e o caminho curto vieram prontos no pedido da sessão-mãe (`local_c49d87ce`), que repassa o que o responsável decidiu em 2026-11-02 (divisão E2-4a/E2-4b). Sem decisão nova nesta unidade; nenhum ajuste pedido. Precedentes `aplicável`: nenhum marcado.
+Aprovação prévia: o escopo e as ferramentas foram decididos pelo responsável na conversa da sessão principal (2026-11-02) e repassados na tarefa desta sessão; a aprovação cobre auditar e adotar, com parada se a auditoria achar problema. Sem ajustes pedidos.

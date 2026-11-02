@@ -100,7 +100,9 @@ const collectPaths = (value, key = "", out = []) => {
     const otherUrl = !fileUrl && /^[a-z][a-z0-9+.-]+:\/\//i.test(value);
     if (fileUrl || (value && !otherUrl && (PATH_KEY.test(key) || (!TEXT_KEYS.has(key) && looksLikePath(value)))))
       out.push({ key, value });
-  } else if (Array.isArray(value)) value.forEach((item) => collectPaths(item, key, out));
+  } else if (Array.isArray(value)) {
+    for (const item of value) collectPaths(item, key, out);
+  }
   else if (value && typeof value === "object") for (const [k, v] of Object.entries(value)) collectPaths(v, k, out);
   return out;
 };
@@ -211,7 +213,11 @@ const sha256 = (file) => {
   const buffer = Buffer.allocUnsafe(1 << 20);
   const fd = openSync(file, "r");
   try {
-    for (let n; (n = readSync(fd, buffer, 0, buffer.length, null)) > 0; ) hash.update(buffer.subarray(0, n));
+    for (;;) {
+      const n = readSync(fd, buffer, 0, buffer.length, null);
+      if (n <= 0) break;
+      hash.update(buffer.subarray(0, n));
+    }
   } finally {
     closeSync(fd);
   }

@@ -89,7 +89,9 @@ test("link ou junção dentro do alvo que aponta para fora é negado", (t) => {
 test("N0 sem caminho passa sem alvo; N0 com caminho exige o alvo ativo", (t) => {
   const semAlvo = projeto({ ativo: "" });
   const root = projeto();
-  t.after(() => [semAlvo, root].forEach((r) => rmSync(r, { recursive: true, force: true })));
+  t.after(() => {
+    for (const r of [semAlvo, root]) rmSync(r, { recursive: true, force: true });
+  });
   assert.equal(decidir(semAlvo, "mcp__rea__get_evidence_bundle", {}), "allow");
   assert.equal(decidir(semAlvo, "mcp__rea__import_evidence_bundle", { path: join(semAlvo, "saidas", "x.json") }), "deny");
   assert.equal(decidir(root, "mcp__rea__import_evidence_bundle", { path: "saidas/alvo-a/evidence.json" }), "allow");
@@ -107,7 +109,9 @@ test("campos isentos e texto livre não são tratados como caminho", (t) => {
 test("regras anteriores continuam: mapa, protocolo, nível e confirmação de N3", (t) => {
   const root = projeto();
   const pendente = projeto({ status: "pendente" });
-  t.after(() => [root, pendente].forEach((r) => rmSync(r, { recursive: true, force: true })));
+  t.after(() => {
+    for (const r of [root, pendente]) rmSync(r, { recursive: true, force: true });
+  });
   assert.equal(decidir(root, "mcp__rea__tool_inexistente", {}), "deny");
   assert.equal(decidir(root, "mcp__desconhecido__x", {}), "deny");
   assert.equal(decidir(pendente, "mcp__rea__open_binary", { path: "alvos/alvo-a/app.exe" }), "deny");

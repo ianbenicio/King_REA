@@ -236,7 +236,7 @@ function verificarPerfil({ caminho, conteudo }, catalogo, declarados, problemas,
 
 export function relatorio({ problemas, avisos }) {
   const partes = [];
-  if (avisos.length) partes.push("[monetizacao] Avisos:\n" + avisos.map((a) => `  - ${a}`).join("\n"));
+  if (avisos.length) partes.push(`[monetizacao] Avisos:\n${avisos.map((a) => `  - ${a}`).join("\n")}`);
   if (problemas.length)
     partes.push(
       "[monetizacao] Padrões de monetização bloqueados (docs/catalogo-monetizacao.md):\n" +
