@@ -3,7 +3,8 @@
 // (sobre o índice) e pela CI (sobre o diff do PR), para que as duas não divirjam.
 //
 // Bloqueia, em qualquer mudança que não seja remoção:
-// - caminhos proibidos: alvos/, saidas/, .rea/ e ferramentas/ (mesmo com git add -f), pelo caminho novo e pelo antigo;
+// - caminhos proibidos (mesmo com git add -f), pelo caminho novo e pelo antigo, sem diferenciar maiúsculas:
+//   alvos/, saidas/ e .rea/ em qualquer nível, ferramentas/ na raiz;
 // - segredos com formato conhecido (REGRAS_SEGREDO); o relatório nunca traz o valor;
 // - em registros/ (fora registros/_modelos/ e registros/ALVO_ATIVO): binário, extensão fora da lista, arquivo
 //   acima de 300 KB e bloco de código Markdown com mais de 40 linhas (mermaid de fora).
@@ -36,7 +37,7 @@ export const REGRAS_SEGREDO = [
   { tipo: "segredo:chave-anthropic", descricao: "chave de API da Anthropic", regex: /\bsk-ant-[A-Za-z0-9_-]{32,}/ },
   { tipo: "segredo:chave-openai", descricao: "chave de API da OpenAI", regex: /\bsk-(?:proj-|svcacct-|admin-)?[A-Za-z0-9_-]{40,}/ },
   { tipo: "segredo:chave-aws", descricao: "chave de acesso da AWS", regex: /\b(?:AKIA|ASIA)[0-9A-Z]{16}\b/ },
-  { tipo: "segredo:chave-google", descricao: "chave de API do Google", regex: /\bAIza[0-9A-Za-z_-]{35}\b/ },
+  { tipo: "segredo:chave-google", descricao: "chave de API do Google", regex: /\bAIza[0-9A-Za-z_-]{35}(?![0-9A-Za-z_-])/ },
   { tipo: "segredo:token-slack", descricao: "token do Slack", regex: /\bxox[abprs]-[A-Za-z0-9-]{10,}/ },
   { tipo: "segredo:chave-stripe", descricao: "chave secreta do Stripe", regex: /\b(?:sk|rk)_live_[A-Za-z0-9]{20,}/ },
   { tipo: "segredo:token-huggingface", descricao: "token do Hugging Face", regex: /\bhf_[A-Za-z0-9]{34,}\b/ },
@@ -45,9 +46,21 @@ export const REGRAS_SEGREDO = [
 ];
 
 const emRegistros = (p) => p.startsWith("registros/") && !p.startsWith("registros/_modelos/") && p !== "registros/ALVO_ATIVO";
-const proibido = (p) => CAMINHOS_PROIBIDOS.some((c) => p === c.slice(0, -1) || p.startsWith(c));
+// alvos/, saidas/ e .rea/ em qualquer nível (como no .gitignore); ferramentas/ só na raiz. Sem diferenciar
+// maiúsculas: no Windows, "ALVOS/" é a mesma pasta (QA-E23-02).
+const EM_QUALQUER_NIVEL = new Set(["alvos", "saidas", ".rea"]);
+const proibido = (p) => {
+  const segmentos = p.toLowerCase().split("/");
+  return segmentos[0] === "ferramentas" || segmentos.some((s) => EM_QUALQUER_NIVEL.has(s));
+};
 /** Mesmo critério do git para numstat sem .gitattributes: byte NUL nos primeiros 8000 bytes. */
 export const ehBinario = (bytes) => bytes.subarray(0, 8000).includes(0);
+/** Texto do arquivo, ou null se for binário. UTF-16 com BOM (o `>` do PowerShell 5.1) é texto (QA-E23-03). */
+export function comoTexto(bytes) {
+  if (bytes[0] === 0xff && bytes[1] === 0xfe) return new TextDecoder("utf-16le").decode(bytes);
+  if (bytes[0] === 0xfe && bytes[1] === 0xff) return new TextDecoder("utf-16be").decode(bytes);
+  return ehBinario(bytes) ? null : bytes.toString("utf8");
+}
 
 /** Lê e valida as exceções. Exceção sem caminho, tipo ou motivo é recusada (vira problema, não some). */
 export function lerExcecoes(texto) {
@@ -63,6 +76,9 @@ export function lerExcecoes(texto) {
   lista.forEach((e, i) => {
     const falta = ["caminho", "tipo", "motivo"].filter((k) => typeof e?.[k] !== "string" || !e[k].trim());
     if (falta.length) problemas.push({ caminho: ARQUIVO_EXCECOES, tipo: "excecao-invalida", mensagem: `exceção ${i + 1} sem ${falta.join(", ")}` });
+    // Caminho proibido não tem exceção: o que está ali nunca vai para o repositório público (QA-E23-05).
+    else if (e.tipo === "caminho-proibido")
+      problemas.push({ caminho: ARQUIVO_EXCECOES, tipo: "excecao-invalida", mensagem: `exceção ${i + 1}: caminho-proibido não aceita exceção` });
     else excecoes.push(e);
   });
   return { excecoes, problemas };
@@ -96,7 +112,7 @@ function segredos(caminho, texto) {
 }
 
 /**
- * Decisão pura. `mudancas`: [{ estado: "A"|"C"|"M"|"R"|"D", caminho, caminhoAntigo?, conteudo: Buffer }].
+ * Decisão pura. `mudancas`: [{ estado: "A"|"C"|"M"|"R"|"T"|"D", caminho, caminhoAntigo?, conteudo: Buffer }].
  * Devolve os problemas ({ caminho, linha?, tipo, mensagem }) que sobram depois das exceções.
  * @param {{ estado: string, caminho: string, caminhoAntigo?: string, conteudo?: any }[]} mudancas
  * @param {{ excecoes?: { caminho: string, tipo: string }[] }} [opcoes]
@@ -113,7 +129,8 @@ export function avaliar(mudancas, { excecoes = [] } = {}) {
       if (proibido(p))
         problemas.push({ caminho, tipo: "caminho-proibido", mensagem: `${p === caminho ? "" : `renomeado de ${p}: `}caminho proibido no repositório público (${CAMINHOS_PROIBIDOS.join(", ")} ficam fora do git)` });
     const binario = ehBinario(bytes);
-    if (!binario) problemas.push(...segredos(caminho, bytes.toString("utf8")));
+    const texto = comoTexto(bytes);
+    if (texto !== null) problemas.push(...segredos(caminho, texto));
     if (!emRegistros(caminho)) continue;
     if (binario) problemas.push({ caminho, tipo: "binario", mensagem: "arquivo binário" });
     else if (!EXTENSOES_REGISTROS.test(caminho))
@@ -158,7 +175,7 @@ export function mudancasDeNameStatus(saida, ler) {
   return mudancas;
 }
 
-const DIFF = ["diff", "--name-status", "-z", "-M", "--no-ext-diff", "--diff-filter=ACMRD"];
+const DIFF = ["diff", "--name-status", "-z", "-M", "--no-ext-diff", "--diff-filter=ACMRTD"]; // T (mudança de tipo) é avaliada como M (QA-E23-01)
 
 /**
  * O que vai entrar no commit (entrada do pre-commit).

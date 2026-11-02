@@ -7,7 +7,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { ARQUIVO_EXCECOES, REGRAS_SEGREDO, avaliar, decidir, lerExcecoes, mudancasDaArvore, mudancasDoIndice, mudancasEntre, relatorio } from "./publicacao.mjs";
+import { ARQUIVO_EXCECOES, REGRAS_SEGREDO, avaliar, decidir, lerExcecoes, mudancasDaArvore, mudancasDeNameStatus, mudancasDoIndice, mudancasEntre, relatorio } from "./publicacao.mjs";
 
 const RAIZ = fileURLToPath(new URL("../../", import.meta.url));
 const parte = (...p) => p.join("");
@@ -121,4 +121,63 @@ test("AC6: cada exceção versionada é válida e ainda necessária", () => {
     assert.ok(avaliar(alvo).some((p) => p.tipo === e.tipo), `${e.caminho} [${e.tipo}]: exceção sem problema a cobrir`);
     assert.ok(!avaliar(alvo, { excecoes: [e] }).some((p) => p.tipo === e.tipo));
   }
+});
+
+// --- Correções do gate @qa (QA-E23-01 a 06) ---
+
+// Um valor sintético por regra, montado por partes (QA-E23-06). O teste abaixo reprova regra sem fixture.
+const POR_REGRA = {
+  "segredo:chave-privada-pem": PEM,
+  "segredo:token-github": parte("gh", "s_", "aB3d".repeat(9)),
+  "segredo:jwt": JWT,
+  "segredo:chave-anthropic": parte("sk-", "ant-", "aB3d".repeat(9)),
+  "segredo:chave-openai": parte("sk-", "proj-", "aB3d".repeat(11)),
+  "segredo:chave-aws": parte("AS", "IA", "QZ7RX2MV5KT9LP3W"),
+  "segredo:chave-google": parte("AI", "za", "aB3d".repeat(8), "xy-"),
+  "segredo:token-slack": parte("xo", "xb-", "1234567890-", "aB3d".repeat(4)),
+  "segredo:chave-stripe": parte("rk", "_live_", "aB3d".repeat(6)),
+  "segredo:token-huggingface": parte("hf", "_", "aB3d".repeat(9)),
+  "segredo:chave-supabase": parte("sb", "_secret_", "aB3d".repeat(6)),
+  "segredo:token-npm": parte("np", "m_", "aB3d".repeat(9)),
+};
+
+test("QA-E23-06: cada regra de segredo detecta a sua fixture sintética", () => {
+  assert.deepEqual(Object.keys(POR_REGRA).sort(), REGRAS_SEGREDO.map((r) => r.tipo).sort());
+  for (const [tipo, valor] of Object.entries(POR_REGRA)) {
+    const tipos = avaliar([{ estado: "A", caminho: "docs/a.md", conteudo: Buffer.from(`valor = "${valor}"\n`) }]).map((p) => p.tipo);
+    assert.ok(tipos.includes(tipo), `${tipo} não detectado`);
+  }
+});
+
+test("QA-E23-04: chave do Google terminada em hífen antes de aspas é detectada", () => {
+  const p = avaliar([{ estado: "A", caminho: "docs/a.js", conteudo: Buffer.from(`k = "${POR_REGRA["segredo:chave-google"]}";\n`) }]);
+  assert.deepEqual(p.map((x) => x.tipo), ["segredo:chave-google"]);
+});
+
+test("QA-E23-01: mudança de tipo (T) é avaliada como modificação", () => {
+  const conteudo = Buffer.from(`token ${POR_REGRA["segredo:token-github"]}\n\`\`\`\n${"l\n".repeat(60)}\`\`\`\n`);
+  const m = mudancasDeNameStatus("T\0registros/a.md\0", () => conteudo);
+  assert.deepEqual(avaliar(m).map((p) => p.tipo).sort(), ["bloco-extenso", "segredo:token-github"]);
+});
+
+test("QA-E23-02: caminho proibido em qualquer nível e sem diferenciar maiúsculas", () => {
+  const proibidos = ["reimplementacoes/x/.rea/a.txt", "registros/x/saidas/a.md", "ALVOS/jogo/x.txt", "Saidas/x.md", "FERRAMENTAS/x/a.md"];
+  for (const caminho of proibidos)
+    assert.ok(avaliar([{ estado: "A", caminho, conteudo: Buffer.from("x\n") }]).some((p) => p.tipo === "caminho-proibido"), caminho);
+  for (const caminho of ["docs/ferramentas/guia.md", "docs/alvos-e-saidas.md", "registros/x/saidas.md"])
+    assert.deepEqual(avaliar([{ estado: "A", caminho, conteudo: Buffer.from("x\n") }]), [], caminho);
+});
+
+test("QA-E23-03: segredo em texto UTF-16 com BOM é detectado", () => {
+  const le = Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from(`token=${JWT}\r\n`, "utf16le")]);
+  assert.deepEqual(avaliar([{ estado: "A", caminho: "scripts/config.txt", conteudo: le }]).map((p) => p.tipo), ["segredo:jwt"]);
+  const be = Buffer.from(le);
+  be.swap16();
+  assert.deepEqual(avaliar([{ estado: "A", caminho: "scripts/config.txt", conteudo: be }]).map((p) => p.tipo), ["segredo:jwt"]);
+});
+
+test("QA-E23-05: caminho-proibido não aceita exceção", () => {
+  const r = lerExcecoes(JSON.stringify([{ caminho: "alvos/x/a.bin", tipo: "caminho-proibido", motivo: "qualquer" }]));
+  assert.equal(r.excecoes.length, 0);
+  assert.match(r.problemas[0].mensagem, /caminho-proibido não aceita exceção/);
 });

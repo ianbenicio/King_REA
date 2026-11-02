@@ -16,6 +16,7 @@ declare const process: {
 };
 declare const Buffer: any;
 declare const URL: any;
+declare const TextDecoder: any;
 declare const console: { log(...dados: any[]): void; error(...dados: any[]): void };
 interface ImportMeta {
   url: string;
