@@ -1,6 +1,6 @@
 # Story MEL-08 — implantar CI por componente com resultado agregado
 
-**Status:** InProgress (fatia 1 em andamento: E2-4a, agregador e sonda, entregue em 2026-11-02; E2-4b, auditoria das actions, em sessão própria; fatia 2 aguarda as decisões do responsável)
+**Status:** InProgress (fatia 1 em andamento: E2-4a, agregador e sonda, entregue em 2026-11-02; E2-4b, auditoria das actions, entregue em 2026-11-02 com QA PASS; ponto de controle da fatia 1 atingido; fatia 2 aguarda as decisões do responsável)
 **Workflow:** SDC, ciclo completo (entrega M: @sm → @po → @devops, critérios @qa) · **Origem:** A04 do [parecer de 01/11/2026](../analises/2026-11-01-arquitetura-cto-comparativo.md) · **Pacote:** MEL-08 do [plano de evolução](../planos/2026-11-01-evolucao-arquitetura-qualidade.md) §5 · **Desenho:** [`docs/planos/2026-11-01-desenho-ci-mel08.md`](../planos/2026-11-01-desenho-ci-mel08.md)
 **Complexidade:** STANDARD · estimativa M, em duas fatias (1: local — sonda, agregador, auditorias, E2-4 do relatório de 2026-11-02; 2: ativação — workflow, PRs de falha plantada, proteção de branch, E2-5) · **Dependências:** MEL-03 (fatia 1 entregue; o verificador é o executor de cada job), MEL-04 (job `publicacao`), pendências WPF da [story MEL-02](mel-02-regressao-wpf.story.md)
 
@@ -28,7 +28,7 @@ Fatia 1 (local, sem `.github/` ativo):
 
 - [x] **AC7** — Dados JSON sintéticos do verificador para cada situação da tabela do desenho §5 (todos aprovados; um obrigatório falhou; um obrigatório não executado; JSON faltando; só `wpf-interativo` não executado), quando o agregador roda, então o estado final, o código de saída e a tabela do resumo (componente, estado, duração, motivo) seguem a tabela; teste no `npm test`.
 - [x] **AC8** — Dado um pré-requisito da UI ausente (simulado no teste: sessão não interativa, foco ou clipboard indisponível), quando a sonda roda, então a saída só tem booleanos e o item que faltou, e a categoria WPF fica "não executável neste runner", nunca aprovada; executada localmente como usuário interativo, a sonda passa e a suíte `notepad-ui` roda, com falha de asserção contada como falha (desenho §4).
-- [ ] **AC9** — Cada action do esboço (desenho §7) tem auditoria curta registrada em `docs/seguranca/`, com o SHA de commit que será fixado; nenhuma action entra por tag.
+- [x] **AC9** — Cada action do esboço (desenho §7) tem auditoria curta registrada em `docs/seguranca/`, com o SHA de commit que será fixado; nenhuma action entra por tag.
 
 Nota: AC2 (parte Semgrep) e AC3 (ambiente sem Docker) supõem o Semgrep no Ubuntu hospedado. Se o responsável recusar essa opção (desenho §9), esses dois aceites voltam ao @po para revisão com ele antes da fatia 2.
 
@@ -85,7 +85,8 @@ AC1–AC9 com evidência (AC1–AC6 com links de runs públicos); push e configu
 - **Escopo:** as cinco actions do esboço e do handoff da E2-4a: `checkout` v7.0.1, `setup-node` v7.1.0, `setup-dotnet` v6.0.0, `upload-artifact` v7.0.2, `download-artifact` v8.0.2. Só leitura (`gh api`, `git ls-remote`); nada executado, nada em `.github/`.
 - **Política de versão:** a da auditoria do Semgrep (última da linha maior atual com pelo menos duas semanas). As cinco cumprem.
 - **Vereditos:** `checkout` e `download-artifact` aceitas; `setup-node` e `setup-dotnet` aceitas com ressalva (baixam Node e SDK sem conferir hash; a checagem de versão do verificador e o `global.json` pegam versão errada, não binário adulterado); `upload-artifact` aceita com ressalva (artefato público). Configurações obrigatórias de cada uma estão na auditoria e valem para o workflow da E2-5.
-- **Recomendações novas para a E2-5** (fora do esboço original): `if-no-files-found: error` no upload; `digest-mismatch` no padrão no download; nenhuma entrada de token, espelho ou fonte nas actions de setup.
+- **Recomendações novas para a E2-5** (fora do esboço original): `if-no-files-found: error` no upload; `digest-mismatch` no padrão no download; nenhuma entrada de token, espelho ou fonte nas actions de setup; `ambiente-node` no `--so` do job `dotnet` (QA-E24B-02); escolher o mecanismo do cache do NuGet (QA-E24B-01).
+- **Correções depois do gate (@dev, 2026-11-02):** QA-E24B-03 — o `releases-index.json` passou a ser atribuído ao `dist/setup/index.js` da action, não ao script, e entrou o `post-if: success()` do setup-dotnet. QA-E24B-01 — a auditoria deixa o mecanismo do cache do NuGet como decisão da E2-5, com as três opções, e o veredito do setup-dotnet admite `cache`/`cache-dependency-path` só nessa escolha. QA-E24B-02 — registrado na auditoria como obrigação da E2-5. Nenhuma muda veredito nem SHA.
 
 ## Change Log
 
@@ -97,6 +98,7 @@ AC1–AC9 com evidência (AC1–AC6 com links de runs públicos); push e configu
 | 2026-11-02 | QA gate da fatia E2-4a (AC7, AC8; commit `6abfdc1`): CONCERNS, 2 issues médias e 5 baixas, nenhuma bloqueia a fatia 1; status segue InProgress até a fatia 2 (DoD) | @qa (Quinn) |
 | 2026-11-02 | Re-revisão @qa (QA loop, iteração 2) das correções do @dev, ainda não commitadas: QA-E24A-01, 02, 04 e 05 resolvidas; 03, 06 e 07 aceitas como dívida registrada; verdict final PASS para AC7 e AC8; `npm test` 203/203; status segue InProgress (DoD) | @qa (Quinn) |
 | 2026-11-02 | E2-4b: auditoria das cinco actions do esboço em `docs/seguranca/auditoria-actions-ci.md` (AC9), com SHA de commit completo conferido por `git ls-remote` e API; desenho §7 aponta para ela | sessão `8345181b` (@dev) |
+| 2026-11-02 | QA gate da E2-4b (AC9; commit `ac0e0d0`): PASS, 3 issues baixas para a E2-5 (cache do NuGet, checagem do Node no job `dotnet`, origem do `releases-index.json`); os cinco SHAs reconferidos por duas vias; AC9 marcado; status segue InProgress (DoD) | @qa (Quinn) |
 
 ## Validação @po (2026-11-02)
 
@@ -280,3 +282,63 @@ observacoes:
 **Os 7 checks, iteração 2:** 1 revisão de código PASS · 2 testes PASS (203/203) · 3 AC7 e AC8 PASS · 4 regressões PASS · 5 desempenho PASS · 6 segurança PASS (QA-E24A-03 como dívida da fatia 2) · 7 documentação PASS.
 
 **Decisão final: PASS** para a fatia E2-4a (AC7, AC8), com 03, 06 e 07 registradas como dívida. Status segue **InProgress**: o ponto de controle da fatia 1 ainda depende do AC9 (E2-4b), e o DoD só fecha depois da fatia 2.
+
+## QA Results (E2-4b, 2026-11-02)
+
+**Revisor:** @qa (Quinn) · **Commit revisado:** `ac0e0d0` (sobre `560cf4d`) · **Escopo:** fatia 1, AC9 (auditoria das actions). AC1–AC6 (fatia 2) ficam fora deste gate. **Status:** segue InProgress (pelo DoD, só muda depois da fatia 2).
+
+```yaml
+storyId: MEL-08
+escopo: "fatia 1: AC9"
+commit: ac0e0d0
+verdict: PASS
+issues:
+  - id: QA-E24B-01
+    severity: low
+    category: docs
+    description: >-
+      Cache do NuGet sem mecanismo definido. A auditoria diz que "o desenho usa o cache do NuGet pelo
+      packages.lock.json" (setup-dotnet, comportamento relevante), mas o veredito manda "usar só
+      global-json-file", o que exclui `cache: true`. Se a E2-5 fizer o cache com `actions/cache`, entra uma
+      sexta action sem auditoria; se fizer com o `cache: true` do setup-dotnet, contraria o "só".
+    recommendation: >-
+      Antes ou durante a E2-5, escolher: (a) sem cache do NuGet; (b) `cache: true` e `cache-dependency-path`
+      do setup-dotnet, acrescentados às configurações permitidas da auditoria; ou (c) auditar `actions/cache`.
+      Em qualquer caso, `--locked-mode` continua obrigatório.
+  - id: QA-E24B-02
+    severity: low
+    category: security
+    description: >-
+      A mitigação do setup-node vale só para o job `js`. O `--so js,monetizacao,sintaxe-js` puxa o
+      `ambiente-node` pelas dependências (comDependencias, verificar.mjs:124), mas o job `dotnet` do esboço
+      roda `--so notepad-core`, cujo fecho é dotnet-restore e notepad-build: o Node que o setup-node instala
+      ali não é conferido. Além disso, o `npm ci` roda antes do verificador no job `js`. A auditoria já diz,
+      corretamente, que a checagem é só do major e pega versão errada, não binário adulterado.
+    recommendation: >-
+      No workflow da E2-5, incluir `ambiente-node` no `--so` do job `dotnet` e ajustar a frase "como primeiro
+      componente do job" para "em todo job que usa o setup-node".
+  - id: QA-E24B-03
+    severity: low
+    category: docs
+    description: >-
+      Origem do releases-index.json atribuída ao script. A auditoria diz que o `install-dotnet.ps1` baixa o SDK
+      "usando o índice releases-index.json"; no SHA auditado o script não cita esse índice (0 ocorrências), e
+      quem o usa é o `dist/setup/index.js` da action (`DotnetCoreIndexUrl`, resolução de versão). Também falta
+      o `post-if: success()` do setup-dotnet na linha de runtime. Nenhum dos dois muda o veredito.
+    recommendation: "Corrigir as duas frases na próxima revisão da auditoria (por exemplo, na E2-5)."
+```
+
+**O que o @qa conferiu por conta própria (só leitura nas actions; arquivos baixados numa pasta temporária, apagada depois, nada executado):**
+- **Cobertura:** o esboço do desenho §7 usa exatamente `checkout`, `setup-node`, `upload-artifact`, `setup-dotnet` e `download-artifact`, as mesmas cinco da pendência E2-4b do handoff `docs/handoffs/2026-11-02-e2-4a-mel08-local.md` e da auditoria. Nenhuma ficou de fora; o cache do npm é interno ao setup-node (cache do NuGet: QA-E24B-01).
+- **SHAs, as cinco, pelas duas vias:** `git ls-remote https://github.com/actions/<nome> refs/tags/<tag> 'refs/tags/<tag>^{}' refs/tags/<maior>` e `gh api repos/actions/<nome>/git/ref/tags/<tag>`. Iguais ao documento; objeto `commit` (tag leve, sem `^{}`); a tag maior aponta para o mesmo commit.
+- **Assinatura e release:** `verification.verified: true`, `reason: valid`, committer `web-flow` nas cinco; datas, autores e mensagens de commit conferem; `immutable: true` em setup-node e setup-dotnet, `false` nas outras três; nenhuma arquivada, licença MIT; a versão auditada é a última da linha maior em cada uma, todas com mais de duas semanas (a mais nova é de 07/10/2026).
+- **`action.yml` no SHA:** `runs.using: node24` nas cinco, com `main`/`post` como descrito (no setup-dotnet há também `post-if: success()`); padrões `persist-credentials: true` e `fetch-depth: 1` (checkout), `cache: false` (setup-dotnet), `package-manager-cache: true` (setup-node; o nosso `package.json` não tem `packageManager` nem `devEngines`), `if-no-files-found: warn` e `include-hidden-files: false` (upload), `digest-mismatch` padrão `error` (download).
+- **Leitura estática:** `externals/install-dotnet.ps1` existe, 74.981 bytes, blob `3fa90250659c…`, sem `Get-FileHash`; `dist/setup/index.js` do setup-node sem `SHASUMS` e com `nodejs.org` e `actions/node-versions` como origens; README do checkout cita credenciais num arquivo em `$RUNNER_TEMP`; README do upload-artifact diz que o repositório não aceita contribuições.
+- **Repositório:** `git show --stat ac0e0d0 560cf4d` só toca `docs/`; `git ls-files .github` vazio e a pasta não existe; `.node-version` 26.12.1; `global.json` 10.0.401, `rollForward: patch`, `allowPrerelease: false`; o `ambiente-node` compara só o major (verificar.mjs:30).
+- `npm test`: **203/203**, 0 falha (não era obrigatório; nada mudou em `.claude/hooks/` nem em `scripts/`).
+
+**Os 7 checks:** 1 revisão (documento) PASS · 2 testes PASS (203/203) · 3 AC9 PASS (cinco actions, SHA completo conferido, nenhuma por tag, todos os itens pedidos por action, fontes com data de acesso) · 4 regressões PASS · 5 desempenho N/A · 6 segurança PASS (ressalvas honestas; QA-E24B-02 para a E2-5) · 7 documentação PASS com QA-E24B-01 e 03.
+
+### Decisão
+
+**PASS** para o AC9 (E2-4b). As três issues são baixas e entram como pendências da E2-5, que cria o workflow. Com AC7, AC8 e AC9 marcados, o ponto de controle da fatia 1 fica atendido. Status segue **InProgress**: o DoD só fecha depois da fatia 2.
