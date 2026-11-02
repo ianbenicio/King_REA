@@ -27,3 +27,17 @@
 - Não editar `status` nem `niveis_aprovados` do `00-seguranca.md`.
 - Envio ao GitHub só pelo @devops, com autorização do responsável.
 - O PRKing_UO não lê `alvos/`, `saidas/`, evidência nem pesquisa deste repositório; recebe só a cópia da especificação.
+
+## Resultado (2026-11-02)
+
+As quatro perguntas foram respondidas. As perguntas 1 e 4 tiveram o "sim" do responsável na conversa da sessão do alvo; as perguntas 2 e 3 foram respondidas por pesquisa pública em `docs/research/2026-11-02-uo-pergunta-de-volta/pesquisa.md` (referências `[V1]`–`[V14]`, acesso em 2026-11-02), sem tools do REA ou do Ghidra.
+
+| # | Resposta | Commit no PRKing_REA |
+|---|---|---|
+| — | Pesquisa pública das perguntas 2 e 3 e convenção `[Vn]` na especificação | `5ebf1b4` |
+| 1 | D12 na seção 16, com adendos na §3.0 (regra 1) e na §15: save preso ao mundo e à revisão da geometria; transferência de personagem e inventário é PODE, fora da primeira versão; migração entre geometrias é FORA | `034e52f` |
+| 2 | Adendo corrigido na §5.5: atrofia antes da checagem do cap e só com o total no cap; primeiro skill em "desce" na ordem da lista, com pelo menos o valor do ganho; sem elegível, nada muda; sem ganho parcial. Corrige a leitura "probabilidade `T / c_T`" (o ModernUO, que faz assim, fica como variante em dados) | `5e92447` |
+| 3 | Adendo na §6.1 e nota na §13.1: alcance por arma, 1 tile para corpo a corpo (oito direções); conferido a cada tentativa de golpe; sem checagem no impacto; golpe pronto espera e não acumula; troca de arma reinicia o intervalo | `a31add6` |
+| 4 | Adendo corrigido na §15: estado atual do gerador no save, não só a semente, e versão do gerador das regras | `e5706ff` |
+
+Entrega ao PRKing_UO: cópia de `PRKing_REA@e5706ff`, SHA-256 `806a8d5d…772bccbd`, conferido com `git show HEAD:docs/spec/especificacao.md | sed '2,4d' | sha256sum`. Commit `a12c50c` no PRKing_UO: histórico de entregas com a linha nova (e o commit `4cbf739` preenchido na linha anterior) e as quatro perguntas marcadas como respondidas. `npm test` no PRKing_REA: 184 testes, todos passando. Nenhum push.
