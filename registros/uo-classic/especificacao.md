@@ -2,7 +2,7 @@
 alvo: uo-classic
 destino: projeto Unity próprio em H:\King\Clientes e Projetos\PRKing_UO (fora deste repositório; exceção do item 8 do CLAUDE.md)
 era_de_referencia: T2A (The Second Age, 1998-10-01 a 2000-05-04)
-fontes: pesquisa pública (docs/research/2026-10-27-uo/); os adendos de 2026-10-28 e 2026-10-29 vêm da análise estática da cópia instalada (registros/uo-classic/01-analise.md); o texto original de 2026-10-28 não leu binário do alvo
+fontes: pesquisa pública (docs/research/2026-10-27-uo/; para as perguntas de volta de 2026-11-02, docs/research/2026-11-02-uo-pergunta-de-volta/); os adendos de 2026-10-28 e 2026-10-29 vêm da análise estática da cópia instalada (registros/uo-classic/01-analise.md); o texto original de 2026-10-28 não leu binário do alvo
 data: 2026-10-28 (adendos até 2026-11-02)
 ---
 
@@ -20,6 +20,7 @@ Este documento descreve **o que** o Ultima Online fazia na era T2A, em palavras 
   - `[Mn]` → `docs/research/2026-10-27-uo/02-personagem-combate-magia.md`;
   - `[Wn]` → `docs/research/2026-10-27-uo/03-mundo-npcs-crafting-ia.md`;
   - `[En]` → `docs/research/2026-10-27-uo/04-ecossistema-arquitetura-protocolo.md`.
+  - `[Vn]` → `docs/research/2026-11-02-uo-pergunta-de-volta/pesquisa.md` (adendo de 2026-11-02, perguntas de volta do PRKing_UO).
 - **(inferência)** marca dedução sem fonte direta. **(conflito)** marca fontes que discordam; a decisão fica na seção 16.
 - **Força da fonte**, quando importa: **oficial** (nota de publish da época), **wiki** (em geral descreve o jogo atual), **emulador** (código aberto, lido só para comportamento) ou **fórum/busca** (indício).
 - **Modelo numérico.** As notas oficiais de 1998–2000 dizem *quais* regras existiam e *quando*, mas quase nunca trazem números. Os números vêm em geral do ramo "pré-AOS" do RunUO, que reproduz o estado de 2002, logo antes do Age of Shadows, e não o T2A exato [M15–M59]. Toda regra numérica **DEVE** ficar em tabelas de dados, nunca fixa no código, para permitir dois perfis: "T2A estrito" e "pré-AOS final" [M] §7 (inferência de projeto).
