@@ -65,7 +65,7 @@ Proteção de branch (decisão do responsável, alteração remota pelo @devops)
 
 ## 7. Esboço (não ativo)
 
-Fica aqui, em documento, para revisão. Os SHAs entram depois da auditoria de cada action.
+Fica aqui, em documento, para revisão. Os SHAs entram depois da auditoria de cada action. **Auditoria feita em 2026-11-02 (E2-4b):** [`docs/seguranca/auditoria-actions-ci.md`](../seguranca/auditoria-actions-ci.md), com o SHA de cada action e as configurações obrigatórias; o esboço continua com `<sha>` até a E2-5, que cria o workflow com aprovação do responsável.
 
 ```yaml
 name: verificacao

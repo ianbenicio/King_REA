@@ -52,7 +52,7 @@ AC1–AC9 com evidência (AC1–AC6 com links de runs públicos); push e configu
 - [x] Desenho (componentes, gatilhos, matriz, agregado, o que não roda em runner hospedado) — 2026-11-01.
 - [x] Validação @po — 2026-11-02, GO.
 - [x] Sonda WPF e agregador (locais, com teste) — 2026-11-02, E2-4a.
-- [ ] Auditorias das actions e, se aprovado, adendo da auditoria do Semgrep.
+- [ ] Auditorias das actions (feita em 2026-11-02, E2-4b: [`auditoria-actions-ci.md`](../seguranca/auditoria-actions-ci.md)) e, se aprovado, adendo da auditoria do Semgrep (pendente da decisão do desenho §9).
 - [ ] Workflow e PRs de falha plantada (após aprovação).
 
 ## File List
@@ -67,6 +67,8 @@ AC1–AC9 com evidência (AC1–AC6 com links de runs públicos); push e configu
 - `reimplementacoes/notepad/PRKingNotepad.slnx` — sonda na solução (o `notepad-build` a compila).
 - `package.json` — `agregar-ci.test.mjs` no `npm test`.
 - `docs/contrato-ambiente.md`, `docs/planos/2026-11-01-desenho-ci-mel08.md` — requisito do `notepad-ui` e §4 atualizados.
+- `docs/seguranca/auditoria-actions-ci.md` — auditoria das cinco actions do esboço (AC9): versão, SHA completo conferido por duas vias, permissões, downloads, mantenedor, veredito, fontes (E2-4b).
+- `docs/planos/2026-11-01-desenho-ci-mel08.md` — §7 aponta para a auditoria e os SHAs (E2-4b).
 
 ## Dev Notes (E2-4a, 2026-11-02)
 
@@ -78,6 +80,13 @@ AC1–AC9 com evidência (AC1–AC6 com links de runs públicos); push e configu
 - **Para a fatia 2 (AC4):** o `detalhe` do verificador traz pilha com caminho absoluto do checkout; o agregador não o copia, mas o log do job `wpf-interativo`/`dotnet` imprimiria. Revisar antes de ativar, junto com o `motivo` (QA-E24A-03).
 - **Correções do QA (QA loop, iteração 1):** QA-E24A-01 — comentário do agregador e esboço do desenho §1/§7 passam a `node scripts/verificar/verificar.mjs … --json` (o `npm run` sem `-s` põe cabeçalho antes do JSON); parser continua estrito, BOM tolerado; teste com o cabeçalho e com BOM. QA-E24A-02 — componente repetido no JSON vira "JSON do job inválido: componente repetido"; teste. QA-E24A-04 — `avaliarSonda` exige código de saída coerente com a lista do que faltou; teste. QA-E24A-05 — WPF sem JSON tem aviso próprio (`AVISO_WPF_SEM_JSON`); teste. `npm test` 203/203; `verificar --so notepad-ui` 76/76 com a sonda; agregador pela linha de comando com JSON real: sem o job `js` → 3, completo → 0. **Ficam como dívida:** QA-E24A-03 (AC4, fatia 2), QA-E24A-06 (restauração do clipboard sem nova tentativa no `Dispose` do `ClipboardScope` e token no histórico do clipboard do Windows: mexe no auxiliar da suíte de UI, MEL-02) e QA-E24A-07 (detecção em C# da sonda sem teste automatizado; Shift físico).
 
+## Dev Notes (E2-4b, 2026-11-02)
+
+- **Escopo:** as cinco actions do esboço e do handoff da E2-4a: `checkout` v7.0.1, `setup-node` v7.1.0, `setup-dotnet` v6.0.0, `upload-artifact` v7.0.2, `download-artifact` v8.0.2. Só leitura (`gh api`, `git ls-remote`); nada executado, nada em `.github/`.
+- **Política de versão:** a da auditoria do Semgrep (última da linha maior atual com pelo menos duas semanas). As cinco cumprem.
+- **Vereditos:** `checkout` e `download-artifact` aceitas; `setup-node` e `setup-dotnet` aceitas com ressalva (baixam Node e SDK sem conferir hash; a checagem de versão do verificador e o `global.json` pegam versão errada, não binário adulterado); `upload-artifact` aceita com ressalva (artefato público). Configurações obrigatórias de cada uma estão na auditoria e valem para o workflow da E2-5.
+- **Recomendações novas para a E2-5** (fora do esboço original): `if-no-files-found: error` no upload; `digest-mismatch` no padrão no download; nenhuma entrada de token, espelho ou fonte nas actions de setup.
+
 ## Change Log
 
 | Data | Mudança | Autor |
@@ -87,6 +96,7 @@ AC1–AC9 com evidência (AC1–AC6 com links de runs públicos); push e configu
 | 2026-11-02 | Status Ready → InProgress (@dev, início da fatia 1). E2-4a: agregador (AC7) e sonda WPF (AC8) com testes; AC9 fica para a E2-4b | sessão `24b25af1` (@dev) |
 | 2026-11-02 | QA gate da fatia E2-4a (AC7, AC8; commit `6abfdc1`): CONCERNS, 2 issues médias e 5 baixas, nenhuma bloqueia a fatia 1; status segue InProgress até a fatia 2 (DoD) | @qa (Quinn) |
 | 2026-11-02 | Re-revisão @qa (QA loop, iteração 2) das correções do @dev, ainda não commitadas: QA-E24A-01, 02, 04 e 05 resolvidas; 03, 06 e 07 aceitas como dívida registrada; verdict final PASS para AC7 e AC8; `npm test` 203/203; status segue InProgress (DoD) | @qa (Quinn) |
+| 2026-11-02 | E2-4b: auditoria das cinco actions do esboço em `docs/seguranca/auditoria-actions-ci.md` (AC9), com SHA de commit completo conferido por `git ls-remote` e API; desenho §7 aponta para ela | sessão `8345181b` (@dev) |
 
 ## Validação @po (2026-11-02)
 
