@@ -71,8 +71,8 @@ Roda os componentes em ordem e imprime uma linha por componente com estado, dura
 | `ambiente-node` | major do Node contra `.node-version` | — | — |
 | `dependencias-npm` | `package.json` × `package-lock.json` × `node_modules` | — | — |
 | `sintaxe-js` | `node --check` em `.claude/hooks`, `.githooks`, `scripts`, `reimplementacoes/puzzle-piloto` | — | `ambiente-node` |
-| `lint` | `biome lint --error-on-warnings` em `.claude/hooks` e `scripts` (regras recomendadas; avisos reprovam). Também `npm run lint` | Biome instalado em `node_modules` | `ambiente-node` |
-| `tipos` | `tsc -p tsconfig.json --noEmit` com `checkJs` nos arquivos de `files` (módulos de política). Também `npm run tipos` | TypeScript instalado em `node_modules` | `ambiente-node` |
+| `lint` | `biome lint --error-on-warnings` em `.claude/hooks` e `scripts` (regras recomendadas; avisos reprovam). Também `npm run lint` | Biome instalado em `node_modules` | `ambiente-node`, `dependencias-npm` |
+| `tipos` | `tsc -p tsconfig.json --noEmit` com `checkJs` nos arquivos de `files` (módulos de política). Também `npm run tipos` | TypeScript instalado em `node_modules` | `ambiente-node`, `dependencias-npm` |
 | `js` | `npm test` (gates, assets, monetização, verificador e puzzle-piloto) | — | `ambiente-node`, `dependencias-npm` |
 | `monetizacao` | `npm run check:monetizacao` | — | `ambiente-node` |
 | `dotnet-restore` | `dotnet restore --locked-mode` | `dotnet` com SDK compatível com o `global.json` | — |
@@ -110,6 +110,6 @@ O build .NET do verificador grava em `%TEMP%\prking-verificar-notepad` (`--artif
 Aparecem também no fim de toda execução do verificador:
 
 - **Lint de JavaScript:** implantado em `.claude/hooks/` e `scripts/` (Biome 2.5.15, 2026-11-02). Fora por enquanto: `reimplementacoes/puzzle-piloto/` e `.githooks/`; a expansão é gradual (story MEL-03). O verificador não repassa `BIOME_BINARY` ao Biome (auditoria).
-- **Tipos:** implantado só nos módulos de política (`rea-gate`, `cli-gate`, `verificar-perfis`; TypeScript 6.0.3, 2026-11-02). Sem `@types/node`: as APIs do Node entram como `any` por `scripts/tipos/node-minimo.d.ts`. Ampliar o escopo ou adotar `@types/node` é decisão futura. `sintaxe-js` continua sendo só sintaxe, e nada se chama `typecheck`.
+- **Tipos:** implantado só nos módulos de política (`rea-gate`, `cli-gate`, `verificar-perfis`; TypeScript 6.0.3, 2026-11-02). Sem `@types/node`: as APIs do Node entram como `any` por `scripts/tipos/node-minimo.d.ts`. `noImplicitAny` desligado: ligado, dá 57 erros nos três módulos. Ampliar o escopo ou adotar `@types/node` é decisão futura. `sintaxe-js` continua sendo só sintaxe, e nada se chama `typecheck`.
 - **Semgrep sem Docker:** sem alternativa; fica "não executado".
 - **UI WPF fora da sessão interativa:** fica "não executado", com o item que faltou. A detecção é a plataforma, o usuário do sandbox do Codex e a sonda `tests/PRKingNotepad.UiProbe` (MEL-08, AC8), que mede o pré-requisito em vez de reconhecer o ambiente. Sonda aprovada e asserção falhando é falha.

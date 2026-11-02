@@ -21,7 +21,7 @@ export const SAIDA = { aprovado: 0, falhou: 1, uso: 2, incompleto: 3 };
 // Pendências do contrato que o verificador ainda não cobre (story MEL-03). Aparecem em toda execução.
 export const PENDENCIAS = [
   "lint só em .claude/hooks/ e scripts/; reimplementacoes/puzzle-piloto/ e .githooks/ ainda fora (story MEL-03)",
-  "tipos só nos módulos de política (rea-gate, cli-gate, verificar-perfis), sem @types/node: APIs do Node como any (story MEL-03)",
+  "tipos só nos módulos de política (rea-gate, cli-gate, verificar-perfis), sem @types/node (APIs do Node como any) e sem noImplicitAny (57 erros com ele ligado) (story MEL-03)",
 ];
 
 // --- regras puras (testadas em verificar.test.mjs) -------------------------------------------
@@ -215,7 +215,8 @@ export function componenteLint({ raiz = RAIZ, biome = BIOME } = {}) {
   return {
     id: "lint",
     descricao: `Biome lint (regras recomendadas, avisos reprovam) em ${ESCOPO_LINT.join(", ")}`,
-    depende: ["ambiente-node"],
+    // Depende do lock conferido: sem isso, rodaria um Biome diferente do auditado (QA-E22-01).
+    depende: ["ambiente-node", "dependencias-npm"],
     requisito: () => (existsSync(biome) ? null : "Biome não instalado em node_modules (rode npm ci --ignore-scripts)"),
     executar() {
       // BIOME_BINARY trocaria o binário auditado por outro qualquer: o verificador não repassa essa variável.
@@ -236,7 +237,7 @@ export function componenteTipos({ raiz = RAIZ, tsc = TSC } = {}) {
   return {
     id: "tipos",
     descricao: "tsc --noEmit com checkJs nos módulos de política (tsconfig.json)",
-    depende: ["ambiente-node"],
+    depende: ["ambiente-node", "dependencias-npm"],
     requisito: () => (existsSync(tsc) ? null : "TypeScript não instalado em node_modules (rode npm ci --ignore-scripts)"),
     executar() {
       const arquivos = JSON.parse(readFileSync(join(raiz, "tsconfig.json"), "utf8")).files?.length ?? 0;

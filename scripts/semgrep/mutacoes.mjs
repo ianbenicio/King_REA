@@ -38,7 +38,8 @@ try {
     cpSync(join(PUZZLE, "src"), join(TEMP, "src"), { recursive: true });
     if (arquivo) {
       const caminho = join(TEMP, "src", arquivo);
-      const texto = readFileSync(caminho, "utf8");
+      // Clone com core.autocrlf=true sai em CRLF e os trechos das mutações usam "\n" (achado do clone limpo, MEL-03 AC6).
+      const texto = readFileSync(caminho, "utf8").replace(/\r\n/g, "\n");
       if (!texto.includes(original)) throw new Error(`mutação "${nome}": trecho original não encontrado em ${arquivo}`);
       writeFileSync(caminho, texto.replace(original, mutado) + (regra.startsWith("r3") ? EXTRA_R3 : ""));
     }
