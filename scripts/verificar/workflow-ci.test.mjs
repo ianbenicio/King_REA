@@ -88,6 +88,15 @@ test("configurações obrigatórias: permissões, gatilho, credenciais, upload, 
   assert.equal(conta(/if-no-files-found: error/g), uploads);
   assert.equal(conta(/retention-days: 7/g), uploads);
   assert.equal(conta(/guarda de alvos\/ e saidas\//g), JOBS.length + 1, "guarda em todo job");
+  const guarda = `- name: guarda de alvos/ e saidas/\n        run: node -e "for (const d of ['alvos','saidas']) if (require('fs').existsSync(d)) { console.error(d + '/ no workspace'); process.exit(1) }"\n`;
+  assert.equal(semComentarios.split(guarda).length - 1, JOBS.length + 1, "corpo da guarda alterado em algum job");
+});
+
+test("gatilhos fechados e nada de entrada do evento, docker run ou scripts do npm no YAML (QA-E25-03)", () => {
+  assert.match(semComentarios, /\non:\n {2}pull_request:\n {4}branches: \[main\]\n {2}push:\n {4}branches: \[main\]\n {2}workflow_dispatch:\n\n/, "gatilhos diferentes do desenho §3");
+  assert.doesNotMatch(semComentarios, /\$\{\{[^}]*github\.(event\.|head_ref)/, "conteúdo do evento interpolado no YAML");
+  assert.doesNotMatch(semComentarios, /docker (run|create|exec|build)\b/, "contêiner roda pelo código (--network none), não pelo YAML");
+  assert.equal(conta(/npm (ci|install|i)\b/g), conta(/npm ci --ignore-scripts\n/g), "npm sempre com --ignore-scripts");
 });
 
 test("contêiner pelo digest do código e gitleaks com o SHA-256 da auditoria", () => {

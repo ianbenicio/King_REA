@@ -1,8 +1,8 @@
-# Desenho da CI — MEL-08 (sem ativação)
+# Desenho da CI — MEL-08
 
-**Data:** 2026-11-01 · **Status:** desenho; nada criado em `.github/`, nenhum segredo, runner ou proteção de branch · **Pacote:** MEL-08 do [plano de evolução](2026-11-01-evolucao-arquitetura-qualidade.md) §5 · **Story:** [`mel-08-ci-agregada.story.md`](../stories/mel-08-ci-agregada.story.md) · **Base:** [contrato de ambiente](../contrato-ambiente.md) (MEL-03, fatia 1) e [linha de base](2026-11-01-evolucao-linha-de-base.md)
+**Data:** 2026-11-01 · **Status:** ativo desde 2026-11-03 (E2-5): `.github/workflows/verificacao.yml`, proteção do `main` exigindo `resultado`; nenhum segredo nem runner próprio · **Pacote:** MEL-08 do [plano de evolução](2026-11-01-evolucao-arquitetura-qualidade.md) §5 · **Story:** [`mel-08-ci-agregada.story.md`](../stories/mel-08-ci-agregada.story.md) · **Base:** [contrato de ambiente](../contrato-ambiente.md) (MEL-03, fatia 1) e [linha de base](2026-11-01-evolucao-linha-de-base.md)
 
-Ativar exige aprovação do responsável na conversa e push pelo @devops. Este documento é o insumo da story; as escolhas abaixo são propostas.
+Ativado na E2-5 com aprovação do responsável (2026-11-03) e push pelo @devops. Este documento foi o insumo da story; a fonte da verdade agora é o `.github/workflows/verificacao.yml`, preso a este desenho, ao agregador e à auditoria das actions pelo teste `scripts/verificar/workflow-ci.test.mjs`. As decisões estão na §9.
 
 ## 1. Princípios
 
@@ -16,11 +16,11 @@ Ativar exige aprovação do responsável na conversa e push pelo @devops. Este d
 
 | Job | Runner | Componentes do verificador | Classe | Roda em runner hospedado? |
 |---|---|---|---|---|
-| `js` | `windows-2025` (plataforma suportada; o gate tem regra de caixa do Windows) | `ambiente-node`, `dependencias-npm`, `sintaxe-js`, `js`, `monetizacao` | obrigatória | sim |
-| `dotnet` | `windows-2025` | `dotnet-restore` (travado), `notepad-build`, `notepad-core` | obrigatória | sim |
-| `semgrep` | `ubuntu-24.04` | `semgrep-scan`, `semgrep-test`, `semgrep-mutacoes` | obrigatória depois da decisão abaixo | **não** no Windows hospedado (só containers Windows; a imagem é Linux). No Ubuntu hospedado é possível: `rodar.mjs` usa caminhos POSIX e já roda com `--network none`, usuário sem privilégio e repositório só leitura. Pendências: o pull por digest precisa de rede antes do `run`, e a auditoria do Semgrep cobre o Docker Desktop local, não o Docker Engine do runner. Decisão do responsável; até lá, "não executado" visível |
-| `wpf-interativo` | `windows-2025` | `notepad-ui` | dependente de ambiente | **não comprovado.** A suíte exige usuário interativo, foco de teclado e clipboard da sessão (story MEL-02: 72/76 no sandbox do Codex, 76/76 como usuário logado). Desde a fatia 1 (E2-4a), a sonda decide; ver §4 |
-| `publicacao` | `ubuntu-24.04` | checagem compartilhada de publicação (MEL-04) sobre o diff do PR | obrigatória depois da MEL-04 | sim, com fixtures sintéticas |
+| `js` | `windows-2025` (plataforma suportada; o gate tem regra de caixa do Windows) | `ambiente-node`, `dependencias-npm`, `sintaxe-js`, `lint`, `tipos`, `js`, `monetizacao` | obrigatória | sim |
+| `dotnet` | `windows-2025` | `ambiente-node`, `dotnet-restore` (travado), `notepad-build`, `notepad-core` | obrigatória | sim |
+| `semgrep` | `ubuntu-24.04` | `ambiente-node`, `semgrep-scan`, `semgrep-test`, `semgrep-mutacoes` | obrigatória (contêiner aceito no runner hospedado em 2026-11-03, §9) | **não** no Windows hospedado (só containers Windows; a imagem é Linux). No Ubuntu hospedado é possível: `rodar.mjs` usa caminhos POSIX e já roda com `--network none`, usuário sem privilégio e repositório só leitura. Pendências: o pull por digest precisa de rede antes do `run`, e a auditoria do Semgrep cobre o Docker Desktop local, não o Docker Engine do runner. Pendências resolvidas em 2026-11-03: pull por digest com rede antes do `run` sem rede, adendo na auditoria do Semgrep; **sim** (run 41641707700) |
+| `wpf-interativo` | `windows-2025` | `ambiente-node`, `notepad-ui` | dependente de ambiente | **não comprovado.** A suíte exige usuário interativo, foco de teclado e clipboard da sessão (story MEL-02: 72/76 no sandbox do Codex, 76/76 como usuário logado). Desde a fatia 1 (E2-4a), a sonda decide; no `windows-2025` hospedado a sonda aprovou e deu 76/76 (run 41641707700); ver §4 |
+| `publicacao` | `ubuntu-24.04` | `ambiente-node`, `publicacao`, `gitleaks` (checagem compartilhada da MEL-04) | obrigatória | sim, com fixtures sintéticas |
 | `resultado` | `ubuntu-24.04` | lê os JSON de todos os jobs | agregador | sim |
 
 **Nunca rodam na CI:** qualquer coisa que leia `alvos/` ou `saidas/` (ficam fora do git e não existem no checkout); tools `rea` e `ghidra`, protocolos de alvo, captura dinâmica; gabaritos de sessões cegas (`pilotos/` só como fixture de teste do processo, se um teste a usar); `npm run doctor` (inicia o servidor MCP, não é verificação de qualidade). Um passo de guarda no início de cada job falha se `alvos/` ou `saidas/` existirem no workspace.
@@ -31,7 +31,7 @@ Ativar exige aprovação do responsável na conversa e push pelo @devops. Este d
 - **Sem filtro de caminho no início:** todos os jobs rodam em toda mudança (a linha de base mede ~35–45 s locais sem o Semgrep e 285 s com ele, dos quais 192 s são as mutações; no runner, o job `semgrep` é o mais lento e roda em paralelo aos outros). Filtro só depois, e cada filtro com teste que prove não ocultar verificação necessária (aceite da MEL-08).
 - **Matriz:** um eixo só por enquanto (a combinação suportada). Node 24 ou .NET de outra faixa não entram: o contrato não os declara.
 - **Concorrência:** `concurrency: ci-${{ github.ref }}` com `cancel-in-progress: true` em PR; em `main`, sem cancelar.
-- **Cache:** `actions/setup-node` com cache do npm pelo `package-lock.json`; NuGet pelo `packages.lock.json`. Cache não substitui `npm ci` nem `--locked-mode`.
+- **Cache:** ~~`actions/setup-node` com cache do npm; NuGet pelo `packages.lock.json`~~ **nenhum cache** (decisão do responsável em 2026-11-03: sem cache do NuGet; o npm ficou sem cache também, para não abrir entrada que a decisão não cobriu). `npm ci` e `--locked-mode` em toda execução.
 
 ## 4. Testes dependentes de ambiente (WPF)
 
@@ -41,6 +41,8 @@ Regra do plano: classificar como "não executável" exige pré-requisito ausente
 2. **Sonda aprovada →** o job roda `notepad-ui`; falha de asserção é falha.
 3. **Sonda reprovada →** "não executável neste runner", com o item que faltou. O job termina **vermelho** e fora dos checks obrigatórios: não bloqueia o merge, mas não aparece como aprovado.
 4. **Validação WPF completa** continua exigindo evidência local reproduzível: `npm run verificar` como usuário interativo, com o JSON anexado ao PR ou ao handoff. Runner próprio fica como opção a avaliar (plano §5), não como pré-requisito.
+
+**Primeira execução no runner hospedado (E2-5, 2026-11-03):** no `windows-2025` a sonda aprovou os quatro itens e a suíte `notepad-ui` passou 76/76 (run 41641707700). O job segue fora dos checks obrigatórios (decisão do responsável: exigir só o `resultado`), mas uma asserção falhando nele já deixa o `resultado` vermelho (decisão de 2026-11-02). Runner próprio continua adiado: o hospedado mostrou o que precisava.
 
 **Implementado na fatia 1 (E2-4a, 2026-11-02):** a sonda é `reimplementacoes/notepad/tests/PRKingNotepad.UiProbe` e o verificador a roda antes do `notepad-ui`; a recusa por `GITHUB_ACTIONS=true` saiu. Com a sonda aprovada e uma asserção falhando, o `resultado` agregado fica vermelho (decisão do responsável, 2026-11-02; caso que a tabela do §5 não cobria). O agregador do §5 é `scripts/verificar/agregar-ci.mjs`.
 
@@ -63,9 +65,11 @@ Proteção de branch (decisão do responsável, alteração remota pelo @devops)
 - O verificador imprime as últimas linhas da saída de um componente que falhou. As suítes do projeto só usam fixtures próprias; a story confere que nenhuma imprime variáveis de ambiente ou caminhos do workspace além do checkout.
 - Sem upload de `bin/`, `obj/`, `TestResults/` nem capturas de tela.
 
-## 7. Esboço (não ativo)
+## 7. Esboço (histórico, substituído)
 
-Fica aqui, em documento, para revisão. Os SHAs entram depois da auditoria de cada action. **Auditoria feita em 2026-11-02 (E2-4b):** [`docs/seguranca/auditoria-actions-ci.md`](../seguranca/auditoria-actions-ci.md), com o SHA de cada action e as configurações obrigatórias; o esboço continua com `<sha>` até a E2-5, que cria o workflow com aprovação do responsável.
+> **Histórico.** Este esboço é anterior à ativação e diverge do workflow real (tinha `cache: npm`, `--so notepad-core` sem `ambiente-node` e `needs: [js, dotnet]`). O workflow ativo é [`.github/workflows/verificacao.yml`](../../.github/workflows/verificacao.yml); não copie daqui.
+
+Ficou aqui, em documento, para revisão. Os SHAs entram depois da auditoria de cada action. **Auditoria feita em 2026-11-02 (E2-4b):** [`docs/seguranca/auditoria-actions-ci.md`](../seguranca/auditoria-actions-ci.md), com o SHA de cada action e as configurações obrigatórias; o esboço continua com `<sha>` até a E2-5, que cria o workflow com aprovação do responsável.
 
 ```yaml
 name: verificacao
@@ -104,11 +108,11 @@ jobs:
 | Logs e artefatos só com resultados sintéticos | §1 e §6; guarda de `alvos/`/`saidas/` | revisão dos logs do primeiro PR; busca por caminhos do workspace |
 | WPF como categoria própria, nunca aprovado se não executável | §4 | job `wpf-interativo` com sonda reprovada fica vermelho e fora dos obrigatórios |
 
-## 9. Decisões pendentes do responsável
+## 9. Decisões do responsável (2026-11-03)
 
-| Decisão | Recomendação |
+| Decisão | Resposta |
 |---|---|
-| Ativar a CI (criar `.github/workflows/`) | Depois da MEL-04 e das auditorias das actions |
-| Semgrep no Ubuntu hospedado (pull por digest com rede antes do `run`) | Aceitar, com adendo à auditoria do Semgrep para o Docker Engine do runner |
-| Proteção de branch exigindo `resultado` | Sim, pelo @devops, depois de um PR verde |
-| Runner próprio para WPF | Adiar até a sonda mostrar o que o runner hospedado oferece |
+| Ativar a CI (criar `.github/workflows/`) | ativar agora (E2-5) |
+| Contêineres (Semgrep, gitleaks) no Ubuntu hospedado | aceitar: pull pelo digest com rede, `run` com `--network none`; adendos nas auditorias do Semgrep e do gitleaks |
+| Proteção de branch exigindo `resultado` | sim, depois do 1º PR verde; configurada pelo @devops com `enforce_admins: false` (push direto do @devops no `main` continua possível; ligar é decisão pendente) |
+| Cache e runner próprio | sem cache; runner próprio adiado (a sonda aprovou no hospedado) |
