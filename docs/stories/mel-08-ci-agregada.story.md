@@ -1,6 +1,6 @@
 # Story MEL-08 — implantar CI por componente com resultado agregado
 
-**Status:** InReview (fatia 1 entregue em 2026-11-02: E2-4a, agregador e sonda; E2-4b, auditoria das actions. Fatia 2, E2-5, em 2026-11-03: workflow ativo, AC1–AC6 com evidência, proteção do `main` exigindo `resultado`. Falta o merge do PR #1 no `main`, que precisa do "sim" do responsável)
+**Status:** InReview (fatia 1 entregue em 2026-11-02: E2-4a, agregador e sonda; E2-4b, auditoria das actions. Fatia 2, E2-5, em 2026-11-03: workflow ativo, AC1–AC6 com evidência, proteção do `main` exigindo `resultado`. PR #1 no `main` em 2026-11-03 (`e8956f5`, run do push verde); falta o novo gate @qa das correções `2d213f7` e `318d85d` para Done)
 **Workflow:** SDC, ciclo completo (entrega M: @sm → @po → @devops, critérios @qa) · **Origem:** A04 do [parecer de 01/11/2026](../analises/2026-11-01-arquitetura-cto-comparativo.md) · **Pacote:** MEL-08 do [plano de evolução](../planos/2026-11-01-evolucao-arquitetura-qualidade.md) §5 · **Desenho:** [`docs/planos/2026-11-01-desenho-ci-mel08.md`](../planos/2026-11-01-desenho-ci-mel08.md)
 **Complexidade:** STANDARD · estimativa M, em duas fatias (1: local — sonda, agregador, auditorias, E2-4 do relatório de 2026-11-02; 2: ativação — workflow, PRs de falha plantada, proteção de branch, E2-5) · **Dependências:** MEL-03 (fatia 1 entregue; o verificador é o executor de cada job), MEL-04 (job `publicacao`), pendências WPF da [story MEL-02](mel-02-regressao-wpf.story.md)
 
@@ -57,7 +57,8 @@ AC1–AC9 com evidência (AC1–AC6 com links de runs públicos); push e configu
 - [x] PRs de falha plantada (JS, lint, .NET, Semgrep, publicação, sem Docker) — 2026-11-03, E2-5.
 - [x] Correção da sondagem do Docker achada pelo PR sem Docker — 2026-11-03, E2-5.
 - [x] Proteção do `main` exigindo `resultado` — 2026-11-03, E2-5.
-- [ ] Merge do PR #1 no `main` (precisa do "sim" do responsável).
+- [x] Merge do PR #1 no `main` — 2026-11-03, com o "sim" do responsável: merge commit `e8956f5` (preserva os SHAs citados aqui), [run do push no `main`](https://github.com/ianbenicio/King_REA/actions/runs/41645374091) verde.
+- [ ] Novo gate @qa das correções `2d213f7` e `318d85d` (QA-E25-01 a 03).
 
 ## File List
 
@@ -109,7 +110,7 @@ AC1–AC9 com evidência (AC1–AC6 com links de runs públicos); push e configu
 - **Revisão dos logs do run 41641707700 (AC4):** `alvos`/`saidas` só nas linhas da guarda; caminhos só do checkout do runner (`/home/runner/work/King_REA/King_REA`, `D:a…`); credencial do checkout mascarada (`***`) e não persistida; nenhuma variável de ambiente impressa além das `DOTNET_*` declaradas; artefatos só com o JSON do verificador (sem `detalhe` no resumo).
 - **Bug achado pela falha plantada sem Docker:** no Ubuntu hospedado, com `docker.socket` e `docker.service` parados, `docker info --format {{.ServerVersion}}` saiu 0 com saída vazia. A sondagem agora exige a versão do servidor na saída (`motivoDaemonDocker`, regra pura compartilhada pelo verificador e pelo gitleaks), com teste.
 - **Push protection do GitHub:** a primeira falha plantada de publicação usava uma chave sintética no formato Twilio; o GitHub recusou o push. A branch local foi apagada sem envio e refeita só com uma `api_key` genérica. Camada extra, não contornada.
-- **Proteção do `main`** (API clássica): check exigido `resultado`, `strict: false`, `enforce_admins: false` (decisão pendente com o responsável), sem force push nem exclusão.
+- **Proteção do `main`** (API clássica): check exigido `resultado`, `strict: false`, sem force push nem exclusão; `enforce_admins` ligado depois do merge, por decisão do responsável (2026-11-03).
 - **QA-E25:** 01 (desenho e auditoria das actions) e 03 (5 mutações escapadas agora reprovam o teste) resolvidas em `318d85d`; 02 (esta story) resolvida aqui; 04 (`--pull never` no `docker run`) fica como dívida opcional: o pull já fica num passo próprio, e o digest garante a imagem.
 
 ## Change Log
@@ -124,6 +125,7 @@ AC1–AC9 com evidência (AC1–AC6 com links de runs públicos); push e configu
 | 2026-11-02 | E2-4b: auditoria das cinco actions do esboço em `docs/seguranca/auditoria-actions-ci.md` (AC9), com SHA de commit completo conferido por `git ls-remote` e API; desenho §7 aponta para ela | sessão `8345181b` (@dev) |
 | 2026-11-02 | QA gate da E2-4b (AC9; commit `ac0e0d0`): PASS, 3 issues baixas para a E2-5 (cache do NuGet, checagem do Node no job `dotnet`, origem do `releases-index.json`); os cinco SHAs reconferidos por duas vias; AC9 marcado; status segue InProgress (DoD) | @qa (Quinn) |
 | 2026-11-03 | E2-5: workflow ativo (PR #1, run 41641707700 verde), seis PRs de falha plantada, correção da sondagem do Docker (`2d213f7`), alinhamento do desenho e teste mais forte (`318d85d`), proteção do `main` exigindo `resultado`; AC1–AC6 marcados; status InProgress → InReview | sessão `d883db9d` (@devops, @dev) |
+| 2026-11-03 | Merge do PR #1 no `main` (`e8956f5`, "sim" do responsável), run do push verde; `enforce_admins` ligado; etapa 2 encerrada. Status segue InReview até o novo gate @qa | sessão `d883db9d` (@devops) |
 
 ## Validação @po (2026-11-02)
 

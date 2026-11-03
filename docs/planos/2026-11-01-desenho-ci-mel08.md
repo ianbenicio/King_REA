@@ -114,5 +114,5 @@ jobs:
 |---|---|
 | Ativar a CI (criar `.github/workflows/`) | ativar agora (E2-5) |
 | Contêineres (Semgrep, gitleaks) no Ubuntu hospedado | aceitar: pull pelo digest com rede, `run` com `--network none`; adendos nas auditorias do Semgrep e do gitleaks |
-| Proteção de branch exigindo `resultado` | sim, depois do 1º PR verde; configurada pelo @devops com `enforce_admins: false` (push direto do @devops no `main` continua possível; ligar é decisão pendente) |
+| Proteção de branch exigindo `resultado` | sim, depois do 1º PR verde; configurada pelo @devops; `enforce_admins` ligado em 2026-11-03 por decisão do responsável (o check vale também para o administrador; push direto no `main` não entra mais, toda mudança vai por PR) |
 | Cache e runner próprio | sem cache; runner próprio adiado (a sonda aprovou no hospedado) |
