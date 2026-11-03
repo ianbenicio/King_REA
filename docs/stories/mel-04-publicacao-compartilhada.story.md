@@ -61,7 +61,7 @@ Detector de segredos externo: auditar um candidato ou ficar só com regras próp
 - [x] Extrair a política atual para o módulo, sem mudar comportamento (os mesmos testes antes e depois) — `0b56b7a`.
 - [x] Caminhos proibidos, renomes e remoções.
 - [x] Regras de segredo próprias e fixtures (montadas por partes); decisão sobre detector externo: auditar o gitleaks.
-- [ ] Auditoria do gitleaks (`docs/seguranca/auditoria-gitleaks-<versão>.md`) e, se aprovado, componente opcional — próxima unidade.
+- [x] Auditoria do gitleaks (`docs/seguranca/auditoria-gitleaks-8.30.1.md`, `ecf81ce`): sem assinatura nem atestação; responsável decidiu "Adotar isolado" (2026-11-03). Componente `gitleaks` isolado em contêiner, "não executado" sem Docker ou binário, fora do `pre-commit` (medição na auditoria) — `1561e4d`.
 - [x] Arquivo de exceções versionado, com motivo e teste por exceção.
 - [x] Componente `publicacao` no verificador.
 - [x] QA @qa — 2026-11-02, CONCERNS; QA-E23-01 a 06 corrigidos na mesma unidade, QA-E23-07 para a MEL-08.
@@ -80,11 +80,20 @@ Detector de segredos externo: auditar um candidato ou ficar só com regras próp
 - `docs/contrato-ambiente.md` — componente, política e lista de segredos cobertos e não cobertos.
 - `docs/handoffs/2026-11-02-e2-3-publicacao.md` — handoff da unidade.
 - `docs/plano-de-execucao.md` — plano da Fase 0 (E2-2 arquivado em `docs/planos/2026-11-02-e2-2-lint-tipos.md`).
+- `docs/seguranca/auditoria-gitleaks-8.30.1.md` — auditoria do gitleaks, aceitação com ressalva e uso isolado (E2-3b).
+- `scripts/publicacao/gitleaks.mjs` — detector externo isolado: hash, `git archive`, contêiner sem rede, relatório sem valor; componente `gitleaks`.
+- `scripts/publicacao/gitleaks.toml` — configuração própria (padrão da versão, sem allowlist).
+- `scripts/publicacao/gitleaks.test.mjs` — provas do detector externo (regras puras e gitleaks real com Docker).
+- `scripts/publicacao/pre-commit.test.mjs` — fixture da chave da Anthropic partida (falso positivo do gitleaks).
+- `.gitignore` — `ferramentas/gitleaks/` fora do git.
+- `package.json`, `tsconfig.json`, `scripts/tipos/node-minimo.d.ts`, `scripts/verificar/verificar.mjs` — teste no `npm test`, `npm run check:gitleaks`, `gitleaks.mjs` na checagem de tipos, componente no verificador (E2-3b).
+- `docs/plano-de-execucao.md` — plano da E2-3b (E2-3 arquivado em `docs/planos/2026-11-02-e2-3-publicacao.md`).
 
 ## Change Log
 
 | Data | Mudança | Autor |
 |---|---|---|
+| 2026-11-03 | @dev (E2-3b): auditoria do gitleaks 8.30.1 (`ecf81ce`); responsável escolhe "Adotar isolado"; componente `gitleaks` isolado, testes, contrato (`1561e4d` e seguintes) | sessão `70e9a223` (@dev) |
 | 2026-11-01 | Story criada (Draft) a partir da MEL-04, na preparação da etapa 2 | sessão `b0f09ab6` (@sm) |
 | 2026-11-02 | @qa: gate CONCERNS (7 achados, nenhum alto); @dev corrige QA-E23-01 a 06 | sessão `c237632e` (@qa, @dev) |
 | 2026-11-02 | @dev: caracterização (13 casos contra o hook antigo), extração para `scripts/publicacao/`, caminhos proibidos, regras próprias de segredo, exceções, componente `publicacao` (`0b56b7a`); gitleaks adiado para a próxima unidade | sessão `c237632e` (@dev) |

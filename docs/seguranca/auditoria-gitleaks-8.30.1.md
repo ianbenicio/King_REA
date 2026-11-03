@@ -1,8 +1,8 @@
 # Auditoria de segurança — gitleaks 8.30.1
 
-**Data:** 03/11/2026 · **Método:** origem e integridade dos arquivos da release (SHA-256 contra o `checksums.txt` e contra o digest que o GitHub guarda de cada arquivo), busca de assinatura e atestação, licença e conteúdo do pacote, leitura do código-fonte na tag pela API do GitHub (rede, telemetria, resolução de configuração, redação), execução sem rede num contêiner e medições com o executável Windows sobre conteúdo rastreado (`git archive HEAD` fora do repositório e `gitleaks git`, que lê só o `.git`) · **Veredito proposto:** **aprovado com lacunas (listadas)**: sem rede, sem telemetria, licença MIT; mas o binário não tem assinatura nem procedência de CI, e há afrouxamentos que nenhuma flag desliga (abaixo). A adoção fica para o responsável, que pediu adoção "só se a auditoria passar sem problema".
+**Data:** 03/11/2026 · **Método:** origem e integridade dos arquivos da release (SHA-256 contra o `checksums.txt` e contra o digest que o GitHub guarda de cada arquivo), busca de assinatura e atestação, licença e conteúdo do pacote, leitura do código-fonte na tag pela API do GitHub (rede, telemetria, resolução de configuração, redação), execução sem rede num contêiner e medições com o executável Windows sobre conteúdo rastreado (`git archive HEAD` fora do repositório e `gitleaks git`, que lê só o `.git`) · **Veredito:** **aprovado com ressalva, só isolado** (decisão do responsável em 03/11/2026): sem rede, sem telemetria, licença MIT, checksums conferidos; o binário não tem assinatura, atestação nem procedência de CI e a release é mutável, por isso só roda em contêiner sem rede, como o Semgrep (seção "Aceitação e uso no projeto").
 
-Decisão do responsável de 02/11/2026: "Auditar o gitleaks". **Auditar não é adotar.** Nada foi ligado ao projeto: nem pre-commit, nem verificador, nem CI. Este documento só mede.
+Decisões do responsável: "Auditar o gitleaks" (02/11/2026); depois de ver as lacunas, "Adotar isolado" (03/11/2026, opção 1 de três: adotar isolado, não adotar, compilar da tag).
 
 ## Versão
 
@@ -118,6 +118,27 @@ Repositório no `HEAD` `da07163`: 288 arquivos rastreados (2,46 MB varridos) e 1
 | **caminho inexistente ou fora de repositório no `git`** | **0**, com "0 commits scanned" e "no leaks found" |
 
 Os dois últimos casos passam em silêncio. Qualquer uso automático precisa conferir o caminho antes e tratar "0 commits scanned" ou "scanned ~0 bytes" como erro quando não for o esperado.
+
+## Aceitação e uso no projeto
+
+**Aceite com ressalva** (responsável, 03/11/2026): falta de assinatura e de atestação, binários gerados fora do CI e release mutável aceitos, porque o binário só roda isolado. **Risco residual:** um binário adulterado não consegue tirar nada da máquina (sem rede) nem mudar o repositório (tudo só leitura), mas pode **mentir no resultado** (falso negativo). Isso equivale a não ter o detector externo: as 12 regras próprias de `scripts/publicacao/publicacao.mjs` continuam valendo no `pre-commit`, no verificador e na CI. Também fica o que nenhuma flag desliga (lacunas 3 e 4).
+
+Como roda (`scripts/publicacao/gitleaks.mjs`, componente `gitleaks` do verificador, `npm run check:gitleaks`):
+
+| Controle | Como |
+|---|---|
+| Binário | Linux, `ferramentas/gitleaks/8.30.1/linux/gitleaks` (fora do git), SHA-256 `88f91962aa2f93ac6ab281d553b9e125f5197bbbce38f9f2437f7299c32e5509` conferido antes de cada execução; diferente reprova |
+| Entrada | só `git archive <ref>` (arquivos rastreados), gravado num tar temporário; extração e varredura dentro do contêiner. Nunca a árvore de trabalho, `alvos/` ou `saidas/` |
+| Contêiner | imagem do Semgrep já auditada (mesmo digest); `--network none`, `--cap-drop ALL`, `no-new-privileges`, usuário `65534:65534`, `--read-only`, `/tmp` em tmpfs, as três montagens só leitura |
+| Configuração | `scripts/publicacao/gitleaks.toml` por `--config` (padrão da versão, sem allowlist própria; o teste reprova allowlist ali); `--ignore-gitleaks-allow`; `-i` para pasta vazia; `.gitleaksignore` rastreado em qualquer nível reprova antes de varrer |
+| Saída | `--redact`, `--log-level info` (nunca debug ou trace), `--exit-code 3`; código diferente de 0 e 3, varredura de 0 bytes, relatório ilegível ou incoerente com o código reprovam; relatório só com caminho, linha e regra |
+| Ausência | sem o binário ou sem o Docker: "não executado", com o motivo; nunca aprovado |
+
+**Fora do `pre-commit`** (decisão do responsável, com a medição): o `pre-commit` atual leva 0,66 s; o gitleaks no contêiner leva 1,6 s quente e 7,8 s a frio, e depende do Docker ligado, que muitas vezes não está (no hook viraria aviso que não bloqueia). Roda no verificador e, na E2-5, na CI. O `pre-commit` não mudou.
+
+**Falso positivo tratado:** a fixture da chave da Anthropic em `scripts/publicacao/pre-commit.test.mjs` disparava `generic-api-key`; foi partida em pedaços menores (mesmo valor em tempo de execução). Depois disso, a árvore do `HEAD` (293 arquivos) não tem achado. O histórico guarda o commit `0b56b7a` com a forma antiga, que só dispara em varredura de histórico (o componente varre a árvore).
+
+**Provas** (`scripts/publicacao/gitleaks.test.mjs`, no `npm test`): relatório sem valor, trecho, autor ou mensagem; saída de erro, 0 bytes e código incoerente nunca aprovam; argumentos de isolamento; imagem igual à do Semgrep; configuração sem allowlist; binário ausente dá "não executado"; hash diferente reprova sem chamar o Docker; e, com o binário e o Docker presentes, `.gitleaksignore` reprova, repositório limpo aprova, e segredo sintético gerado no teste reprova mesmo com `gitleaks:allow` e `.gitleaks.toml` permissivo no alvo, sem o valor no relatório.
 
 ## Lacunas e limites
 
