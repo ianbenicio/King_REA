@@ -172,11 +172,26 @@ export function varrer({ ref = "HEAD", raiz = RAIZ, binario = BINARIO, hash = SH
 }
 
 /** Motivo para não executar (binário ausente, Docker inacessível), ou null. */
+/**
+ * Motivo de o daemon do Docker não servir, ou null. Saída 0 não basta: com o serviço parado no Ubuntu hospedado,
+ * `docker info --format {{.ServerVersion}}` saiu 0 e o job seguiu até o `docker run`, o que virou "falhou" em vez
+ * de "não executado" (E2-5, run 41642229054). Exige a versão do servidor na saída padrão.
+ * @param {{ ausente?: boolean, status?: number | null, stdout?: string }} r
+ */
+export function motivoDaemonDocker({ ausente = false, status = null, stdout = "" }) {
+  if (ausente) return "comando docker não encontrado no PATH";
+  return status === 0 && /^\d+\.\d+/.test(String(stdout).trim()) ? null : "daemon do Docker inacessível (Docker Desktop ou serviço docker desligado?)";
+}
+
+/** Pergunta ao daemon a versão do servidor e devolve o motivo de não servir, ou null. */
+export function sondarDocker(docker = "docker") {
+  const r = spawnSync(docker, ["info", "--format", "{{.ServerVersion}}"], { encoding: "utf8", windowsHide: true, timeout: 60_000 });
+  return motivoDaemonDocker({ ausente: r.error?.code === "ENOENT", status: r.error ? null : r.status, stdout: r.stdout ?? "" });
+}
+
 export function motivoSemGitleaks({ binario = BINARIO, docker = "docker" } = {}) {
   if (!existsSync(binario)) return `binário do gitleaks ${VERSAO} ausente em ferramentas/gitleaks/${VERSAO}/linux/ (ver a auditoria)`;
-  const r = spawnSync(docker, ["info", "--format", "{{.ServerVersion}}"], { encoding: "utf8", windowsHide: true });
-  if (r.error) return "comando docker não encontrado no PATH";
-  return r.status === 0 ? null : "daemon do Docker inacessível (Docker Desktop desligado?)";
+  return sondarDocker(docker);
 }
 
 /** Componente do verificador (scripts/verificar/verificar.mjs). Parâmetros existem para os testes. */

@@ -14,7 +14,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { tmpdir, userInfo } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { componenteGitleaks } from "../publicacao/gitleaks.mjs";
+import { componenteGitleaks, sondarDocker } from "../publicacao/gitleaks.mjs";
 
 export const ESTADOS = { aprovado: "aprovado", falhou: "falhou", naoExecutado: "não executado" };
 export const SAIDA = { aprovado: 0, falhou: 1, uso: 2, incompleto: 3 };
@@ -190,10 +190,7 @@ function motivoSemDotnet() {
 
 let dockerMotivo; // null quando o daemon responde
 function motivoSemDocker() {
-  if (dockerMotivo === undefined) {
-    const r = rodar("docker", ["info", "--format", "{{.ServerVersion}}"]);
-    dockerMotivo = r.ok ? null : r.ausente ? "comando docker não encontrado no PATH" : "daemon do Docker inacessível (Docker Desktop desligado?)";
-  }
+  if (dockerMotivo === undefined) dockerMotivo = sondarDocker();
   return dockerMotivo;
 }
 
