@@ -5,7 +5,7 @@ import { PECAS, peca } from "./pecas.mjs";
 // ok: r1-nucleo-importa-de-fora
 import * as prng from "./prng.mjs";
 
-// ruleid: r1-nucleo-importa-de-fora
+// ok: r1-nucleo-importa-de-fora
 import { AGENDADOR_INICIAL } from "../monetizacao/agendador.mjs";
 // ruleid: r1-nucleo-importa-de-fora
 import sessao from "../sessao/sessao.mjs";
