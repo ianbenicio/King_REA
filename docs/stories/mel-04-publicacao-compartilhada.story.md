@@ -1,6 +1,6 @@
 # Story MEL-04 — transformar a política de publicação em verificação compartilhada
 
-**Status:** InProgress (2026-11-02: módulo, caminhos proibidos, regras próprias de segredo, exceções e componente entregues; falta a auditoria do gitleaks, decidida pelo responsável em 2026-11-02 e deixada para a próxima unidade por limite de contexto)
+**Status:** InReview (2026-11-03: E2-3b entregue — gitleaks 8.30.1 auditado, adotado isolado por decisão do responsável; gate @qa FAIL por QA-E23B-01, corrigido com os demais, aguardando re-verificação)
 **Workflow:** SDC, ciclo completo (entrega M: @sm → @po → @dev → @qa; integração @devops) · **Origem:** A06 do [parecer de 01/11/2026](../analises/2026-11-01-arquitetura-cto-comparativo.md) · **Pacote:** MEL-04 do [plano de evolução](../planos/2026-11-01-evolucao-arquitetura-qualidade.md) §5
 **Complexidade:** STANDARD · estimativa M · **Dependências:** contrato de verificação da MEL-03 (fatia 1 entregue: [`docs/contrato-ambiente.md`](../contrato-ambiente.md)); é pré-requisito do job `publicacao` da [CI MEL-08](../planos/2026-11-01-desenho-ci-mel08.md)
 
@@ -146,4 +146,32 @@ Checklist de 10 pontos (`story-lifecycle.md`). Nota: 1 atende, 0,5 parcial, 0 n�
 
 Depois das correções: `npm test` 256/256 (três rodadas; uma rodada anterior teve 1 falha não identificada que não se repetiu), `publicacao`, `lint`, `tipos` e `sintaxe-js` aprovados.
 
-**Falta para o Done:** auditoria do gitleaks (DoD: "auditoria registrada se houver ferramenta externa"), próxima unidade.
+**Falta para o Done (2026-11-02):** auditoria do gitleaks; entregue na E2-3b (seção abaixo).
+
+## QA Results — E2-3b (2026-11-03, @qa, commits ecf81ce..afbd404)
+
+**Decisão: FAIL**. O isolamento do contêiner, a redação do relatório, o hash do binário e o "não executado" funcionam como a auditoria descreve. Mas o `git archive` aplica os atributos do próprio repositório, e um `.gitattributes` rastreado tira um arquivo da varredura ou muda a codificação dele. O componente então dá "aprovado" com o segredo presente. É o mesmo tipo de afrouxamento que a unidade tratou como inaceitável no `.gitleaksignore`, e a CI pública (E2-5) vai rodar isso em PRs de terceiros. Volta ao @dev. O status continua InProgress.
+
+| Id | Sev. | Descrição | Correção sugerida |
+|---|---|---|---|
+| QA-E23B-01 | alta | **Fail-open por atributos do `git archive`.** Sonda com token sintético gerado na hora (valor nunca impresso), em repositório temporário: `.gitattributes` com `a.txt export-ignore` → `ok: true`, 0 achados, e o relatório diz "2 arquivos" (conta pelo `ls-tree`, não pelo que foi varrido). O mesmo acontece em subpasta (`d/.gitattributes`). Com `a.txt working-tree-encoding=UTF-16LE`, o blob fica UTF-8 no git (e o GitHub mostra o segredo), mas o tar sai em UTF-16 → `ok: true`, 0 achados. O `.git/info/attributes` local (não rastreado) também exclui. `git --attr-source=<árvore vazia>` **não** neutraliza: o `archive` continua lendo os atributos da árvore arquivada (conferido). | Não usar `git archive` para montar a entrada. Gravar os blobs brutos (`git ls-tree -r -z <ref>` + `git cat-file --batch`) numa pasta ou tar temporário, fora do repositório. Outra opção: conferir dentro do contêiner que o número de arquivos e os tamanhos batem com o `ls-tree -l`, e reprovar se não baterem. Regressões com segredo sintético para `export-ignore` (raiz e subpasta), `working-tree-encoding` e `export-subst`. Registrar como lacuna na auditoria. |
+| QA-E23B-02 | baixa | O `<ref>` do CLI não é validado. Um ref que começa com `-` (`--output=…`, `--remote=…`) só é barrado porque o `ls-tree` falha sem tree-ish (conferido: nenhum arquivo criado, "git ls-tree … falhou"). Um tree-ish parcial passa: `HEAD:d` aprovou com segredo fora de `d/`. | Recusar ref que começa com `-` ou contém `:`, usar `--end-of-options` e resolver com `git rev-parse --verify <ref>^{commit}`. |
+| QA-E23B-03 | baixa | A auditoria (tabela de afrouxamentos) manda "fixar por flag" `--max-target-megabytes`, `--max-archive-depth` e `--max-decode-depth`, mas `argsDocker` não passa esses valores. O risco prático é nulo: os padrões vêm do binário fixado por hash, e o viper não lê o ambiente. | Passar `--max-target-megabytes 0 --max-archive-depth 0 --max-decode-depth 5` (e testar) ou corrigir a auditoria. |
+| QA-E23B-04 | baixa | O contrato §3 diz que o gitleaks "cobre parte" dos não cobertos, mas não lista o que ele pula. Sonda com repositório misto: segredo em `package-lock.json` (que este repositório rastreia), `node_modules/` e `go.sum` → aprovado. O `vendor/` foi achado. Isso está na lacuna 4 da auditoria, não no contrato. | Acrescentar no §3 do contrato as lacunas do detector externo (allowlist padrão: `package-lock.json`, `node_modules/`, `go.mod`/`go.sum`, `*gitleaks.toml`, segredo com `false`; `.gitleaksignore`; QA-E23B-01) ou um link para elas. |
+| QA-E23B-05 | info | Em "relatório ilegível", o motivo traz a mensagem do `JSON.parse`, e no Node 26 ela ecoa os primeiros ~10 caracteres do stdout (conferido). Com `--redact`, o stdout é o relatório redigido, então o risco é baixo. | Usar uma mensagem fixa ("relatório do gitleaks ilegível"), sem a mensagem da exceção. |
+| QA-E23B-06 | baixa | A linha **Status** da story ainda diz "falta a auditoria do gitleaks … próxima unidade", e o fim do QA anterior também ("Falta para o Done"). As duas frases ficaram desatualizadas. | O @dev atualiza a linha de status ao reentregar (InReview). |
+
+**Conferido sem achado:** a linha do contêiner é constante (nome de arquivo e ref nunca entram no `sh -c`; os caminhos vão só nos `--mount`). Erro do Docker, código diferente de 0/3, timeout, 0 bytes, relatório ilegível e código incoerente reprovam. Hash diferente reprova sem chamar o Docker. `.gitleaksignore` rastreado em qualquer nível reprova. `gitleaks:allow` e `.gitleaks.toml` permissivo no alvo não suprimem. O relatório e o resultado não têm o valor nem um pedaço dele (sondas `vaza: false`). Não há `debug`/`trace` nem `--redact=N`. A imagem é a mesma do Semgrep. Os hashes batem entre o código, a auditoria e o contrato §1 (`88f91962…c32e5509`; tar.gz `551f6fc8…f2470eb`), e o teste do hash do binário presente passou. As flags da seção "Como roda" batem com `argsDocker`. A decisão de deixar fora do `pre-commit` está registrada com medição (0,66 s × 1,6 s quente / 7,8 s frio, dependência do Docker), e o risco residual (binário adulterado só consegue mentir no resultado) também.
+
+**DoD da MEL-04:** AC1–AC6 marcados com evidência (sim). Auditoria registrada (sim). Formatos não cobertos documentados (sim para as regras próprias; parcial para o detector externo, QA-E23B-04). Gate @qa registrado (este, FAIL). `git diff da07163..HEAD -- .githooks/` vazio (0 bytes): o `pre-commit` não ficou mais frouxo, e a árvore do HEAD passa na política (`publicacao` aprovado, 293 arquivos).
+
+**Evidência dos comandos** (Docker ligado, binário real, Node v26.12.1, git 2.53.0):
+
+| Comando | Resultado |
+|---|---|
+| `npm test` | 266/266, 0 puladas; os 10 testes de `gitleaks.test.mjs` verdes, inclusive os 4 com o gitleaks real |
+| `node scripts/verificar/verificar.mjs --so publicacao,gitleaks,lint,tipos` | APROVADO, saída 0: `gitleaks` aprovado em 1,5 s, "293 arquivos, nenhum achado"; `publicacao` 293; `lint` 20; `tipos` 6 |
+| `npm run check:gitleaks` | saída 0: "293 arquivo(s), ~2502441 bytes, nenhum achado" |
+| `motivoSemGitleaks({ binario: <inexistente> })` | "binário do gitleaks 8.30.1 ausente…"; o teste "binário ausente: não executado, nunca aprovado" passou (estado `não executado`). Binário real intacto |
+| `motivoSemGitleaks({ docker: <inexistente> })` | "comando docker não encontrado no PATH" |
+| Sondas QA-E23B-01/02/04 (script fora do repositório, repositórios temporários, tokens `ghp_` gerados na hora) | controle reprova (1 achado); `export-ignore` raiz/subpasta e `working-tree-encoding` aprovam com o segredo; `HEAD:d` aprova; `--output=`/`--remote=` barrados no `ls-tree`; `package-lock.json`, `node_modules/` e `go.sum` aprovam; `vendor/` reprova; `vaza: false` em todas |

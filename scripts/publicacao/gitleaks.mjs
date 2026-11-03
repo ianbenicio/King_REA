@@ -6,8 +6,8 @@
 // Como roda:
 // - binário Linux fora do git (ferramentas/gitleaks/8.30.1/linux/gitleaks), conferido por SHA-256 antes de cada
 //   execução; hash diferente reprova;
-// - o host só grava `git archive <ref>` num tar temporário: o gitleaks nunca vê a árvore de trabalho, alvos/ nem
-//   saidas/. A extração e a varredura acontecem dentro do contêiner;
+// - o host grava os blobs brutos de <ref> (git cat-file, sem .gitattributes) numa pasta temporária: o gitleaks
+//   nunca vê a árvore de trabalho, alvos/ nem saidas/;
 // - contêiner sem rede, sem capacidades, sem escalada, usuário nobody, raiz só leitura, tudo montado só leitura;
 //   base: a imagem do Semgrep já auditada (scripts/semgrep/rodar.mjs), para não baixar imagem nova;
 // - configuração própria (gitleaks.toml) por --config; --ignore-gitleaks-allow; .gitleaksignore no alvo recusado
@@ -19,9 +19,9 @@
 // Saída: 0 sem achado · 1 achado ou falha · 3 não executado (binário ausente ou Docker inacessível).
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const VERSAO = "8.30.1";
@@ -60,8 +60,8 @@ export function avaliarSaida({ codigo, stdout, stderr }) {
   let achados;
   try {
     achados = resumirAchados(stdout.trim());
-  } catch (erro) {
-    return { ok: false, motivo: `relatório do gitleaks ilegível: ${/** @type {Error} */ (erro).message}` };
+  } catch {
+    return { ok: false, motivo: "relatório do gitleaks ilegível (não é JSON de lista)" }; // sem a mensagem: ela repete o início da saída (QA-E23B-05)
   }
   if ((codigo === SAIDA_ACHADO) !== achados.length > 0) return { ok: false, motivo: "código de saída incoerente com o relatório do gitleaks" };
   return { ok: achados.length === 0, achados, bytes };
@@ -78,43 +78,78 @@ export function relatorio(achados) {
 export const sha256 = (arquivo) => createHash("sha256").update(readFileSync(arquivo)).digest("hex");
 
 /** Argumentos do docker run. Constantes: nada vindo do repositório entra na linha de comando do contêiner. */
-export function argsDocker({ binario, tar, config }) {
-  const gl = `/gl/gitleaks dir ${ARVORE} --config /cfg/gitleaks.toml --ignore-gitleaks-allow -i /tmp/vazio --redact --no-banner --no-color --log-level info --exit-code ${SAIDA_ACHADO} --report-format json --report-path /tmp/relatorio.json`;
-  const script = `set -e; mkdir ${ARVORE} /tmp/vazio; tar -xf /in/arvore.tar -C ${ARVORE}; set +e; ${gl}; c=$?; cat /tmp/relatorio.json 2>/dev/null; exit $c`;
+export function argsDocker({ binario, pasta, config }) {
+  const limites = "--max-target-megabytes 0 --max-archive-depth 0 --max-decode-depth 5";
+  const gl = `/gl/gitleaks dir ${ARVORE} --config /cfg/gitleaks.toml --ignore-gitleaks-allow -i /tmp/vazio --redact --no-banner --no-color --log-level info ${limites} --exit-code ${SAIDA_ACHADO} --report-format json --report-path /tmp/relatorio.json`;
+  const script = `mkdir /tmp/vazio || exit 1; ${gl}; c=$?; cat /tmp/relatorio.json 2>/dev/null; exit $c`;
   return [
     "run", "--rm", "--network", "none", "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
-    "--user", "65534:65534", "--read-only", "--tmpfs", "/tmp:rw,size=256m", "-e", "HOME=/tmp", "-w", "/tmp",
+    "--user", "65534:65534", "--read-only", "--tmpfs", "/tmp:rw,size=64m", "-e", "HOME=/tmp", "-w", "/tmp",
     "--mount", `type=bind,source=${binario},target=/gl/gitleaks,readonly`,
-    "--mount", `type=bind,source=${tar},target=/in/arvore.tar,readonly`,
+    "--mount", `type=bind,source=${pasta},target=${ARVORE},readonly`,
     "--mount", `type=bind,source=${config},target=/cfg/gitleaks.toml,readonly`,
     "--entrypoint", "sh", IMAGEM, "-c", script,
   ];
 }
 
+/** Ref aceita no CLI: nome simples de branch, tag ou commit; nada que comece com "-" nem caminho ("HEAD:d"). */
+export const refValida = (ref) => /^[A-Za-z0-9][A-Za-z0-9._/~^-]*$/.test(ref) && !ref.includes("..");
+
+/** Lê "<modo> <tipo> <id>\t<caminho>\0" do git ls-tree -r -z. */
+export function entradasLsTree(saida) {
+  return saida.split("\0").filter(Boolean).map((linha) => {
+    const tab = linha.indexOf("\t");
+    const [modo, tipo, id] = linha.slice(0, tab).split(" ");
+    return { modo, tipo, id, caminho: linha.slice(tab + 1) };
+  });
+}
+
+/** Caminho que não pode ser gravado com segurança na pasta temporária (fail-closed). */
+const caminhoRuim = (c) => c.split("/").some((s) => s === "" || s === "." || s === "..") || /[\:]/.test(c) || c.startsWith("/");
+
 /**
  * Varre os arquivos rastreados em <ref> do repositório <raiz>. Retorna { ok, motivo?, achados?, bytes? }.
+ * O conteúdo é o blob bruto (git cat-file), não o git archive: este aplica export-ignore e working-tree-encoding do
+ * .gitattributes, e um arquivo rastreado poderia esconder outro da varredura (QA-E23B-01).
  * Parâmetros existem para os testes (repositório temporário, binário falso).
  * @returns {{ ok: boolean, motivo?: string, achados?: { caminho: string, linha: number, regra: string }[], bytes?: number, arquivos?: number }}
  */
 export function varrer({ ref = "HEAD", raiz = RAIZ, binario = BINARIO, hash = SHA256_BINARIO, config = CONFIG, docker = "docker" } = {}) {
+  if (!refValida(ref)) return { ok: false, motivo: `ref recusada: ${JSON.stringify(ref)} (só branch, tag ou commit)` };
   const atual = sha256(binario);
   if (atual !== hash) return { ok: false, motivo: `binário do gitleaks com SHA-256 ${atual}, diferente do auditado (${hash})` };
-  const git = (args) => spawnSync("git", args, { cwd: raiz, maxBuffer: 512 * 1024 * 1024, windowsHide: true });
-  const arquivos = git(["ls-tree", "-r", "-z", "--name-only", ref]);
-  if (arquivos.status !== 0) return { ok: false, motivo: `git ls-tree ${ref} falhou` };
-  const nomes = arquivos.stdout.toString("utf8").split("\0").filter(Boolean);
+  const git = (args, input) => spawnSync("git", args, { cwd: raiz, input, maxBuffer: 512 * 1024 * 1024, windowsHide: true });
+  const commit = git(["rev-parse", "--verify", "--quiet", "--end-of-options", `${ref}^{commit}`]);
+  if (commit.status !== 0) return { ok: false, motivo: `ref ${ref} não é um commit` };
+  const arvore = git(["ls-tree", "-r", "-z", "--full-tree", commit.stdout.toString().trim()]);
+  if (arvore.status !== 0) return { ok: false, motivo: `git ls-tree ${ref} falhou` };
+  const entradas = entradasLsTree(arvore.stdout.toString("utf8"));
   // O gitleaks sempre carrega o .gitleaksignore da raiz do alvo e nenhuma flag desliga: recusado em qualquer nível.
-  const ignorar = nomes.filter((n) => n.split("/").at(-1)?.toLowerCase() === ".gitleaksignore");
+  const ignorar = entradas.filter((e) => e.caminho.split("/").at(-1)?.toLowerCase() === ".gitleaksignore").map((e) => e.caminho);
   if (ignorar.length) return { ok: false, motivo: `.gitleaksignore rastreado (${ignorar.join(", ")}): suprimiria achados; exceções só em scripts/publicacao/excecoes.json` };
+  const blobs = entradas.filter((e) => e.tipo === "blob"); // submódulos (commit) não têm conteúdo aqui
+  const ruins = blobs.filter((e) => caminhoRuim(e.caminho)).map((e) => e.caminho);
+  if (ruins.length) return { ok: false, motivo: `caminho que não dá para gravar com segurança: ${ruins.join(", ")}` };
+  const lote = git(["cat-file", "--batch"], blobs.map((e) => e.id).join("\n") + "\n");
+  if (lote.status !== 0) return { ok: false, motivo: "git cat-file --batch falhou" };
   const pasta = mkdtempSync(join(tmpdir(), "prking-gitleaks-"));
   try {
-    const tar = join(pasta, "arvore.tar");
-    const arquivo = git(["archive", "--format=tar", ref]);
-    if (arquivo.status !== 0) return { ok: false, motivo: `git archive ${ref} falhou` };
-    writeFileSync(tar, arquivo.stdout);
-    const r = spawnSync(docker, argsDocker({ binario, tar, config }), { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, windowsHide: true, timeout: 300_000 });
+    const dados = join(pasta, "arvore");
+    let pos = 0;
+    for (const e of blobs) {
+      const fimCabecalho = lote.stdout.indexOf(10, pos);
+      const [id, tipo, tamanho] = lote.stdout.subarray(pos, fimCabecalho).toString().split(" ");
+      if (id !== e.id || tipo !== "blob") return { ok: false, motivo: `git cat-file devolveu ${tipo ?? "nada"} para ${e.caminho}` };
+      const conteudo = lote.stdout.subarray(fimCabecalho + 1, fimCabecalho + 1 + Number(tamanho));
+      const destino = join(dados, ...e.caminho.split("/"));
+      mkdirSync(dirname(destino), { recursive: true });
+      writeFileSync(destino, conteudo);
+      pos = fimCabecalho + 1 + Number(tamanho) + 1;
+    }
+    mkdirSync(dados, { recursive: true });
+    const r = spawnSync(docker, argsDocker({ binario, pasta: dados, config }), { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, windowsHide: true, timeout: 300_000 });
     if (r.error) return { ok: false, motivo: `docker não rodou: ${r.error.message}` };
-    return { ...avaliarSaida({ codigo: r.status, stdout: r.stdout ?? "", stderr: r.stderr ?? "" }), arquivos: nomes.length };
+    return { ...avaliarSaida({ codigo: r.status, stdout: r.stdout ?? "", stderr: r.stderr ?? "" }), arquivos: blobs.length };
   } finally {
     rmSync(pasta, { recursive: true, force: true });
   }

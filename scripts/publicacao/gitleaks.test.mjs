@@ -5,7 +5,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,6 +21,7 @@ import {
   componenteGitleaks,
   motivoSemGitleaks,
   relatorio,
+  refValida,
   resumirAchados,
   sha256,
   varrer,
@@ -64,14 +65,14 @@ test("saída do contêiner: erro, 0 bytes, relatório ilegível e código incoer
 });
 
 test("isolamento do contêiner: sem rede, só leitura, nobody, config própria, sem gitleaks:allow, redigido, sem debug", () => {
-  const a = argsDocker({ binario: "B", tar: "T", config: "C" });
+  const a = argsDocker({ binario: "B", pasta: "P", config: "C" });
   const junto = a.join(" ");
   for (const esperado of ["--network none", "--cap-drop ALL", "no-new-privileges", "--user 65534:65534", "--read-only"]) assert.ok(junto.includes(esperado), esperado);
   const montagens = a.filter((_, i) => a[i - 1] === "--mount");
   assert.equal(montagens.length, 3);
   for (const m of montagens) assert.match(m, /,readonly$/);
   const script = a.at(-1);
-  for (const esperado of ["--config /cfg/gitleaks.toml", "--ignore-gitleaks-allow", "-i /tmp/vazio", "--redact ", `--exit-code ${SAIDA_ACHADO}`, "--log-level info"]) assert.ok(script.includes(esperado), esperado);
+  for (const esperado of ["--config /cfg/gitleaks.toml", "--ignore-gitleaks-allow", "-i /tmp/vazio", "--redact ", `--exit-code ${SAIDA_ACHADO}`, "--log-level info", "--max-archive-depth 0", "--max-decode-depth 5", "--max-target-megabytes 0"]) assert.ok(script.includes(esperado), esperado);
   assert.doesNotMatch(script, /debug|trace|--redact=/);
   assert.equal(a[a.indexOf("--entrypoint") + 2], IMAGEM);
 });
@@ -137,4 +138,27 @@ test("segredo sintético reprova mesmo com gitleaks:allow e .gitleaks.toml permi
   assert.deepEqual(r.achados.map((a) => a.caminho).sort(), ["a.txt", "b.txt"]);
   const texto = relatorio(r.achados) + JSON.stringify(r);
   for (const s of [s1, s2]) assert.ok(!texto.includes(s) && !texto.includes(s.slice(4, 24)));
+});
+
+test("ref do CLI: só branch, tag ou commit (QA-E23B-02)", () => {
+  for (const ok of ["HEAD", "main", "origin/main", "da07163", "HEAD~1", "v1.0^"]) assert.equal(refValida(ok), true, ok);
+  for (const ruim of ["--output=/tmp/x", "-x", "HEAD:d", "a..b", "", "main;rm", "$(x)"]) assert.equal(refValida(ruim), false, ruim);
+  assert.match(varrer({ ref: "HEAD:docs" }).motivo, /ref recusada/);
+});
+
+test(".gitattributes com export-ignore ou working-tree-encoding não esconde segredo (QA-E23B-01)", { skip: semAmbiente ?? false }, (t) => {
+  const [s1, s2, s3] = [tokenGithub(), tokenGithub(), tokenGithub()];
+  const pasta = repo(t, { "a.txt": `token = "${s1}"\n`, "b.txt": `token = "${s2}"\n`, "c.txt": "nada\n" });
+  mkdirSync(join(pasta, "sub"));
+  writeFileSync(join(pasta, "sub", "d.txt"), `token = "${s3}"\n`);
+  // Os atributos entram depois do conteúdo: o blob fica em UTF-8 e o git archive o devolveria omitido ou em UTF-16.
+  writeFileSync(join(pasta, ".gitattributes"), "a.txt export-ignore\nb.txt working-tree-encoding=UTF-16LE\nsub/** export-ignore\n");
+  // Só os arquivos novos: com "add -A", o git relê b.txt (índice "racily clean") e tenta convertê-lo de UTF-16.
+  for (const args of [["add", ".gitattributes", "sub/d.txt"], ["-c", "user.name=t", "-c", "user.email=t@exemplo.invalid", "-c", "core.hooksPath=/dev/null", "commit", "-q", "-m", "atributos"]])
+    assert.equal(spawnSync("git", args, { cwd: pasta }).status, 0, args.join(" "));
+  const r = varrer({ raiz: pasta });
+  assert.equal(r.ok, false, r.motivo);
+  assert.deepEqual(r.achados.map((a) => a.caminho).sort(), ["a.txt", "b.txt", "sub/d.txt"]);
+  const texto = JSON.stringify(r);
+  for (const s of [s1, s2, s3]) assert.ok(!texto.includes(s));
 });

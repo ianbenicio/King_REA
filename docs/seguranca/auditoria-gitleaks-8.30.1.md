@@ -128,10 +128,10 @@ Como roda (`scripts/publicacao/gitleaks.mjs`, componente `gitleaks` do verificad
 | Controle | Como |
 |---|---|
 | Binário | Linux, `ferramentas/gitleaks/8.30.1/linux/gitleaks` (fora do git), SHA-256 `88f91962aa2f93ac6ab281d553b9e125f5197bbbce38f9f2437f7299c32e5509` conferido antes de cada execução; diferente reprova |
-| Entrada | só `git archive <ref>` (arquivos rastreados), gravado num tar temporário; extração e varredura dentro do contêiner. Nunca a árvore de trabalho, `alvos/` ou `saidas/` |
+| Entrada | só os blobs brutos de `<ref>` (`git ls-tree` + `git cat-file --batch`), gravados numa pasta temporária montada só leitura. Não usa `git archive`, que aplica `export-ignore` e `working-tree-encoding` do `.gitattributes` e deixaria um arquivo rastreado esconder outro (QA-E23B-01). `<ref>` só branch, tag ou commit. Nunca a árvore de trabalho, `alvos/` ou `saidas/` |
 | Contêiner | imagem do Semgrep já auditada (mesmo digest); `--network none`, `--cap-drop ALL`, `no-new-privileges`, usuário `65534:65534`, `--read-only`, `/tmp` em tmpfs, as três montagens só leitura |
 | Configuração | `scripts/publicacao/gitleaks.toml` por `--config` (padrão da versão, sem allowlist própria; o teste reprova allowlist ali); `--ignore-gitleaks-allow`; `-i` para pasta vazia; `.gitleaksignore` rastreado em qualquer nível reprova antes de varrer |
-| Saída | `--redact`, `--log-level info` (nunca debug ou trace), `--exit-code 3`; código diferente de 0 e 3, varredura de 0 bytes, relatório ilegível ou incoerente com o código reprovam; relatório só com caminho, linha e regra |
+| Saída | `--redact`, `--log-level info` (nunca debug ou trace), limites fixados por flag (`--max-target-megabytes 0`, `--max-archive-depth 0`, `--max-decode-depth 5`), `--exit-code 3`; código diferente de 0 e 3, varredura de 0 bytes, relatório ilegível ou incoerente com o código reprovam; relatório só com caminho, linha e regra |
 | Ausência | sem o binário ou sem o Docker: "não executado", com o motivo; nunca aprovado |
 
 **Fora do `pre-commit`** (decisão do responsável, com a medição): o `pre-commit` atual leva 0,66 s; o gitleaks no contêiner leva 1,6 s quente e 7,8 s a frio, e depende do Docker ligado, que muitas vezes não está (no hook viraria aviso que não bloqueia). Roda no verificador e, na E2-5, na CI. O `pre-commit` não mudou.
