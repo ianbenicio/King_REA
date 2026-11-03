@@ -120,6 +120,8 @@ jobs:
           node-version-file: .node-version
       - name: imagem do Semgrep pelo digest fixado (rede só aqui)
         run: docker pull "$(node --input-type=module -e "import { IMAGEM } from './scripts/publicacao/gitleaks.mjs'; console.log(IMAGEM)")"
+      - name: FALHA PLANTADA (nao fazer merge) - Docker desligado
+        run: sudo systemctl stop docker.socket docker.service
       - name: verificador
         run: node scripts/verificar/verificar.mjs --so ambiente-node,semgrep-scan,semgrep-test,semgrep-mutacoes --json > verificar-semgrep.json
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
