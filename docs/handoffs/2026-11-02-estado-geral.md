@@ -90,4 +90,4 @@ Registradas para não se perderem; o trabalho acontece no PRKing_UO, em sessão 
 3. ~~**E2-4a**~~ e ~~**E2-4b**~~ (feitas em 2026-11-02). Não sobra unidade da etapa 2 sem decisão pendente.
 4. ~~**E2-2**~~ (feita em 2026-11-02, com o AC6/E2-6). ~~**E2-3**~~ parte fechada em 2026-11-02; **E2-3b** (auditoria do gitleaks) fecha a MEL-04.
 5. ~~**E2-5**~~ (feita em 2026-11-03). PR #1 no `main` e `enforce_admins` ligado. Falta só o novo gate @qa da MEL-08.
-6. **Próxima:** etapa 3, começando pela MEL-05 (não iniciada).
+6. **Próxima:** etapa 3, começando pela E3-0 (ADR e story da MEL-05, validação @po), sem mudar código. Fechamento da etapa 2 em [`2026-11-03-etapa2-fechamento.md`](2026-11-03-etapa2-fechamento.md); prompt da próxima sessão em [`2026-11-03-prompt-etapa3.md`](2026-11-03-prompt-etapa3.md).
