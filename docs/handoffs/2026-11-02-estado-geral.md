@@ -1,6 +1,6 @@
 # Relatório de estado — PRKing_REA em 2026-11-02
 
-**Data:** 2026-11-02 (atualizado depois da E2-3b, em 2026-11-03: `main` @ `1996e67` + handoff, à frente do `origin/main` @ `da07163`, push pendente) · **Branch:** `main` @ `d0238b3` + handoff da E2-2, 4 commits locais à frente do `origin/main` @ `a24971e` (push pendente, pelo @devops) · **Testes:** `npm test` 213/213 · **Árvore:** limpa · **Repositório:** público (`ianbenicio/King_REA`)
+**Data:** 2026-11-02 (atualizado depois da E2-5, em 2026-11-03: `main` = `origin/main` @ `73a6dd4`; CI na branch `ci/e2-5-workflow`, [PR #1](https://github.com/ianbenicio/King_REA/pull/1) verde, merge pendente do "sim" do responsável; `npm test` 277/277 na branch) · **Branch:** `main` @ `d0238b3` + handoff da E2-2, 4 commits locais à frente do `origin/main` @ `a24971e` (push pendente, pelo @devops) · **Testes:** `npm test` 213/213 · **Árvore:** limpa · **Repositório:** público (`ianbenicio/King_REA`)
 
 Este relatório reúne as demandas e os requisitos que estão abertos hoje, conferidos contra o git, as stories, os planos e os handoffs. Ele serve de entrada para a próxima sessão de construção do REA (prompt em [`2026-11-02-prompt-continuidade.md`](2026-11-02-prompt-continuidade.md)).
 
@@ -22,7 +22,7 @@ Este relatório reúne as demandas e os requisitos que estão abertos hoje, conf
 
 Ordem pela §3 do plano de evolução. Tamanho: P localizada, M vários arquivos, G arquitetura.
 
-### Etapa 2 — repetibilidade (em andamento)
+### Etapa 2 — repetibilidade (condição cumprida no PR #1; fecha com o merge)
 
 | # | Demanda | Story | Tam. | Depende de | Decisão do responsável? |
 |---|---|---|---|---|---|
@@ -31,10 +31,10 @@ Ordem pela §3 do plano de evolução. Tamanho: P localizada, M vários arquivos
 | E2-3 | ~~MEL-04: módulo de publicação compartilhado~~ **Feita:** parte principal em 2026-11-02 ([handoff](2026-11-02-e2-3-publicacao.md)); **E2-3b em 2026-11-03:** gitleaks 8.30.1 auditado (sem assinatura nem atestação) e adotado isolado por decisão do responsável, componente `gitleaks` no verificador; gate @qa FAIL corrigido ([handoff](2026-11-03-e2-3b-gitleaks.md)) | MEL-04 | — | — | decidida |
 | E2-4a | ~~MEL-08 local: agregador (AC7) e sonda WPF (AC8)~~ **Feita em 2026-11-02** ([handoff](2026-11-02-e2-4a-mel08-local.md)); story MEL-08 em InProgress | MEL-08 | — | — | não |
 | E2-4b | ~~MEL-08 local: auditoria das actions (AC9)~~ **Feita em 2026-11-02:** cinco actions auditadas, SHAs fixados no documento, QA PASS ([handoff](2026-11-02-e2-4b-auditoria-actions.md), [auditoria](../seguranca/auditoria-actions-ci.md)); ponto de controle da fatia 1 atingido | MEL-08 | — | — | não |
-| E2-5 | MEL-08 ativação: workflow em `.github/`, PRs com falha plantada, proteção de branch | MEL-08 | M | E2-3 | sim: ativar CI, Semgrep no Ubuntu hospedado, proteção de branch, runner próprio (desenho §9), mecanismo do cache do NuGet (QA-E24B-01); push pelo @devops |
+| E2-5 | ~~MEL-08 ativação~~ **Feita em 2026-11-03:** workflow com cinco jobs e `resultado`, run verde, seis PRs de falha plantada (JS, .NET, Semgrep, lint, publicação reprovam; sem Docker fica incompleto, depois de corrigir a sondagem), proteção do `main` exigindo `resultado`; MEL-08 InReview ([handoff](2026-11-03-e2-5-ativacao-ci.md)) | MEL-08 | — | — | pendente: merge do PR #1 e `enforce_admins` |
 | E2-6 | ~~Clone limpo real~~ **Feita em 2026-11-02 (AC6 da MEL-03):** clone sem `node_modules`, 14/14 aprovados; achou e corrigiu a falha das mutações do Semgrep em checkout CRLF. Limite: mesma máquina; a máquina nova fica com a CI (E2-5) | MEL-03 | — | — | não |
 
-Condição para encerrar a etapa 2: clone limpo executa as verificações e a CI publica resultado agregado fiel.
+Condição para encerrar a etapa 2: clone limpo executa as verificações e a CI publica resultado agregado fiel. **Cumprida no PR #1** (run 41641707700 em máquina nova; agregado fiel provado pelos PRs de falha plantada); a etapa fecha quando o PR #1 entrar no `main`.
 
 ### Migração da MEL-06a (bloqueio ativo)
 
@@ -89,5 +89,5 @@ Registradas para não se perderem; o trabalho acontece no PRKing_UO, em sessão 
 2. **M-1 para o `uo-classic`**, se o PRKing_UO for mandar perguntas que exijam o binário; senão, deixar para quando o alvo voltar a ser usado.
 3. ~~**E2-4a**~~ e ~~**E2-4b**~~ (feitas em 2026-11-02). Não sobra unidade da etapa 2 sem decisão pendente.
 4. ~~**E2-2**~~ (feita em 2026-11-02, com o AC6/E2-6). ~~**E2-3**~~ parte fechada em 2026-11-02; **E2-3b** (auditoria do gitleaks) fecha a MEL-04.
-5. **E2-5** (ativação da CI), com as decisões do desenho §9.
+5. ~~**E2-5**~~ (feita em 2026-11-03). Falta o merge do PR #1 ("sim" do responsável) e a decisão sobre `enforce_admins`.
 6. Depois da etapa 2: etapa 3, começando pela MEL-05.
