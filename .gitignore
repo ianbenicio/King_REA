@@ -9,3 +9,5 @@ saidas/
 # Clones de ferramentas externas (fixados em commit, auditados; nao versionados aqui)
 ferramentas/universal-modder/
 ferramentas/ghidramcp/
+# Binário do gitleaks (release auditada; hashes em docs/seguranca/auditoria-gitleaks-8.30.1.md)
+ferramentas/gitleaks/
