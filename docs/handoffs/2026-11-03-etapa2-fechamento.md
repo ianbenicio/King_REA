@@ -1,6 +1,6 @@
 # Handoff — fechamento da etapa 2 e passagem para a etapa 3 (2026-11-03)
 
-**Sessão:** `d883db9d` (aberta por `local_c49d87ce`) · **Estado de partida da próxima sessão:** `main` @ `27cbb4c`, igual ao `origin/main`, `npm test` 277/277, árvore limpa (só `.claude/agent-memory/`, fora do git) · **Plano de evolução:** [§5 (etapa 2) e §6 (etapa 3)](../planos/2026-11-01-evolucao-arquitetura-qualidade.md) · **Prompt da próxima sessão:** [`2026-11-03-prompt-etapa3.md`](2026-11-03-prompt-etapa3.md)
+**Sessão:** `d883db9d` (aberta por `local_c49d87ce`) · **Estado de partida da próxima sessão:** `main` igual ao `origin/main`, com o merge do PR deste handoff (depois de `27cbb4c`), `npm test` 277/277, árvore limpa (só `.claude/agent-memory/`, fora do git) · **Plano de evolução:** [§5 (etapa 2) e §6 (etapa 3)](../planos/2026-11-01-evolucao-arquitetura-qualidade.md) · **Prompt da próxima sessão:** [`2026-11-03-prompt-etapa3.md`](2026-11-03-prompt-etapa3.md)
 
 ## 1. Etapa 2 encerrada
 

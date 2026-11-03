@@ -3,7 +3,7 @@
 Texto para abrir uma sessão nova em `H:\King\Clientes e Projetos\PRKing_REA`. Copiar o bloco abaixo como primeira mensagem.
 
 ```text
-Começo da etapa 3 da construção do sistema REA (PRKing_REA): controle da investigação. Estado de partida: main @ 27cbb4c, igual ao origin, npm test 277/277, árvore limpa (só .claude/agent-memory/, que fica fora do git e não deve ser adicionado). A etapa 2 fechou em 2026-11-03 com a CI ativa no main.
+Começo da etapa 3 da construção do sistema REA (PRKing_REA): controle da investigação. Estado de partida: main igual ao origin, com o merge do PR que trouxe este prompt (depois de 27cbb4c), npm test 277/277, árvore limpa (só .claude/agent-memory/, que fica fora do git e não deve ser adicionado). A etapa 2 fechou em 2026-11-03 com a CI ativa no main.
 
 1. Leia primeiro, nesta ordem e só isto:
    - docs/handoffs/2026-11-03-etapa2-fechamento.md (o que mudou, dívidas, ponto de partida da etapa 3);
