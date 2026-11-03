@@ -152,6 +152,15 @@ Como roda (`scripts/publicacao/gitleaks.mjs`, componente `gitleaks` do verificad
 8. Não auditamos a imagem Docker oficial (`ghcr.io/gitleaks/gitleaks`, montada no CI pelo `release.yml`), que poderia ter procedência BuildKit. Ficaria para outra auditoria.
 9. **Fora do git:** no `HEAD` `da07163`, o `.gitignore` não cobria `ferramentas/gitleaks/` (só `ferramentas/universal-modder/` e `ferramentas/ghidramcp/`); a sessão principal da E2-3b acrescentou a entrada antes do download, e `git check-ignore` confirma a exclusão. A política de publicação já recusava `ferramentas/` de qualquer jeito.
 
+## Adendo — execução na CI (03/11/2026)
+
+**Decisão do responsável (03/11/2026):** contêineres aceitos no `ubuntu-24.04` hospedado (story MEL-08). O gitleaks roda no job `publicacao` do workflow `.github/workflows/verificacao.yml`:
+
+- **Binário:** baixado no job, por HTTPS, de `https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz`, o mesmo arquivo da tabela "Origem e integridade". O tar.gz é conferido pelo SHA-256 `551f6fc8…f2470eb` antes de extrair; o executável, pelo `88f91962…c32e5509` depois de extrair e de novo pelo componente antes de rodar. Release mutável trocada depois desta auditoria reprova o job, não roda.
+- **Contêiner:** a mesma imagem do Semgrep pelo digest, puxada num passo próprio com rede (adendo da [auditoria do Semgrep](auditoria-semgrep-1.180.0.md)); o `docker run` é o de `gitleaks.mjs`, sem mudança (sem rede, sem capacidades, usuário 65534, raiz e montagens só leitura).
+- **Daemon:** Docker Engine nativo da imagem do runner, não auditado aqui (confiança no GitHub).
+- **Sem cache:** o binário é baixado em toda execução (decisão de 03/11/2026: nenhum cache na CI).
+
 ## Atualizar
 
 Decisão do responsável. Repetir esta auditoria para a versão nova: release e data, tag pelas duas vias, arquivos e `checksums.txt`, procura de assinatura e atestação (`gh attestation verify`), notas da versão, leitura de `cmd/root.go`, `cmd/diagnostics.go`, `sources/git.go`, `report/finding.go` e `report/template.go`, allowlist global da configuração padrão, e as medições acima. Nunca usar `@latest`, `go install`, nem um gerenciador de pacotes que baixe outra versão.

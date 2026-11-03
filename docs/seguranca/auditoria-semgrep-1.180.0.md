@@ -46,6 +46,20 @@ Sem rede, sem capacidades, sem escalada de privilégio, usuário sem privilégio
 
 `metavariable-regex` compara a partir do **início** do texto (como `re.match`). `(?i)(fechar|close)` não casa `aoFechar` nem `onClose`; é preciso `(?i).*(fechar|close)`. Os testes anotados das regras pegaram isso.
 
+## Adendo — Docker Engine do runner hospedado (CI, 03/11/2026)
+
+**Decisão do responsável (03/11/2026):** aceitar o Semgrep no `ubuntu-24.04` hospedado do GitHub Actions (story MEL-08, desenho §9). O que muda em relação ao Docker Desktop local, e o que fica igual:
+
+| Item | Local (Docker Desktop) | CI (`ubuntu-24.04` hospedado) |
+|---|---|---|
+| Daemon | VM do Docker Desktop no Windows | Docker Engine nativo da imagem do runner, mantido pelo GitHub; não auditado aqui |
+| Imagem | a mesma, pelo digest `sha256:529ee8a2…845c3` | a mesma: o workflow lê o digest do código (`IMAGEM`) e faz `docker pull` num passo próprio, com rede; o Docker confere o conteúdo contra o digest |
+| Execução | `rodar.mjs` | `rodar.mjs`, sem mudança: `--network none`, `--cap-drop ALL`, `no-new-privileges`, usuário 65534, checkout montado só leitura |
+| O que o contêiner alcança | o repositório local, só leitura | o checkout do job, só leitura; o job não tem segredo nem token persistido (`persist-credentials: false`, `permissions: contents: read`) |
+| Vida útil | máquina do responsável | VM descartada no fim do job |
+
+**Ressalva:** a confiança no Docker Engine e na imagem do runner fica com o GitHub (mesma situação das actions; `docs/seguranca/auditoria-actions-ci.md`, "O que esta auditoria não cobre"). A rede existe no runner, mas só o passo do `pull` a usa; nenhum `docker run` do projeto liga rede.
+
 ## Atualizar
 
 Decisão do responsável. Repetir esta auditoria para a versão nova (origem, digest, procedência, notas), trocar `IMAGEM` em `scripts/semgrep/rodar.mjs` e rodar `npm run semgrep:test`, `npm run semgrep` e `npm run semgrep:mutacoes`. Nunca usar tag sem digest (`semgrep/semgrep:latest`).
