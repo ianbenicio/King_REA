@@ -1,6 +1,6 @@
 # Story MEL-08 — implantar CI por componente com resultado agregado
 
-**Status:** InProgress (fatia 1 em andamento: E2-4a, agregador e sonda, entregue em 2026-11-02; E2-4b, auditoria das actions, entregue em 2026-11-02 com QA PASS; ponto de controle da fatia 1 atingido; fatia 2 aguarda as decisões do responsável)
+**Status:** InReview (fatia 1 entregue em 2026-11-02: E2-4a, agregador e sonda; E2-4b, auditoria das actions. Fatia 2, E2-5, em 2026-11-03: workflow ativo, AC1–AC6 com evidência, proteção do `main` exigindo `resultado`. Falta o merge do PR #1 no `main`, que precisa do "sim" do responsável)
 **Workflow:** SDC, ciclo completo (entrega M: @sm → @po → @devops, critérios @qa) · **Origem:** A04 do [parecer de 01/11/2026](../analises/2026-11-01-arquitetura-cto-comparativo.md) · **Pacote:** MEL-08 do [plano de evolução](../planos/2026-11-01-evolucao-arquitetura-qualidade.md) §5 · **Desenho:** [`docs/planos/2026-11-01-desenho-ci-mel08.md`](../planos/2026-11-01-desenho-ci-mel08.md)
 **Complexidade:** STANDARD · estimativa M, em duas fatias (1: local — sonda, agregador, auditorias, E2-4 do relatório de 2026-11-02; 2: ativação — workflow, PRs de falha plantada, proteção de branch, E2-5) · **Dependências:** MEL-03 (fatia 1 entregue; o verificador é o executor de cada job), MEL-04 (job `publicacao`), pendências WPF da [story MEL-02](mel-02-regressao-wpf.story.md)
 
@@ -17,12 +17,12 @@
 
 ## Critérios de aceitação
 
-- [ ] **AC1** — Em execução normal, todos os componentes aplicáveis contribuem para o resultado final (JSON de cada job no resumo do `resultado`).
-- [ ] **AC2** — Dada uma falha plantada em teste JS, em teste .NET ou numa regra Semgrep, quando a CI roda, então o `resultado` fica reprovado.
-- [ ] **AC3** — Dado um ambiente sem Docker ou um job cancelado, quando a CI roda, então o `resultado` mostra "incompleto" e não fica verde.
-- [ ] **AC4** — Logs e artefatos contêm só resultados sintéticos; nenhum caminho de `alvos/`/`saidas/` nem variável de ambiente (revisão do primeiro PR registrada).
-- [ ] **AC5** — Testes WPF aparecem como categoria própria; com a sonda reprovada, o job fica "não executável neste runner", vermelho e fora dos checks obrigatórios; nunca contado como aprovado.
-- [ ] **AC6** — Filtro de caminho, se adotado, tem teste que prova não ocultar verificação necessária.
+- [x] **AC1** — Em execução normal, todos os componentes aplicáveis contribuem para o resultado final (JSON de cada job no resumo do `resultado`). *Evidência:* [run 41641707700](https://github.com/ianbenicio/King_REA/actions/runs/41641707700) (PR #1, `7ef594b`): seis jobs verdes, resumo do `resultado` com os 20 componentes dos cinco jobs, todos aprovados.
+- [x] **AC2** — Dada uma falha plantada em teste JS, em teste .NET ou numa regra Semgrep, quando a CI roda, então o `resultado` fica reprovado. *Evidência (PRs fechados sem merge):* teste JS [41642286413](https://github.com/ianbenicio/King_REA/actions/runs/41642286413) (`js`: "node --run test saiu com código 1"); teste .NET [41642356923](https://github.com/ianbenicio/King_REA/actions/runs/41642356923) (`notepad-core`); regra Semgrep [41642213475](https://github.com/ianbenicio/King_REA/actions/runs/41642213475) (`semgrep-test`); além do pedido, lint [41642186342](https://github.com/ianbenicio/King_REA/actions/runs/41642186342) (`lint`: "biome lint saiu com código 1") e publicação [41642324628](https://github.com/ianbenicio/King_REA/actions/runs/41642324628) (`gitleaks`: 1 achado). Nos cinco, só o job plantado falhou e o `resultado` ficou REPROVADO.
+- [x] **AC3** — Dado um ambiente sem Docker ou um job cancelado, quando a CI roda, então o `resultado` mostra "incompleto" e não fica verde. *Evidência:* sem Docker, [run 41643942625](https://github.com/ianbenicio/King_REA/actions/runs/41643942625) (PR #8, `60a18aa` sobre a correção `2d213f7`): `semgrep-scan`, `semgrep-test` e `semgrep-mutacoes` "não executado" ("daemon do Docker inacessível"), `resultado` vermelho com "Incompleto: 3 componente(s) obrigatório(s) não executado(s)". A primeira prova ([run 41642229054](https://github.com/ianbenicio/King_REA/actions/runs/41642229054), PR #4) achou um bug: com o serviço parado, `docker info` saiu 0 e os componentes rodaram e falharam (REPROVADO em vez de INCOMPLETO); corrigido em `2d213f7`. Job cancelado não deixa JSON, e o caso "JSON faltando" é coberto pelo teste do agregador (AC7); não houve run com cancelamento.
+- [x] **AC4** — Logs e artefatos contêm só resultados sintéticos; nenhum caminho de `alvos/`/`saidas/` nem variável de ambiente (revisão do primeiro PR registrada). *Evidência:* revisão dos logs do run 41641707700 nas Dev Notes (E2-5).
+- [x] **AC5** — Testes WPF aparecem como categoria própria; com a sonda reprovada, o job fica "não executável neste runner", vermelho e fora dos checks obrigatórios; nunca contado como aprovado. *Evidência:* job `wpf-interativo` próprio, classe "dependente de ambiente" no agregador, e só o `resultado` é check exigido no `main`. No `windows-2025` hospedado a sonda **aprovou** e a suíte deu 76/76 (run 41641707700), então o caso da sonda reprovada não aconteceu na CI; ele está coberto pelos testes do agregador e da sonda (AC7, AC8).
+- [x] **AC6** — Filtro de caminho, se adotado, tem teste que prova não ocultar verificação necessária. *Não se aplica:* nenhum filtro adotado; todo PR roda os cinco jobs. O `workflow-ci.test.mjs` prende os gatilhos exatos, e um `paths:` quebra o teste.
 
 Fatia 1 (local, sem `.github/` ativo):
 
@@ -52,8 +52,12 @@ AC1–AC9 com evidência (AC1–AC6 com links de runs públicos); push e configu
 - [x] Desenho (componentes, gatilhos, matriz, agregado, o que não roda em runner hospedado) — 2026-11-01.
 - [x] Validação @po — 2026-11-02, GO.
 - [x] Sonda WPF e agregador (locais, com teste) — 2026-11-02, E2-4a.
-- [ ] Auditorias das actions (feita em 2026-11-02, E2-4b: [`auditoria-actions-ci.md`](../seguranca/auditoria-actions-ci.md)) e, se aprovado, adendo da auditoria do Semgrep (pendente da decisão do desenho §9).
-- [ ] Workflow e PRs de falha plantada (após aprovação).
+- [x] Auditorias das actions (feita em 2026-11-02, E2-4b: [`auditoria-actions-ci.md`](../seguranca/auditoria-actions-ci.md)) e adendos do Docker Engine do runner nas auditorias do Semgrep e do gitleaks — 2026-11-03, E2-5.
+- [x] Workflow (`.github/workflows/verificacao.yml`) com teste que o prende ao agregador e à auditoria — 2026-11-03, E2-5, PR #1.
+- [x] PRs de falha plantada (JS, lint, .NET, Semgrep, publicação, sem Docker) — 2026-11-03, E2-5.
+- [x] Correção da sondagem do Docker achada pelo PR sem Docker — 2026-11-03, E2-5.
+- [x] Proteção do `main` exigindo `resultado` — 2026-11-03, E2-5.
+- [ ] Merge do PR #1 no `main` (precisa do "sim" do responsável).
 
 ## File List
 
@@ -69,6 +73,15 @@ AC1–AC9 com evidência (AC1–AC6 com links de runs públicos); push e configu
 - `docs/contrato-ambiente.md`, `docs/planos/2026-11-01-desenho-ci-mel08.md` — requisito do `notepad-ui` e §4 atualizados.
 - `docs/seguranca/auditoria-actions-ci.md` — auditoria das cinco actions do esboço (AC9): versão, SHA completo conferido por duas vias, permissões, downloads, mantenedor, veredito, fontes (E2-4b).
 - `docs/planos/2026-11-01-desenho-ci-mel08.md` — §7 aponta para a auditoria e os SHAs (E2-4b).
+- `.github/workflows/verificacao.yml` — workflow da CI: cinco jobs e o `resultado` (E2-5).
+- `scripts/verificar/workflow-ci.test.mjs` — prende o workflow ao agregador, à auditoria e às obrigações do desenho; 7 testes (E2-5).
+- `scripts/verificar/agregar-ci.mjs` — `JOBS` com os cinco jobs e os componentes do `--so` (E2-5).
+- `package.json` — `workflow-ci.test.mjs` no `npm test` (E2-5).
+- `scripts/publicacao/gitleaks.mjs`, `gitleaks.test.mjs`, `scripts/verificar/verificar.mjs` — sondagem do daemon do Docker exige a versão do servidor (`motivoDaemonDocker`, `sondarDocker`), com teste (E2-5).
+- `docs/seguranca/auditoria-semgrep-1.180.0.md`, `docs/seguranca/auditoria-gitleaks-8.30.1.md` — adendos da execução na CI (E2-5).
+- `docs/seguranca/auditoria-actions-ci.md` — decisão sem cache (E2-5).
+- `docs/planos/2026-11-01-desenho-ci-mel08.md` — ativo, §2, §3, §4, §7 histórico, §9 decisões (E2-5).
+- `docs/plano-de-execucao.md` — plano da E2-5; o anterior foi para `docs/planos/2026-11-03-e2-3b-gitleaks.md`.
 
 ## Dev Notes (E2-4a, 2026-11-02)
 
@@ -88,6 +101,17 @@ AC1–AC9 com evidência (AC1–AC6 com links de runs públicos); push e configu
 - **Recomendações novas para a E2-5** (fora do esboço original): `if-no-files-found: error` no upload; `digest-mismatch` no padrão no download; nenhuma entrada de token, espelho ou fonte nas actions de setup; `ambiente-node` no `--so` do job `dotnet` (QA-E24B-02); escolher o mecanismo do cache do NuGet (QA-E24B-01).
 - **Correções depois do gate (@dev, 2026-11-02):** QA-E24B-03 — o `releases-index.json` passou a ser atribuído ao `dist/setup/index.js` da action, não ao script, e entrou o `post-if: success()` do setup-dotnet. QA-E24B-01 — a auditoria deixa o mecanismo do cache do NuGet como decisão da E2-5, com as três opções, e o veredito do setup-dotnet admite `cache`/`cache-dependency-path` só nessa escolha. QA-E24B-02 — registrado na auditoria como obrigação da E2-5. Nenhuma muda veredito nem SHA.
 
+## Dev Notes (E2-5, 2026-11-03)
+
+- **Decisões do responsável (2026-11-03):** ativar agora; contêineres no Ubuntu hospedado (pull por digest com rede, `run` com `--network none`, adendo nas auditorias); proteção do `main` depois do 1º PR verde; sem cache, runner próprio adiado. Detalhe no desenho §9.
+- **Workflow:** cinco jobs e o `resultado`; cada job chama `verificar.mjs --so … --json` direto e publica só o JSON. `ambiente-node` primeiro em todos (QA-E24B-02). O `--so` do YAML espelha `JOBS` do agregador; o `workflow-ci.test.mjs` quebra se divergirem, se uma action sair da auditoria ou se uma obrigação cair.
+- **Ambiente do runner hospedado (run 41641707700):** Node v26.12.1, .NET SDK 10.0.401; sonda WPF aprovada no `windows-2025` e `notepad-ui` 76/76; `semgrep-mutacoes` 14 s. No `js`, 5 testes do gitleaks pulados (sem binário nem Docker no Windows); eles rodam no job `publicacao`. Runner próprio continua adiado.
+- **Revisão dos logs do run 41641707700 (AC4):** `alvos`/`saidas` só nas linhas da guarda; caminhos só do checkout do runner (`/home/runner/work/King_REA/King_REA`, `D:a…`); credencial do checkout mascarada (`***`) e não persistida; nenhuma variável de ambiente impressa além das `DOTNET_*` declaradas; artefatos só com o JSON do verificador (sem `detalhe` no resumo).
+- **Bug achado pela falha plantada sem Docker:** no Ubuntu hospedado, com `docker.socket` e `docker.service` parados, `docker info --format {{.ServerVersion}}` saiu 0 com saída vazia. A sondagem agora exige a versão do servidor na saída (`motivoDaemonDocker`, regra pura compartilhada pelo verificador e pelo gitleaks), com teste.
+- **Push protection do GitHub:** a primeira falha plantada de publicação usava uma chave sintética no formato Twilio; o GitHub recusou o push. A branch local foi apagada sem envio e refeita só com uma `api_key` genérica. Camada extra, não contornada.
+- **Proteção do `main`** (API clássica): check exigido `resultado`, `strict: false`, `enforce_admins: false` (decisão pendente com o responsável), sem force push nem exclusão.
+- **QA-E25:** 01 (desenho e auditoria das actions) e 03 (5 mutações escapadas agora reprovam o teste) resolvidas em `318d85d`; 02 (esta story) resolvida aqui; 04 (`--pull never` no `docker run`) fica como dívida opcional: o pull já fica num passo próprio, e o digest garante a imagem.
+
 ## Change Log
 
 | Data | Mudança | Autor |
@@ -99,6 +123,7 @@ AC1–AC9 com evidência (AC1–AC6 com links de runs públicos); push e configu
 | 2026-11-02 | Re-revisão @qa (QA loop, iteração 2) das correções do @dev, ainda não commitadas: QA-E24A-01, 02, 04 e 05 resolvidas; 03, 06 e 07 aceitas como dívida registrada; verdict final PASS para AC7 e AC8; `npm test` 203/203; status segue InProgress (DoD) | @qa (Quinn) |
 | 2026-11-02 | E2-4b: auditoria das cinco actions do esboço em `docs/seguranca/auditoria-actions-ci.md` (AC9), com SHA de commit completo conferido por `git ls-remote` e API; desenho §7 aponta para ela | sessão `8345181b` (@dev) |
 | 2026-11-02 | QA gate da E2-4b (AC9; commit `ac0e0d0`): PASS, 3 issues baixas para a E2-5 (cache do NuGet, checagem do Node no job `dotnet`, origem do `releases-index.json`); os cinco SHAs reconferidos por duas vias; AC9 marcado; status segue InProgress (DoD) | @qa (Quinn) |
+| 2026-11-03 | E2-5: workflow ativo (PR #1, run 41641707700 verde), seis PRs de falha plantada, correção da sondagem do Docker (`2d213f7`), alinhamento do desenho e teste mais forte (`318d85d`), proteção do `main` exigindo `resultado`; AC1–AC6 marcados; status InProgress → InReview | sessão `d883db9d` (@devops, @dev) |
 
 ## Validação @po (2026-11-02)
 
@@ -342,3 +367,73 @@ issues:
 ### Decisão
 
 **PASS** para o AC9 (E2-4b). As três issues são baixas e entram como pendências da E2-5, que cria o workflow. Com AC7, AC8 e AC9 marcados, o ponto de controle da fatia 1 fica atendido. Status segue **InProgress**: o DoD só fecha depois da fatia 2.
+
+## QA Results (E2-5)
+
+**Revisor:** @qa (Quinn) · **Data:** 2026-11-03 · **Commit revisado:** `7ef594b` (branch `ci/e2-5-workflow`, PR #1, run `41641707700` verde) mais as edições não commitadas de `docs/planos/2026-11-01-desenho-ci-mel08.md` · **Escopo:** workflow, `JOBS` do agregador, `workflow-ci.test.mjs`, `package.json`, adendos das auditorias do Semgrep e do gitleaks. PRs de falha plantada (AC2, AC3) e proteção de branch ficam fora deste gate. **Status:** segue InProgress.
+
+```yaml
+storyId: MEL-08
+escopo: "fatia 2: E2-5 (workflow ativado)"
+commit: 7ef594b
+verdict: CONCERNS
+issues:
+  - id: QA-E25-01
+    severity: medium
+    category: docs
+    description: >-
+      O desenho editado (não commitado) diz no cabeçalho que a CI está ativa, mas o resto contradiz o workflow:
+      título "(sem ativação)"; tabela do §2 sem `ambiente-node` em nenhum job e sem `lint`/`tipos` no `js`, e o
+      Semgrep ainda como "decisão do responsável; até lá, não executado"; esboço do §7 com `cache: npm`
+      (contra o §3), `--so notepad-core` no `dotnet` (o problema do QA-E24B-02), `needs: [js, dotnet]` e o texto
+      "continua com <sha> até a E2-5". A auditoria das actions também manda usar `cache: npm` no setup-node.
+    recommendation: >-
+      Antes do commit: atualizar o título e a tabela do §2 (ou apontar para `JOBS` em agregar-ci.mjs como fonte),
+      marcar o §7 como esboço histórico com link para `.github/workflows/verificacao.yml`, e anotar na auditoria
+      das actions que a decisão de 2026-11-03 tirou o `cache: npm`.
+  - id: QA-E25-02
+    severity: low
+    category: docs
+    description: >-
+      A story não registra a E2-5: Tasks (adendo do Semgrep e workflow ainda desmarcados), File List sem
+      `verificacao.yml` e `workflow-ci.test.mjs`, sem Dev Notes nem linha no Change Log.
+    recommendation: "@dev atualiza Tasks, File List, Dev Notes (E2-5) e Change Log no mesmo commit da QA-E25-01."
+  - id: QA-E25-03
+    severity: low
+    category: tests
+    description: >-
+      workflow-ci.test.mjs pega 23 de 28 mutações aplicadas em cópia temporária (action por tag, SHA trocado,
+      --so divergente, componente novo ou removido sem job, job extra, needs parcial, cache, permissions no job e
+      no topo, pull_request_target, segredo, token, -latest, upload sem if-no-files-found ou com outro path,
+      action de terceiro, pull removido, SHA do tar.gz). Escapam: (a) guarda com o mesmo nome e corpo oco
+      (`run: "true"`), porque o teste só conta o nome; (b) gatilho privilegiado novo (`workflow_run`), porque o
+      bloco `on:` não é fixado; (c) `${{ github.event.* }}` interpolado num `run`; (d) `docker run` no YAML com
+      rede; (e) `npm ci` sem `--ignore-scripts`. `continue-on-error` no verificador também escapa, mas o
+      agregador lê o JSON e reprova do mesmo jeito.
+    recommendation: >-
+      Acrescentar ao teste: corpo exato da guarda em todo job; bloco `on:` exato (pull_request e push para main,
+      workflow_dispatch); proibir `${{ github.event` e `docker run` no YAML; exigir `npm ci --ignore-scripts`.
+  - id: QA-E25-04
+    severity: low
+    category: security
+    description: >-
+      "Rede só no pull" depende da ordem dos passos: o `docker run` de rodar.mjs e gitleaks.mjs não tem
+      `--pull never`, então, se a imagem faltar, o próprio daemon a baixaria (sempre pelo digest). No run
+      41641707700 não houve "Unable to find image": o pull antecipado funcionou.
+    recommendation: "Opcional: `--pull never` nos dois `docker run`, com teste, para tornar a regra estrutural."
+observacoes:
+  - "O job semgrep lê IMAGEM de gitleaks.mjs, não de rodar.mjs; as duas constantes ficam presas por gitleaks.test.mjs (rodar.mjs contém a mesma string)."
+  - "AC6: nenhum filtro de caminho adotado; nada a provar por enquanto."
+```
+
+**O que o @qa conferiu:**
+- **Obrigações:** as cinco actions pelo SHA da auditoria com o comentário da versão (13 `uses`, nenhuma por tag ou de terceiro); `persist-credentials: false` nos 6 checkouts; `permissions: contents: read` só no topo; gatilhos `pull_request`/`push` para `main` e `workflow_dispatch`, sem `pull_request_target`; nenhum `secrets.`, token, cache, `registry-url`, espelho ou `github-token`; `ambiente-node` primeiro no `--so` dos cinco jobs (QA-E24B-02 resolvida); upload só do JSON, `retention-days: 7` e `if-no-files-found: error` nos cinco; download sem `github-token`/`run-id`, `digest-mismatch` padrão; contêiner pelo `IMAGEM` do código (digest `529ee8a2…845c3`, igual em rodar.mjs e gitleaks.mjs), pull em passo próprio, `docker run` com `--network none`, `--cap-drop ALL`, usuário 65534; gitleaks com tar.gz e executável conferidos pelos SHA-256 da tabela da auditoria (`551f6fc8…`, `88f91962…`); guarda de `alvos/`/`saidas/` em todos os seis jobs; nenhuma interpolação de `github.event` em `run`.
+- **Testes:** `npm test` **275/275**, 0 falha. Mutações em cópia temporária (scripts/verificar, scripts/publicacao, workflow e auditoria copiados; nada no repositório): ver QA-E25-03.
+- **Run 41641707700** (`gh run view`, só leitura): `pull_request` no `7ef594b`, seis jobs `success`; o resumo do `resultado` traz os 20 componentes dos cinco jobs, todos aprovados (evidência para o AC1), incluindo `notepad-ui` no `windows-2025` hospedado; o log menciona `alvos`/`saidas` só nas linhas da guarda (primeira leitura para o AC4, a registrar pelo @dev); download conferiu o digest dos cinco artefatos.
+- **Adendos:** Semgrep e gitleaks registram a decisão de 03/11/2026, o daemon do runner como não auditado e a ausência de cache; coerentes com o YAML.
+
+**Os 7 checks:** 1 revisão de código PASS · 2 testes PASS (275/275) · 3 critérios de aceitação: obrigações da auditoria e do desenho atendidas; AC1 com evidência no run; AC2, AC3 e AC5 (sonda reprovada) dependem dos PRs de falha plantada · 4 regressões PASS · 5 desempenho PASS (jobs paralelos, `semgrep-mutacoes` 14 s no runner) · 6 segurança PASS (QA-E25-04 opcional) · 7 documentação CONCERNS (QA-E25-01, 02).
+
+### Decisão
+
+**CONCERNS.** O workflow cumpre todas as obrigações conferidas e o run está verde; nenhuma issue bloqueia o merge do PR #1. Corrigir QA-E25-01 e 02 antes de commitar as edições do desenho; QA-E25-03 e 04 podem entrar com os PRs de falha plantada. Status segue **InProgress** até AC2–AC5 terem evidência.

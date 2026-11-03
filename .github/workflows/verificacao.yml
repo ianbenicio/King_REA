@@ -1,0 +1,187 @@
+# CI por componente com resultado agregado (story MEL-08; desenho em docs/planos/2026-11-01-desenho-ci-mel08.md).
+# Cada job chama o mesmo verificador do clone local e publica o JSON dele; o job `resultado` agrega pelos
+# três estados (scripts/verificar/agregar-ci.mjs) e é o único check exigido no `main`.
+#
+# Regras (presas por scripts/verificar/workflow-ci.test.mjs):
+# - actions só as auditadas em docs/seguranca/auditoria-actions-ci.md, pelo SHA completo, com a versão no comentário;
+# - permissions só de leitura, gatilho pull_request (nunca pull_request_target), nenhum segredo, nenhum cache;
+# - checkout sem credenciais persistidas; upload só do JSON do verificador, falhando se ele não existir;
+# - contêineres pelo digest fixado no código (pull com rede antes; o run é sempre --network none);
+# - nada lê alvos/ nem saidas/: a guarda falha se existirem no workspace.
+name: verificacao
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+
+jobs:
+  js:
+    runs-on: windows-2025
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: guarda de alvos/ e saidas/
+        run: node -e "for (const d of ['alvos','saidas']) if (require('fs').existsSync(d)) { console.error(d + '/ no workspace'); process.exit(1) }"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - run: npm ci --ignore-scripts
+      - name: verificador
+        run: node scripts/verificar/verificar.mjs --so ambiente-node,dependencias-npm,sintaxe-js,lint,tipos,js,monetizacao --json > verificar-js.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: verificar-js
+          path: verificar-js.json
+          retention-days: 7
+          if-no-files-found: error
+
+  dotnet:
+    runs-on: windows-2025
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: guarda de alvos/ e saidas/
+        run: node -e "for (const d of ['alvos','saidas']) if (require('fs').existsSync(d)) { console.error(d + '/ no workspace'); process.exit(1) }"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: reimplementacoes/notepad/global.json
+      - name: verificador
+        run: node scripts/verificar/verificar.mjs --so ambiente-node,dotnet-restore,notepad-build,notepad-core --json > verificar-dotnet.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: verificar-dotnet
+          path: verificar-dotnet.json
+          retention-days: 7
+          if-no-files-found: error
+
+  wpf-interativo:
+    runs-on: windows-2025
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: guarda de alvos/ e saidas/
+        run: node -e "for (const d of ['alvos','saidas']) if (require('fs').existsSync(d)) { console.error(d + '/ no workspace'); process.exit(1) }"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: reimplementacoes/notepad/global.json
+      - name: verificador (sonda WPF antes da suíte)
+        run: node scripts/verificar/verificar.mjs --so ambiente-node,notepad-ui --json > verificar-wpf-interativo.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: verificar-wpf-interativo
+          path: verificar-wpf-interativo.json
+          retention-days: 7
+          if-no-files-found: error
+
+  semgrep:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: guarda de alvos/ e saidas/
+        run: node -e "for (const d of ['alvos','saidas']) if (require('fs').existsSync(d)) { console.error(d + '/ no workspace'); process.exit(1) }"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - name: imagem do Semgrep pelo digest fixado (rede só aqui)
+        run: docker pull "$(node --input-type=module -e "import { IMAGEM } from './scripts/publicacao/gitleaks.mjs'; console.log(IMAGEM)")"
+      - name: verificador
+        run: node scripts/verificar/verificar.mjs --so ambiente-node,semgrep-scan,semgrep-test,semgrep-mutacoes --json > verificar-semgrep.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: verificar-semgrep
+          path: verificar-semgrep.json
+          retention-days: 7
+          if-no-files-found: error
+
+  publicacao:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: guarda de alvos/ e saidas/
+        run: node -e "for (const d of ['alvos','saidas']) if (require('fs').existsSync(d)) { console.error(d + '/ no workspace'); process.exit(1) }"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - name: imagem do Semgrep pelo digest fixado (base do gitleaks; rede só aqui)
+        run: docker pull "$(node --input-type=module -e "import { IMAGEM } from './scripts/publicacao/gitleaks.mjs'; console.log(IMAGEM)")"
+      - name: gitleaks 8.30.1 da auditoria (tar.gz e executável conferidos pelo SHA-256)
+        run: |
+          set -euo pipefail
+          d=ferramentas/gitleaks/8.30.1
+          mkdir -p "$d/download" "$d/linux"
+          curl -fsSL --proto '=https' --tlsv1.2 -o "$d/download/gitleaks_8.30.1_linux_x64.tar.gz" \
+            https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  $d/download/gitleaks_8.30.1_linux_x64.tar.gz" | sha256sum -c -
+          tar -xzf "$d/download/gitleaks_8.30.1_linux_x64.tar.gz" -C "$d/linux" gitleaks
+          echo "88f91962aa2f93ac6ab281d553b9e125f5197bbbce38f9f2437f7299c32e5509  $d/linux/gitleaks" | sha256sum -c -
+      - name: verificador
+        run: node scripts/verificar/verificar.mjs --so ambiente-node,publicacao,gitleaks --json > verificar-publicacao.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: verificar-publicacao
+          path: verificar-publicacao.json
+          retention-days: 7
+          if-no-files-found: error
+
+  resultado:
+    needs: [js, dotnet, wpf-interativo, semgrep, publicacao]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: guarda de alvos/ e saidas/
+        run: node -e "for (const d of ['alvos','saidas']) if (require('fs').existsSync(d)) { console.error(d + '/ no workspace'); process.exit(1) }"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: verificar-*
+          merge-multiple: true
+          path: ci-json
+      - name: agregado (três estados)
+        run: node scripts/verificar/agregar-ci.mjs --dir ci-json --resumo "$GITHUB_STEP_SUMMARY"

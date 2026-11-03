@@ -11,6 +11,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ESTADOS, executarPlano } from "../verificar/verificar.mjs";
 import {
+  motivoDaemonDocker,
   BINARIO,
   CONFIG,
   IMAGEM,
@@ -169,4 +170,13 @@ test(".gitattributes com export-ignore ou working-tree-encoding não esconde seg
   assert.deepEqual(r.achados.map((a) => a.caminho).sort(), ["a.txt", "b.txt", "sub/d.txt"]);
   const texto = JSON.stringify(r);
   for (const s of [s1, s2, s3]) assert.ok(!texto.includes(s));
+});
+
+test("daemon do Docker só serve com a versão do servidor na saída (E2-5: saída 0 com o serviço parado)", () => {
+  assert.equal(motivoDaemonDocker({ status: 0, stdout: "28.0.4\n" }), null);
+  assert.match(motivoDaemonDocker({ status: 0, stdout: "" }), /daemon do Docker inacessível/);
+  assert.match(motivoDaemonDocker({ status: 0, stdout: "\n" }), /daemon do Docker inacessível/);
+  assert.match(motivoDaemonDocker({ status: 1, stdout: "28.0.4" }), /daemon do Docker inacessível/);
+  assert.match(motivoDaemonDocker({ status: null }), /daemon do Docker inacessível/);
+  assert.match(motivoDaemonDocker({ ausente: true }), /não encontrado no PATH/);
 });
