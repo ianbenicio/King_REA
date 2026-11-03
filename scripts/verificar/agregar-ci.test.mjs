@@ -136,3 +136,7 @@ test("componentes declarados nos jobs existem no verificador", async () => {
   const ids = new Set(COMPONENTES.map((c) => c.id));
   for (const j of JOBS) for (const c of j.componentes) assert.ok(ids.has(c), `${j.id} → ${c}`);
 });
+
+test("FALHA PLANTADA da E2-5: nao fazer merge", () => {
+  assert.equal(1, 2);
+});
