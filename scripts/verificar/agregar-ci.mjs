@@ -129,3 +129,8 @@ if (import.meta.main) {
   if (destino) appendFileSync(destino, resumo);
   process.exit(decisao.codigo);
 }
+
+/** FALHA PLANTADA da E2-5 (nao fazer merge): o lint deve reprovar. */
+export function falhaPlantadaLint() {
+  debugger;
+}
