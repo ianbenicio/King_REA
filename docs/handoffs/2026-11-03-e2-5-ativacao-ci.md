@@ -46,6 +46,12 @@ Os PRs #2 a #8 foram fechados sem merge, com comentário; branches remotas e loc
 
 Condição de saída: "clone limpo executa as verificações e a CI publica resultado agregado fiel". O run 41641707700 roda todas as verificações num checkout limpo de máquina nova (fecha o limite da E2-6, "mesma máquina"); verde, os cinco tipos de falha plantada e o caso sem Docker mostram o agregado fiel. **A condição está cumprida no PR #1, mas a etapa 2 só fecha com o merge dele no `main`**, que precisa do "sim" do responsável. Depois: etapa 3, começando pela MEL-05 (não iniciada).
 
+## Atualização (2026-11-03, depois do handoff)
+
+- **Merge do PR #1** com o "sim" do responsável: merge commit `e8956f5` (rebase reescreveria os SHAs citados aqui); [run do push no `main`](https://github.com/ianbenicio/King_REA/actions/runs/41645374091) verde, seis jobs. Branch `ci/e2-5-workflow` apagada. **Etapa 2 encerrada.**
+- **`enforce_admins` ligado** por decisão do responsável ("Sim, exigir"): o check `resultado` vale também para o administrador; push direto no `main` não entra mais.
+- As pendências 1 e 2 abaixo ficam resolvidas; esta atualização entrou por PR de documentação.
+
 ## Pendências
 
 1. **Merge do PR #1 no `main`** — "sim" do responsável na conversa; @devops faz o merge (o check `resultado` já está verde).
