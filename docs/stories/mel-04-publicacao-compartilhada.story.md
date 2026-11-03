@@ -1,6 +1,6 @@
 # Story MEL-04 — transformar a política de publicação em verificação compartilhada
 
-**Status:** InReview (2026-11-03: E2-3b entregue — gitleaks 8.30.1 auditado, adotado isolado por decisão do responsável; gate @qa FAIL por QA-E23B-01, corrigido com os demais, aguardando re-verificação)
+**Status:** InReview (2026-11-03: E2-3b entregue — gitleaks 8.30.1 auditado e adotado isolado por decisão do responsável; gates @qa FAIL em `afbd404` e `1996e67`, QA-E23B-01 a 08 corrigidos, aguardando re-verificação)
 **Workflow:** SDC, ciclo completo (entrega M: @sm → @po → @dev → @qa; integração @devops) · **Origem:** A06 do [parecer de 01/11/2026](../analises/2026-11-01-arquitetura-cto-comparativo.md) · **Pacote:** MEL-04 do [plano de evolução](../planos/2026-11-01-evolucao-arquitetura-qualidade.md) §5
 **Complexidade:** STANDARD · estimativa M · **Dependências:** contrato de verificação da MEL-03 (fatia 1 entregue: [`docs/contrato-ambiente.md`](../contrato-ambiente.md)); é pré-requisito do job `publicacao` da [CI MEL-08](../planos/2026-11-01-desenho-ci-mel08.md)
 
@@ -175,3 +175,22 @@ Depois das correções: `npm test` 256/256 (três rodadas; uma rodada anterior t
 | `motivoSemGitleaks({ binario: <inexistente> })` | "binário do gitleaks 8.30.1 ausente…"; o teste "binário ausente: não executado, nunca aprovado" passou (estado `não executado`). Binário real intacto |
 | `motivoSemGitleaks({ docker: <inexistente> })` | "comando docker não encontrado no PATH" |
 | Sondas QA-E23B-01/02/04 (script fora do repositório, repositórios temporários, tokens `ghp_` gerados na hora) | controle reprova (1 achado); `export-ignore` raiz/subpasta e `working-tree-encoding` aprovam com o segredo; `HEAD:d` aprova; `--output=`/`--remote=` barrados no `ls-tree`; `package-lock.json`, `node_modules/` e `go.sum` aprovam; `vendor/` reprova; `vaza: false` em todas |
+
+### Re-verificação (1996e67)
+
+**Decisão: FAIL**. As seis correções valem para o que foi pedido. A sonda do `.gitattributes` repetida (`export-ignore` na raiz, `d/** export-ignore`, `working-tree-encoding=UTF-16LE`) reprova as três, com 1 achado cada e sem o valor. Mas o gravador novo de blobs, no host Windows, abriu duas brechas. Uma delas é uma escrita fora da pasta temporária. O status não foi mudado aqui (pelo fluxo, FAIL devolve a InProgress; fica com o coordenador).
+
+| Id | Sev. | Situação ou descrição | Correção sugerida |
+|---|---|---|---|
+| QA-E23B-01 a 06 | — | corrigidos conforme o pedido: blobs brutos e regressão; `refValida` com `rev-parse --verify --end-of-options`; limites por flag; allowlist padrão no contrato §3; motivo fixo; Status InReview | — |
+| QA-E23B-07 | alta | **Escrita fora da pasta temporária e fail-open por `\`.** `caminhoRuim` usa `/[\:]/`, que só casa `:`: o escape tira o efeito da barra invertida. Um tree com o nome `x\..\..\..\qa-gl3-escape.txt` (feito com `hash-object` + `mktree`, sem checkout) passa pela checagem. No Windows, `path.join` trata `\` como separador, e o blob foi gravado em `%TEMP%\qa-gl3-escape.txt`, fora de `prking-gitleaks-*` (conferido e apagado). O segredo fica fora da montagem, e o resultado é `ok: true` com 0 achados. Com mais `..`, a escrita vai para qualquer lugar gravável pelo usuário (por exemplo, `~/.claude/`), a partir de um commit de terceiros lido por `npm run check:gitleaks <ref>`. | Recusar `\` (`/[\:]/`) e, depois do `join`, exigir que `resolve(destino)` comece com `resolve(dados) + sep`. Teste com nome que tem `\..\`. |
+| QA-E23B-08 | média | **Colisão de caixa no NTFS esconde arquivo.** Tree com `A.txt` (segredo) e `a.txt` (texto comum): o segundo sobrescreve o primeiro, e o resultado é `ok: true`, 0 achados, "2 arquivos". Na ordem inversa, o segredo é achado. O número de arquivos relatado continua sem conferência contra o que foi gravado. Nome com ponto ou espaço no fim (`a.txt.`, `.gitleaksignore.`, `.gitleaksignore `) e `nul`/`aux.txt` não abriram brecha (o segredo foi achado). | Gravar cada blob com nome sequencial (`000001`…) e mapear o caminho de volta no relatório. Isso elimina caixa, nomes reservados e separadores. Outra opção: recusar caminhos duplicados sem diferenciar maiúsculas e conferir no contêiner que `find -type f` dá `blobs.length`. Teste de colisão. |
+
+Conferido sem achado: o `..` em segmento separado por `/`, o `:` e o caminho absoluto são recusados. O submódulo (tipo `commit`) fica fora sem quebrar a varredura. O symlink (modo 120000) é gravado como arquivo comum com o texto do destino, sem seguir o link. Blob ausente (`missing`) reprova. O `.githooks/` não mudou (`git diff afbd404..1996e67 -- .githooks/` vazio).
+
+| Comando | Resultado |
+|---|---|
+| `npm test` | 268/268, 0 puladas (inclui "ref do CLI" e ".gitattributes … QA-E23B-01") |
+| `node scripts/verificar/verificar.mjs --so publicacao,gitleaks,lint,tipos` | APROVADO, saída 0: `gitleaks` 293 arquivos, nenhum achado, 2 s; `publicacao` 293; `lint` 20; `tipos` 6 |
+| Sonda `.gitattributes` (3 casos, tokens gerados na hora) | as três reprovam com 1 achado; valor ausente do resultado |
+| Sonda de caminhos (`hash-object` + `mktree`, repositórios temporários já apagados) | `\..\` aprova e escreve fora da pasta (QA-E23B-07); `A.txt`/`a.txt` aprova (QA-E23B-08); ponto ou espaço no fim, `nul` e `aux.txt` reprovam (seguro) |

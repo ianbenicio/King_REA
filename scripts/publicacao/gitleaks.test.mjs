@@ -21,6 +21,7 @@ import {
   componenteGitleaks,
   motivoSemGitleaks,
   relatorio,
+  caminhosRuins,
   refValida,
   resumirAchados,
   sha256,
@@ -138,6 +139,13 @@ test("segredo sintético reprova mesmo com gitleaks:allow e .gitleaks.toml permi
   assert.deepEqual(r.achados.map((a) => a.caminho).sort(), ["a.txt", "b.txt"]);
   const texto = relatorio(r.achados) + JSON.stringify(r);
   for (const s of [s1, s2]) assert.ok(!texto.includes(s) && !texto.includes(s.slice(4, 24)));
+});
+
+test("caminhos que sairiam da pasta ou se sobrescreveriam no Windows são recusados (QA-E23B-07, 08)", () => {
+  assert.deepEqual(caminhosRuins(["docs/a.md", "README.md", "a/b/c.txt", ".gitattributes"]), []);
+  for (const ruim of ["x\\..\\..\\fora.txt", "a\\b.txt", "c:fora.txt", "a/../b", "./a", "a//b"]) assert.equal(caminhosRuins([ruim]).length, 1, ruim);
+  assert.equal(caminhosRuins(["A.txt", "a.txt"]).length, 1);
+  assert.equal(caminhosRuins(["Docs/x.md", "docs/x.md"]).length, 1);
 });
 
 test("ref do CLI: só branch, tag ou commit (QA-E23B-02)", () => {

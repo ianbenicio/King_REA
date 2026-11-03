@@ -21,7 +21,7 @@ import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const VERSAO = "8.30.1";
@@ -104,8 +104,22 @@ export function entradasLsTree(saida) {
   });
 }
 
-/** Caminho que não pode ser gravado com segurança na pasta temporária (fail-closed). */
-const caminhoRuim = (c) => c.split("/").some((s) => s === "" || s === "." || s === "..") || /[\:]/.test(c) || c.startsWith("/");
+/**
+ * Caminhos que não dá para gravar com segurança na pasta temporária (fail-closed): segmento vazio, "." ou "..",
+ * barra invertida (separador no Windows: "x\..\.." sairia da pasta, QA-E23B-07), ":" e nomes que só diferem na caixa
+ * (no Windows, um sobrescreveria o outro, QA-E23B-08).
+ */
+export function caminhosRuins(caminhos) {
+  const vistos = new Map();
+  const ruins = [];
+  for (const c of caminhos) {
+    if (c.split("/").some((s) => s === "" || s === "." || s === "..") || /[\\:]/.test(c)) ruins.push(c);
+    const chave = c.toLowerCase();
+    if (vistos.has(chave)) ruins.push(`${vistos.get(chave)} e ${c} (só diferem na caixa)`);
+    else vistos.set(chave, c);
+  }
+  return ruins;
+}
 
 /**
  * Varre os arquivos rastreados em <ref> do repositório <raiz>. Retorna { ok, motivo?, achados?, bytes? }.
@@ -128,7 +142,7 @@ export function varrer({ ref = "HEAD", raiz = RAIZ, binario = BINARIO, hash = SH
   const ignorar = entradas.filter((e) => e.caminho.split("/").at(-1)?.toLowerCase() === ".gitleaksignore").map((e) => e.caminho);
   if (ignorar.length) return { ok: false, motivo: `.gitleaksignore rastreado (${ignorar.join(", ")}): suprimiria achados; exceções só em scripts/publicacao/excecoes.json` };
   const blobs = entradas.filter((e) => e.tipo === "blob"); // submódulos (commit) não têm conteúdo aqui
-  const ruins = blobs.filter((e) => caminhoRuim(e.caminho)).map((e) => e.caminho);
+  const ruins = caminhosRuins(blobs.map((e) => e.caminho));
   if (ruins.length) return { ok: false, motivo: `caminho que não dá para gravar com segurança: ${ruins.join(", ")}` };
   const lote = git(["cat-file", "--batch"], blobs.map((e) => e.id).join("\n") + "\n");
   if (lote.status !== 0) return { ok: false, motivo: "git cat-file --batch falhou" };
@@ -141,9 +155,11 @@ export function varrer({ ref = "HEAD", raiz = RAIZ, binario = BINARIO, hash = SH
       const [id, tipo, tamanho] = lote.stdout.subarray(pos, fimCabecalho).toString().split(" ");
       if (id !== e.id || tipo !== "blob") return { ok: false, motivo: `git cat-file devolveu ${tipo ?? "nada"} para ${e.caminho}` };
       const conteudo = lote.stdout.subarray(fimCabecalho + 1, fimCabecalho + 1 + Number(tamanho));
-      const destino = join(dados, ...e.caminho.split("/"));
+      const destino = resolve(dados, ...e.caminho.split("/"));
+      // Segunda trava: o destino resolvido fica dentro da pasta; e nunca sobrescreve (flag "wx").
+      if (!destino.startsWith(resolve(dados) + sep)) return { ok: false, motivo: `caminho sairia da pasta temporária: ${e.caminho}` };
       mkdirSync(dirname(destino), { recursive: true });
-      writeFileSync(destino, conteudo);
+      writeFileSync(destino, conteudo, { flag: "wx" });
       pos = fimCabecalho + 1 + Number(tamanho) + 1;
     }
     mkdirSync(dados, { recursive: true });
