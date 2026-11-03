@@ -14,6 +14,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { tmpdir, userInfo } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { componenteGitleaks } from "../publicacao/gitleaks.mjs";
 
 export const ESTADOS = { aprovado: "aprovado", falhou: "falhou", naoExecutado: "não executado" };
 export const SAIDA = { aprovado: 0, falhou: 1, uso: 2, incompleto: 3 };
@@ -21,7 +22,7 @@ export const SAIDA = { aprovado: 0, falhou: 1, uso: 2, incompleto: 3 };
 // Pendências do contrato que o verificador ainda não cobre (story MEL-03). Aparecem em toda execução.
 export const PENDENCIAS = [
   "lint só em .claude/hooks/ e scripts/; reimplementacoes/puzzle-piloto/ e .githooks/ ainda fora (story MEL-03)",
-  "tipos só nos módulos de política (rea-gate, cli-gate, verificar-perfis, publicacao), sem @types/node (APIs do Node como any) e sem noImplicitAny (57 erros com ele ligado) (story MEL-03)",
+  "tipos só nos módulos de política (rea-gate, cli-gate, verificar-perfis, publicacao, gitleaks), sem @types/node (APIs do Node como any) e sem noImplicitAny (57 erros com ele ligado) (story MEL-03)",
 ];
 
 // --- regras puras (testadas em verificar.test.mjs) -------------------------------------------
@@ -299,6 +300,8 @@ export const COMPONENTES = [
         s.match(/(\d+) arquivo/)?.[1]?.concat(" arquivos"),
       ),
   },
+  // Detector externo de segredos (MEL-04, E2-3b), isolado em contêiner; sem Docker ou sem o binário, não executado.
+  componenteGitleaks(),
   { id: "dotnet-restore", descricao: "restore .NET em modo travado (packages.lock.json)", requisito: motivoSemDotnet, executar: dotnet(["restore", "PRKingNotepad.slnx", "--locked-mode"]) },
   { id: "notepad-build", descricao: "build do Notepad (avisos são erros)", depende: ["dotnet-restore"], executar: dotnet(["build", "PRKingNotepad.slnx", "--no-restore", "--no-incremental"]) },
   { id: "notepad-core", descricao: "testes do PRKingNotepad.Core", depende: ["notepad-build"], executar: dotnet(["test", "tests/PRKingNotepad.Core.Tests/PRKingNotepad.Core.Tests.csproj", "--no-build"]) },

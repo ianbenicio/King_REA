@@ -87,7 +87,7 @@ export const SEGREDOS_SINTETICOS = {
   "segredo:chave-privada-pem": parte("-----BEGIN ", "RSA PRIVATE", " KEY-----"),
   "segredo:token-github": parte("gh", "p_", "Zx9Kq2Lm7Np4Rs8Tv1Wy6Bc3Df5Gh0Jk2Mn4P"),
   "segredo:jwt": parte("ey", "JhbGciOiJIUzI1NiJ9", ".", "ey", "JzdWIiOiJzaW50ZXRpY28ifQ", ".", "c2lnbmF0dXJhLXNpbnRldGljYQ"),
-  "segredo:chave-anthropic": parte("sk-", "ant-", "api03-", "Qw3Er5Ty7Ui9Op1As3Df5Gh7Jk9Lz1Xc3Vb5"),
+  "segredo:chave-anthropic": parte("sk-", "ant-", "api03-", "Qw3Er5Ty7", "Ui9Op1As3", "Df5Gh7Jk9", "Lz1Xc3Vb5"),
   "segredo:chave-aws": parte("AK", "IA", "QZ7RX2MV5KT9LP3W"),
 };
 

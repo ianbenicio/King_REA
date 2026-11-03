@@ -4,6 +4,7 @@
 declare module "node:child_process";
 declare module "node:crypto";
 declare module "node:fs";
+declare module "node:os";
 declare module "node:path";
 declare module "node:url";
 // process.exit tipado como never: é o que deixa o tsc ver que decide() encerra o hook.
