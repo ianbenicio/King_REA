@@ -56,4 +56,4 @@ Aprovação prévia: o responsável decidiu "Auditar o gitleaks" na conversa da 
 
 ## 6. Resultado
 
-(preencher ao fim da unidade)
+Executado em 2026-11-03: auditoria (`ecf81ce`), responsável escolheu "Adotar isolado", ligação (`1561e4d`, `afbd404`), gate @qa FAIL com QA-E23B-01 corrigido em `1996e67`. Detalhes no [handoff](handoffs/2026-11-03-e2-3b-gitleaks.md).

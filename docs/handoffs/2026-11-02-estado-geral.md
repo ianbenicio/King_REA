@@ -1,6 +1,6 @@
 # Relatório de estado — PRKing_REA em 2026-11-02
 
-**Data:** 2026-11-02 (atualizado depois da E2-2) · **Branch:** `main` @ `d0238b3` + handoff da E2-2, 4 commits locais à frente do `origin/main` @ `a24971e` (push pendente, pelo @devops) · **Testes:** `npm test` 213/213 · **Árvore:** limpa · **Repositório:** público (`ianbenicio/King_REA`)
+**Data:** 2026-11-02 (atualizado depois da E2-3b, em 2026-11-03: `main` @ `1996e67` + handoff, à frente do `origin/main` @ `da07163`, push pendente) · **Branch:** `main` @ `d0238b3` + handoff da E2-2, 4 commits locais à frente do `origin/main` @ `a24971e` (push pendente, pelo @devops) · **Testes:** `npm test` 213/213 · **Árvore:** limpa · **Repositório:** público (`ianbenicio/King_REA`)
 
 Este relatório reúne as demandas e os requisitos que estão abertos hoje, conferidos contra o git, as stories, os planos e os handoffs. Ele serve de entrada para a próxima sessão de construção do REA (prompt em [`2026-11-02-prompt-continuidade.md`](2026-11-02-prompt-continuidade.md)).
 
@@ -28,7 +28,7 @@ Ordem pela §3 do plano de evolução. Tamanho: P localizada, M vários arquivos
 |---|---|---|---|---|---|
 | E2-1 | ~~Validação @po das três stories da etapa 2 (10 pontos)~~ **Feita em 2026-11-02:** as três com GO e em Ready ([handoff](2026-11-02-e2-1-validacao-po.md)) | MEL-03, MEL-04, MEL-08 (Ready) | — | — | não |
 | E2-2 | ~~MEL-03 fatia 2: lint e checagem de tipos~~ **Feita em 2026-11-02:** Biome 2.5.15 e TypeScript 6.0.3 auditados e fixados, componentes `lint` e `tipos` no verificador; MEL-03 Done (QA CONCERNS; débito QA-E22-01b no contrato §4) ([handoff](2026-11-02-e2-2-lint-tipos.md)) | MEL-03 | — | — | não |
-| E2-3 | MEL-04: módulo de publicação compartilhado entre `pre-commit` e CI. **Parte fechada em 2026-11-02:** `scripts/publicacao/`, caminhos proibidos, 12 regras próprias de segredo, exceções, componente `publicacao`; QA CONCERNS, QA-E23-01 a 06 corrigidos ([handoff](2026-11-02-e2-3-publicacao.md)). **Falta (E2-3b):** auditoria do gitleaks (decidida: "Auditar o gitleaks") | MEL-04 (InProgress) | P | — | decidida; adoção só se a auditoria passar |
+| E2-3 | ~~MEL-04: módulo de publicação compartilhado~~ **Feita:** parte principal em 2026-11-02 ([handoff](2026-11-02-e2-3-publicacao.md)); **E2-3b em 2026-11-03:** gitleaks 8.30.1 auditado (sem assinatura nem atestação) e adotado isolado por decisão do responsável, componente `gitleaks` no verificador; gate @qa FAIL corrigido ([handoff](2026-11-03-e2-3b-gitleaks.md)) | MEL-04 | — | — | decidida |
 | E2-4a | ~~MEL-08 local: agregador (AC7) e sonda WPF (AC8)~~ **Feita em 2026-11-02** ([handoff](2026-11-02-e2-4a-mel08-local.md)); story MEL-08 em InProgress | MEL-08 | — | — | não |
 | E2-4b | ~~MEL-08 local: auditoria das actions (AC9)~~ **Feita em 2026-11-02:** cinco actions auditadas, SHAs fixados no documento, QA PASS ([handoff](2026-11-02-e2-4b-auditoria-actions.md), [auditoria](../seguranca/auditoria-actions-ci.md)); ponto de controle da fatia 1 atingido | MEL-08 | — | — | não |
 | E2-5 | MEL-08 ativação: workflow em `.github/`, PRs com falha plantada, proteção de branch | MEL-08 | M | E2-3 | sim: ativar CI, Semgrep no Ubuntu hospedado, proteção de branch, runner próprio (desenho §9), mecanismo do cache do NuGet (QA-E24B-01); push pelo @devops |

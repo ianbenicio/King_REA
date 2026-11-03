@@ -1,6 +1,6 @@
 # Story MEL-04 — transformar a política de publicação em verificação compartilhada
 
-**Status:** InReview (2026-11-03: E2-3b entregue — gitleaks 8.30.1 auditado e adotado isolado por decisão do responsável; gates @qa FAIL em `afbd404` e `1996e67`, QA-E23B-01 a 08 corrigidos, aguardando re-verificação)
+**Status:** Done (2026-11-03: E2-3b entregue — gitleaks 8.30.1 auditado e adotado isolado por decisão do responsável; gates @qa FAIL em `afbd404` e `1996e67`, QA-E23B-01 a 08 corrigidos; re-verificação 2 em `1f7a6a9`: PASS. QA-E23-07 segue aberto para a MEL-08)
 **Workflow:** SDC, ciclo completo (entrega M: @sm → @po → @dev → @qa; integração @devops) · **Origem:** A06 do [parecer de 01/11/2026](../analises/2026-11-01-arquitetura-cto-comparativo.md) · **Pacote:** MEL-04 do [plano de evolução](../planos/2026-11-01-evolucao-arquitetura-qualidade.md) §5
 **Complexidade:** STANDARD · estimativa M · **Dependências:** contrato de verificação da MEL-03 (fatia 1 entregue: [`docs/contrato-ambiente.md`](../contrato-ambiente.md)); é pré-requisito do job `publicacao` da [CI MEL-08](../planos/2026-11-01-desenho-ci-mel08.md)
 
@@ -98,6 +98,7 @@ Detector de segredos externo: auditar um candidato ou ficar só com regras próp
 | 2026-11-02 | @qa: gate CONCERNS (7 achados, nenhum alto); @dev corrige QA-E23-01 a 06 | sessão `c237632e` (@qa, @dev) |
 | 2026-11-02 | @dev: caracterização (13 casos contra o hook antigo), extração para `scripts/publicacao/`, caminhos proibidos, regras próprias de segredo, exceções, componente `publicacao` (`0b56b7a`); gitleaks adiado para a próxima unidade | sessão `c237632e` (@dev) |
 | 2026-11-02 | Validação @po: 9/10 como estava; correções aplicadas (caminhos proibidos, caracterização do `pre-commit`, AC2 por formato, AC6 de exceções, decisão do detector); 10/10, GO; status Draft → Ready | sessão `aade639a` (@po) |
+| 2026-11-03 | @qa: gate E2-3b FAIL em `afbd404` (QA-E23B-01 a 06) e em `1996e67` (QA-E23B-07, 08); re-verificação 2 em `1f7a6a9`: PASS; status InReview → Done (QA-E23-07 segue para a MEL-08) | @qa (Quinn) |
 
 ## Validação @po (2026-11-02)
 
@@ -194,3 +195,19 @@ Conferido sem achado: o `..` em segmento separado por `/`, o `:` e o caminho abs
 | `node scripts/verificar/verificar.mjs --so publicacao,gitleaks,lint,tipos` | APROVADO, saída 0: `gitleaks` 293 arquivos, nenhum achado, 2 s; `publicacao` 293; `lint` 20; `tipos` 6 |
 | Sonda `.gitattributes` (3 casos, tokens gerados na hora) | as três reprovam com 1 achado; valor ausente do resultado |
 | Sonda de caminhos (`hash-object` + `mktree`, repositórios temporários já apagados) | `\..\` aprova e escreve fora da pasta (QA-E23B-07); `A.txt`/`a.txt` aprova (QA-E23B-08); ponto ou espaço no fim, `nul` e `aux.txt` reprovam (seguro) |
+
+### Re-verificação 2 (1f7a6a9)
+
+**Decisão: PASS** (gate E2-3b). QA-E23B-07 e 08 estão corrigidos e as sondas não acharam brecha nova. Status: InReview → Done. O QA-E23-07, do gate anterior, segue aberto para a MEL-08, como já estava registrado. Os riscos residuais aceitos pelo responsável (binário sem assinatura nem atestação; a allowlist padrão; varredura só da árvore rastreada) estão na auditoria e no contrato §3.
+
+| Id | Situação |
+|---|---|
+| QA-E23B-07 | corrigido. `caminhosRuins` recusa `\` (`/[\:]/`), `:`, segmento vazio, `.` e `..`. Segunda trava: `resolve(dados, …)` precisa ficar dentro de `dados` + `sep`. Sonda `x\..\..\..\qa-gl5-escape.txt` (tree por `hash-object` + `mktree`): recusada antes de gravar, nada fora da pasta (`existsSync` falso) |
+| QA-E23B-08 | corrigido. Nomes que só diferem na caixa são recusados, e `writeFileSync(…, { flag: "wx" })` nunca sobrescreve: qualquer colisão que escape da checagem (ponto ou espaço no fim, nome curto 8.3) lança exceção, e a exceção conta como falha. Sondas `A.txt`+`a.txt` nas duas ordens e `K.txt` (sinal Kelvin, U+212A)+`k.txt`: recusadas. `a.txt.`+`a.txt` e `.gitleaksignore.`: segredo achado |
+
+| Comando | Resultado |
+|---|---|
+| `npm test` | 269/269, 0 puladas (inclui "caminhos que sairiam da pasta ou se sobrescreveriam no Windows… (QA-E23B-07, 08)") |
+| `node scripts/verificar/verificar.mjs --so publicacao,gitleaks,lint,tipos` | APROVADO, saída 0: `gitleaks` 293 arquivos, nenhum achado, 1,8 s; `publicacao` 293; `lint` 20; `tipos` 6 |
+| `git diff da07163..1f7a6a9 -- .githooks/` | vazio (0 bytes) |
+| Sondas (tokens gerados na hora, repositórios temporários apagados) | 7 casos, nenhum aprovado com segredo; `vaza: false` em todos; nenhuma sobra `qa-gl5-*` ou `prking-gitleaks-*` em `%TEMP%` |
