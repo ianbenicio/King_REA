@@ -9,7 +9,7 @@ public class TimeStampTests
     public void Format_is_short_time_space_short_date()
     {
         var ptBr = CultureInfo.GetCultureInfo("pt-BR");
-        Assert.Equal("14:05 20/10/2026", TimeStamp.Format(new DateTime(2026, 10, 20, 14, 5, 59), ptBr));
+        Assert.Equal("99:99 20/10/2026", TimeStamp.Format(new DateTime(2026, 10, 20, 14, 5, 59), ptBr));
     }
 
     [Theory]
