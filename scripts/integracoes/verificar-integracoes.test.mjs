@@ -444,7 +444,7 @@ test("AC17: referência GhidraMCP@2.0 reprova citando o runbook, a referência e
   assert.equal(achados.length, 1, texto(achados));
   assert.equal(achados[0].contrato, CONTRATOS.documentacao);
   assert.equal(achados[0].arquivo, "docs/runbook-prereqs-nativo.md");
-  assert.match(achados[0].mensagem, /referência `GhidraMCP@2\.0` não é prefixo do commit `1e98025…` do \.mcp\.json/);
+  assert.match(achados[0].mensagem, /referência `GhidraMCP@2\.0` não é prefixo \(7 a 40 hexadecimais\) do commit `1e98025…` do \.mcp\.json/);
 });
 
 test("AC17: referência abreviada que é prefixo do commit aprova; uma ruim entre boas reprova", (t) => {
@@ -553,4 +553,112 @@ test("AC14: não escreve nada e só lê a lista fechada (nada em alvos/, saidas/
 test("AC14: o módulo não importa child_process nem rede", () => {
   const fonte = readFileSync(fileURLToPath(new URL("./verificar-integracoes.mjs", import.meta.url)), "utf8");
   assert.doesNotMatch(fonte, /node:(child_process|net|http|https|dgram|tls)|\bfetch\(|writeFile|appendFile|mkdir|rmSync|unlink/);
+});
+
+// ---------- gate @qa da fatia 1 (QA-1 a QA-7) ----------
+
+test("QA-1 (M6/M6b): nível com nome de propriedade herdada (constructor, __proto__, toString) reprova", (t) => {
+  for (const nivel of ["constructor", "__proto__", "toString", "hasOwnProperty"]) {
+    const achados = verificar(projeto(t, { ".claude/hooks/ghidra-niveis.json": mapa({ decompile_function: nivel }, { versao: "commit 1e98025" }) }));
+    assert.equal(achados.length, 1, `${nivel}: ${texto(achados)}`);
+    assert.equal(achados[0].campo, "ferramentas.decompile_function");
+    assert.match(achados[0].mensagem, new RegExp(`nível inválido \`${nivel}\` na tool \`decompile_function\``));
+  }
+});
+
+test("QA-2 (M10, QA-4): referência do runbook vazia, não hexadecimal ou com menos de 7 caracteres reprova; 7 ou mais aprova", (t) => {
+  for (const ref of ["", "zzzzzzz", "1e9802g", "1", "1e", "1e9", "1e98", "1e980", "1e9802"]) {
+    const achados = verificar(projeto(t, { "docs/runbook-prereqs-nativo.md": `GhidraMCP@${ref} \n` }));
+    assert.equal(achados.length, 1, `"${ref}": ${texto(achados)}`);
+    assert.equal(achados[0].arquivo, "docs/runbook-prereqs-nativo.md");
+    assert.match(achados[0].mensagem, /não é prefixo \(7 a 40 hexadecimais\)/);
+  }
+  for (const ref of ["1e98025", "1e980252", "1E980252087B", COMMIT])
+    assert.deepEqual(verificar(projeto(t, { "docs/runbook-prereqs-nativo.md": `GhidraMCP@${ref}\n` })), [], ref);
+});
+
+test("QA-4: commit do mapa do Ghidra com menos de 7 caracteres reprova (sem commit legível); 7 ou mais aprova", (t) => {
+  const comVersao = (versao) => ({ ...BASE[".claude/hooks/ghidra-niveis.json"], versao });
+  for (const c of ["1", "1e98", "1e9802"]) {
+    const achados = verificar(projeto(t, { ".claude/hooks/ghidra-niveis.json": comVersao(`GhidraMCP 2.0 (commit ${c})`) }));
+    assert.equal(achados.length, 1, `${c}: ${texto(achados)}`);
+    assert.equal(achados[0].campo, "versao");
+    assert.match(achados[0].mensagem, /sem commit legível/);
+  }
+  for (const c of ["1e98025", "1e9802520", COMMIT])
+    assert.deepEqual(verificar(projeto(t, { ".claude/hooks/ghidra-niveis.json": comVersao(`GhidraMCP 2.0 (commit ${c})`) })), [], c);
+});
+
+test("QA-3 (M19): pasta .claude/hooks ausente ou ilegível é falha, não ignorada", (t) => {
+  const ausente = projeto(t, { ".claude/hooks/rea-niveis.json": null, ".claude/hooks/ghidra-niveis.json": null, ".claude/hooks/rea-gate.mjs": null });
+  const a = verificar(ausente);
+  assert.ok(a.some((x) => x.arquivo === ".claude/hooks" && x.campo === "(pasta)" && /pasta ausente/.test(x.mensagem)), texto(a));
+  const arquivoNoLugar = projeto(t, { ".claude/hooks/rea-niveis.json": null, ".claude/hooks/ghidra-niveis.json": null, ".claude/hooks/rea-gate.mjs": null });
+  rmSync(join(arquivoNoLugar, ".claude", "hooks"), { recursive: true, force: true });
+  writeFileSync(join(arquivoNoLugar, ".claude", "hooks"), "não é pasta");
+  const b = verificar(arquivoNoLugar);
+  assert.ok(b.some((x) => x.arquivo === ".claude/hooks" && /pasta (ilegível|ausente)/.test(x.mensagem)), texto(b));
+  const injetada = verificarIntegracoes(projeto(t), { fs: { ...lerArquivosPadrao(projeto(t)), listar: () => ({ erro: "ilegível" }) } });
+  assert.ok(injetada.some((x) => x.arquivo === ".claude/hooks" && /pasta ilegível/.test(x.mensagem)), texto(injetada));
+});
+
+test("QA-3 (M26): args do ghidra no .mcp.json sem commit reprova (versão e runbook)", (t) => {
+  for (const args of [["--from", "git+https://github.com/LaurieWired/GhidraMCP@2.0", "ghidra-mcp"], ["--from", "git+https://github.com/LaurieWired/GhidraMCP", "ghidra-mcp"], "não é lista"]) {
+    const achados = verificar(projeto(t, { ".mcp.json": mcpCom({ ghidra: { command: "uvx", args } }) }));
+    const versao = achados.find((a) => a.contrato === CONTRATOS.versao);
+    assert.ok(versao, `${JSON.stringify(args)}: ${texto(achados)}`);
+    assert.equal(versao.arquivo, ".mcp.json");
+    assert.equal(versao.campo, "mcpServers.ghidra.args");
+    assert.match(versao.mensagem, /args do servidor ghidra sem referência GhidraMCP@<commit>/);
+    assert.ok(achados.some((a) => a.arquivo === "docs/runbook-prereqs-nativo.md" && /sem commit GhidraMCP@<commit> no \.mcp\.json/.test(a.mensagem)), texto(achados));
+  }
+});
+
+test("QA-5: matcher fora da forma reprova sem ser executado como regex (matcher patológico termina rápido)", (t) => {
+  const patologico = "(.*.*)*(.*.*)*(.*.*)*(.*.*)*Z";
+  const raiz = projeto(t, { ".claude/settings.json": settingsCom(patologico) });
+  const original = globalThis.RegExp;
+  const montadas = [];
+  globalThis.RegExp = new Proxy(original, {
+    construct(alvo, args) {
+      montadas.push(String(args[0]));
+      return Reflect.construct(alvo, args);
+    },
+  });
+  let achados;
+  const inicio = performance.now();
+  try {
+    achados = verificar(raiz);
+  } finally {
+    globalThis.RegExp = original;
+  }
+  assert.ok(performance.now() - inicio < 2000, "terminou rápido");
+  assert.ok(!montadas.some((s) => s.includes(patologico)), "nenhum RegExp montado com o matcher fora da forma");
+  assert.match(texto(achados), /fora da forma `mcp__\(n1\|n2…\)__\.\*`/);
+  assert.match(texto(achados), /servidor `rea` sem cobertura do matcher do gate/);
+  assert.match(texto(achados), /servidor `ghidra` sem cobertura do matcher do gate/);
+});
+
+test("QA-7: nomes longos de servidor, tool, nível, referência e matcher são cortados nas mensagens", (t) => {
+  const longo = "a".repeat(300);
+  const hexLongo = "f".repeat(300);
+  const cenarios = [
+    { ".mcp.json": mcpCom({ [longo]: { command: "x" } }) },
+    { ".claude/hooks/ghidra-niveis.json": mapa({ [longo]: "N1", ok: `N${"9".repeat(300)}`, [`b${" ".repeat(300)}`]: "N1" }, { versao: "commit 1e98025" }) },
+    { ".claude/hooks/ghidra-niveis.json": mapa({ [longo]: "" }, { versao: "commit 1e98025" }) },
+    { [`.claude/hooks/x${"b".repeat(200)}-niveis.json`]: mapa({ t1: "N1" }) },
+    { ".claude/settings.json": settingsCom(`mcp__(rea|ghidra|${longo})__.*`) },
+    { ".claude/settings.json": settingsCom(`${longo}*`) },
+    { "docs/runbook-prereqs-nativo.md": `GhidraMCP@${hexLongo}\n` },
+  ];
+  for (const trocas of cenarios) {
+    const achados = verificar(projeto(t, trocas));
+    assert.ok(achados.length > 0, JSON.stringify(Object.keys(trocas)));
+    for (const a of achados)
+      for (const linha of formatarAchado(a).split("\n")) {
+        assert.ok(linha.length <= 400, `linha longa (${linha.length}): ${linha.slice(0, 120)}`);
+        assert.ok(!linha.includes(longo.slice(0, 61)) && !linha.includes(hexLongo.slice(0, 61)), `nome inteiro ecoado: ${linha.slice(0, 120)}`);
+      }
+    assert.ok(achados.some((a) => formatarAchado(a).includes("…")), "reticências no corte");
+  }
 });

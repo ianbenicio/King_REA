@@ -7,6 +7,15 @@
 // Não corrige nada, não grava arquivo, não usa rede, não executa o REA nem o Ghidra e só lê a lista fechada
 // ARQUIVOS_FIXOS mais os mapas .claude/hooks/<servidor>-niveis.json (nunca alvos/, saidas/ nem registros/<slug>/).
 //
+// Decisões do gate @qa da fatia 1 (2026-11-04):
+// - QA-4: commit abreviado tem no mínimo 7 caracteres hexadecimais, tanto no campo `versao` do mapa do Ghidra
+//   (AC7) quanto em cada referência GhidraMCP@<ref> do runbook (ponto 8, AC17); o .mcp.json já exige 7 a 40.
+//   Referência vazia, não hexadecimal ou com 1 a 6 caracteres reprova, mesmo sendo prefixo do commit.
+// - QA-5: o matcher só é testado como regex quando já está na forma mcp__(n1|n2…)__.* com nomes [a-z0-9-]+;
+//   fora dela reprova direto, sem executar RegExp sobre texto arbitrário (sem risco de regex patológica).
+// - QA-7: nomes vindos dos arquivos lidos (servidor, tool, nível, referência, matcher) entram nas mensagens
+//   cortados em 60 caracteres, com reticências; arquivo e campo do achado também têm teto (AC9, R4).
+//
 // Uso: node scripts/integracoes/verificar-integracoes.mjs
 // Código de saída: 0 sem achado · 1 com achado.
 import { readdirSync, readFileSync } from "node:fs";
@@ -152,9 +161,19 @@ const lerTexto = (fs, rel, contrato, achados) => {
   return String(r.texto);
 };
 
+/** Teto de um nome vindo de arquivo lido dentro de uma mensagem (QA-7). */
+export const MAX_NOME = 60;
+/** Corta o texto em `max` caracteres, com reticências. */
+export const corta = (texto, max = MAX_NOME) => {
+  const s = String(texto);
+  return s.length > max ? `${s.slice(0, max - 1)}…` : s;
+};
+// Commit abreviado: 7 a 40 hexadecimais (QA-4).
+const COMMIT = /^[0-9a-f]{7,40}$/i;
+
 const ehObjeto = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
-const crase = (lista) => lista.map((s) => `\`${s}\``).join(", ");
-const mapaDe = (servidor) => `${HOOKS}/${servidor}-niveis.json`;
+const crase = (lista) => lista.map((s) => `\`${corta(s)}\``).join(", ");
+const mapaDe = (servidor) => `${HOOKS}/${corta(servidor)}-niveis.json`;
 const abreviado = (commit) => `${commit.slice(0, 7)}…`;
 
 /** Commit completo do GhidraMCP nos args do servidor ghidra do .mcp.json, ou undefined. */
@@ -178,6 +197,9 @@ function conferirMatcher(settings, servidores, achados) {
     return;
   }
   const citados = new Set();
+  // Só os matchers na forma entram no teste de cobertura (QA-5): fora dela, nenhum RegExp é montado.
+  /** @type {string[]} */
+  const naForma = [];
   for (const { e, i } of doGate) {
     const matcher = typeof e.matcher === "string" ? e.matcher : "";
     const forma = matcher.match(FORMA_MATCHER);
@@ -186,30 +208,33 @@ function conferirMatcher(settings, servidores, achados) {
         contrato: CONTRATOS.matcher,
         arquivo: SETTINGS,
         campo: `hooks.PreToolUse[${i}].matcher`,
-        mensagem: `matcher "${matcher.slice(0, 80)}" fora da forma \`mcp__(n1|n2…)__.*\` com nomes em [a-z0-9-]+: cobertura não conferível, reprovado por segurança`,
+        mensagem: `matcher "${corta(matcher)}" fora da forma \`mcp__(n1|n2…)__.*\` com nomes em [a-z0-9-]+: cobertura não conferível, reprovado por segurança`,
       });
-    else for (const n of forma[1].split("|")) citados.add(n);
+    else {
+      naForma.push(matcher);
+      for (const n of forma[1].split("|")) citados.add(n);
+    }
   }
   if (!servidores) return;
   for (const servidor of Object.keys(servidores)) {
-    if (!doGate.some(({ e }) => cobreServidor(typeof e.matcher === "string" ? e.matcher : "", servidor)))
+    if (!naForma.some((matcher) => cobreServidor(matcher, servidor)))
       achados.push({
         contrato: CONTRATOS.matcher,
         arquivo: SETTINGS,
         campo: "hooks.PreToolUse[].matcher",
-        mensagem: `integração incompleta: servidor \`${servidor}\` sem cobertura do matcher do gate (mcp__${servidor}__* ficaria sem trava)`,
+        mensagem: `integração incompleta: servidor \`${corta(servidor)}\` sem cobertura do matcher do gate (as tools dele ficariam sem trava)`,
       });
   }
   for (const n of citados)
     if (!Object.hasOwn(servidores, n))
-      achados.push({ contrato: CONTRATOS.matcher, arquivo: SETTINGS, campo: "hooks.PreToolUse[].matcher", mensagem: `matcher cita o servidor \`${n}\`, que não está configurado em .mcp.json` });
+      achados.push({ contrato: CONTRATOS.matcher, arquivo: SETTINGS, campo: "hooks.PreToolUse[].matcher", mensagem: `matcher cita o servidor \`${corta(n)}\`, que não está configurado em .mcp.json` });
 }
 
 function mensagemMapaOrfao(arquivo, servidor, servidoresMcp, sobrando) {
   const divergente = sobrando.length ? `dar o mesmo nome aos dois; o .mcp.json tem ${crase(sobrando)} sem mapa` : "dar o mesmo nome aos dois";
   return [
     `integração incompleta: mapa ${arquivo} sem servidor no .mcp.json`,
-    `  servidor derivado do nome: \`${servidor}\` (mcp__${servidor}__); servidores do .mcp.json: ${crase(servidoresMcp) || "(nenhum)"}`,
+    `  servidor derivado do nome: \`${corta(servidor)}\` (mcp__${corta(servidor)}__); servidores do .mcp.json: ${crase(servidoresMcp) || "(nenhum)"}`,
     "  causas prováveis e solução:",
     `  - servidor removido do .mcp.json e mapa esquecido → apagar o mapa e tirar o servidor do matcher (${SETTINGS})`,
     `  - nome do servidor divergente entre o mapa e a chave do .mcp.json → ${divergente}`,
@@ -226,18 +251,18 @@ function conferirMapa(arquivo, mapa, achados) {
   const temNiveis = ehObjeto(mapa.niveis) && Object.keys(mapa.niveis).length > 0;
   if (!temNiveis) achados.push({ contrato: CONTRATOS.mapa, arquivo, campo: "niveis", mensagem: "mapa sem `niveis`: os níveis das tools não podem ser conferidos" });
   for (const [tool, nivel] of Object.entries(mapa.ferramentas)) {
-    const campo = `ferramentas.${tool}`;
+    const campo = `ferramentas.${corta(tool)}`;
     if (!NOME_TOOL.test(tool)) {
-      achados.push({ contrato: CONTRATOS.mapa, arquivo, campo, mensagem: `nome de tool \`${tool.slice(0, 60)}\` fora de ^[A-Za-z0-9_-]+$` });
+      achados.push({ contrato: CONTRATOS.mapa, arquivo, campo, mensagem: `nome de tool \`${corta(tool)}\` fora de ^[A-Za-z0-9_-]+$` });
       continue;
     }
     if (tool in {}) {
       achados.push({ contrato: CONTRATOS.mapa, arquivo, campo, mensagem: `nome de tool \`${tool}\` colide com propriedade herdada de objeto` });
       continue;
     }
-    if (typeof nivel !== "string" || nivel === "") achados.push({ contrato: CONTRATOS.mapa, arquivo, campo, mensagem: `tool \`${tool}\` sem nível (classificação ausente, vazia ou que não é texto)` });
+    if (typeof nivel !== "string" || nivel === "") achados.push({ contrato: CONTRATOS.mapa, arquivo, campo, mensagem: `tool \`${corta(tool)}\` sem nível (classificação ausente, vazia ou que não é texto)` });
     else if (temNiveis && !Object.hasOwn(mapa.niveis, nivel))
-      achados.push({ contrato: CONTRATOS.mapa, arquivo, campo, mensagem: `nível inválido \`${nivel.slice(0, 20)}\` na tool \`${tool}\`: não existe em \`niveis\` do mapa` });
+      achados.push({ contrato: CONTRATOS.mapa, arquivo, campo, mensagem: `nível inválido \`${corta(nivel)}\` na tool \`${corta(tool)}\`: não existe em \`niveis\` do mapa` });
   }
 }
 
@@ -299,9 +324,9 @@ function conferirGuia(fs, servidores, achados) {
   for (const servidor of Object.keys(servidores)) {
     const nome = servidor.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     if (!new RegExp(`(^|[^A-Za-z0-9_-])${nome}([^A-Za-z0-9_-]|$)`).test(texto))
-      achados.push({ contrato: CONTRATOS.documentacao, arquivo: GUIA, campo: `servidor ${servidor}`, mensagem: `servidor \`${servidor}\` do .mcp.json não citado em ${GUIA}` });
+      achados.push({ contrato: CONTRATOS.documentacao, arquivo: GUIA, campo: `servidor ${corta(servidor)}`, mensagem: `servidor \`${corta(servidor)}\` do .mcp.json não citado em ${GUIA}` });
     if (!texto.includes(`${servidor}-niveis.json`))
-      achados.push({ contrato: CONTRATOS.documentacao, arquivo: GUIA, campo: `mapa ${servidor}-niveis.json`, mensagem: `${GUIA} não cita o mapa \`${servidor}-niveis.json\` do servidor \`${servidor}\`` });
+      achados.push({ contrato: CONTRATOS.documentacao, arquivo: GUIA, campo: `mapa ${corta(servidor)}-niveis.json`, mensagem: `${GUIA} não cita o mapa \`${corta(servidor)}-niveis.json\` do servidor \`${corta(servidor)}\`` });
   }
 }
 
@@ -319,12 +344,12 @@ function conferirRunbook(fs, servidores, achados) {
     return;
   }
   for (const ref of new Set(refs))
-    if (!/^[0-9a-f]+$/i.test(ref) || !commit.startsWith(ref.toLowerCase()))
+    if (!COMMIT.test(ref) || !commit.startsWith(ref.toLowerCase()))
       achados.push({
         contrato: CONTRATOS.documentacao,
         arquivo: RUNBOOK,
-        campo: `GhidraMCP@${ref.slice(0, 40)}`,
-        mensagem: `referência \`GhidraMCP@${ref.slice(0, 40)}\` não é prefixo do commit \`${abreviado(commit)}\` do .mcp.json (mcpServers.ghidra.args)`,
+        campo: `GhidraMCP@${corta(ref)}`,
+        mensagem: `referência \`GhidraMCP@${corta(ref)}\` não é prefixo (7 a 40 hexadecimais) do commit \`${abreviado(commit)}\` do .mcp.json (mcpServers.ghidra.args)`,
       });
 }
 
@@ -380,11 +405,11 @@ export function verificarIntegracoes(raiz, { fs = lerArquivosPadrao(raiz) } = {}
         achados.push({
           contrato: CONTRATOS.mcp,
           arquivo: MCP,
-          campo: `mcpServers.${servidor}`,
-          mensagem: `servidor \`${servidor}\` com nome fora de [a-z0-9-]+ (o conjunto do gate): o tratamento desse nome pelo Claude Code não é documentado`,
+          campo: `mcpServers.${corta(servidor)}`,
+          mensagem: `servidor \`${corta(servidor)}\` com nome fora de [a-z0-9-]+ (o conjunto do gate): o tratamento desse nome pelo Claude Code não é documentado`,
         });
       if (lista.erro === undefined && !nomesMapas.includes(servidor))
-        achados.push({ contrato: CONTRATOS.mapa, arquivo: mapaDe(servidor), campo: "(arquivo)", mensagem: `integração incompleta: servidor \`${servidor}\` sem mapa de níveis (o gate negaria toda tool dele)` });
+        achados.push({ contrato: CONTRATOS.mapa, arquivo: mapaDe(servidor), campo: "(arquivo)", mensagem: `integração incompleta: servidor \`${corta(servidor)}\` sem mapa de níveis (o gate negaria toda tool dele)` });
     }
     const sobrando = nomesMcp.filter((s) => !nomesMapas.includes(s));
     for (const servidor of nomesMapas)
@@ -407,7 +432,8 @@ export function verificarIntegracoes(raiz, { fs = lerArquivosPadrao(raiz) } = {}
   conferirModelo(fs, achados);
   conferirGuia(fs, servidores, achados);
   conferirRunbook(fs, servidores, achados);
-  return achados;
+  // Arquivo e campo vêm de nomes lidos (mapa, tool, referência): teto também neles (QA-7).
+  return achados.map((a) => ({ ...a, arquivo: corta(a.arquivo, 2 * MAX_NOME), campo: corta(a.campo, 2 * MAX_NOME) }));
 }
 
 if (import.meta.main) {
