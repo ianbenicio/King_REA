@@ -1,103 +1,110 @@
-# Plano de execução — etapa 3 do plano de evolução: E3-1 (MEL-05, fatia 1)
+# Plano de execução — melhorias do comparativo craft-anything (unidade CRAFT)
 
 <!--
-Saída da Fase 0 (Harness D5, D30; skill fase-0). Unidade E3-1 do prompt de abertura enviado pela sessão
-local_a61030e0. O plano anterior (E3-0, preparação) está em docs/planos/2026-11-04-e3-0-preparo-mel05.md.
+Saída da Fase 0 (Harness D5, D30; skill fase-0). Plano anterior (E3-0, preparo da MEL-05) arquivado em
+docs/planos/2026-11-04-e3-0-preparo-mel05.md. A fatia 1 da MEL-05 (PR #12) escreve o plano dela no mesmo
+caminho; ao entrar o PR #12 no main, este conflito de arquivo se resolve arquivando o plano da E3-1 em
+docs/planos/ e mantendo este.
 -->
 
-**Data:** 2026-11-04 · **Sessão:** `b9cc59a4` (abertura 13:21) · **Projeto:** PRKing_REA · **Branch/commit:** `main` @ `a431045`, igual ao `origin/main`; a branch de trabalho será `feat/e3-1-integracoes`
+**Data:** 2026-11-04 · **Sessão:** `ece8c99e` (abertura 17:30), iniciada pela sessão `local_a61030e0` · **Projeto:** PRKing_REA · **Branch/commit:** `claude/craft-melhorias-852ea7` a partir de `main` @ `a431045` (igual ao `origin/main` no início)
 
 ## 0. Sessão concorrente
 
-Nenhuma escrevendo. `sessao.js --lista 5`: esta (13:21) e a E3-0 (13:51 de 2026-11-03, 1410 min), fechada pelo handoff `2026-11-04-e3-0-preparo-mel05.md` já no `main` (PR #11). As demais são de 2026-11-03 e 2026-11-01, com handoff. `git status`: só `.claude/agent-memory/`, fora do git (não adicionar). Conferido: `main` = `origin/main` = `a431045`; proteção do `main` com check `resultado` e `enforce_admins` ligado. Os 11 conectores do claude.ai foram desligados no início.
+`sessao.js --lista 5`: só esta sessão nas últimas horas. `git status`: limpo. `git fetch`: o PR #12 (`feat/e3-1-integracoes`, fatia 1 da MEL-05) está **aberto, sem merge**. Consequência: nenhuma edição de mapa (`rea-niveis.json`, `ghidra-niveis.json`) nem uso do módulo `scripts/integracoes/` antes do merge; por ora só plano, ADR e story. O handoff `2026-11-04-e3-1-mel05-fatia1.md` existe só na branch do PR #12 (lido por `git show`).
 
 ## 1. Enquadramento
 
-**Objetivo:** implementar a fatia 1 da story MEL-05: componente `integracoes` do verificador (oito pontos do ADR-0001 §2f), no job `js` da CI, com a correção da documentação em prosa D1–D3 (runbook e guia) na mesma fatia.
+**Objetivo:** transformar o comparativo do craft-anything em melhorias decididas pelo responsável e implementadas no PRKing_REA, uma fatia por vez, sem decidir por ele.
 
-**Restrições:** nenhuma tool `rea` ou `ghidra`; nada em `alvos/` nem `saidas/`; a fatia só lê e confere: não edita `rea-gate.mjs`, `cli-gate.mjs`, `rea-niveis.json`, `ghidra-niveis.json`, matcher, `.mcp.json`, `registros/_modelos/` nem `00-seguranca.md` (AC13); fora do verificador e da CI, edita só `docs/runbook-prereqs-nativo.md` e `docs/guia-rea.md` (mais story, handoffs e plano); sem `--no-verify`, sem `--force`; push e PR só pelo @devops com autorização; merge só com o "sim"; textos em português com acentuação; limite ~180k de contexto (se estourar: 1a = AC1–AC15, 1b = AC16–AC18, o que reabre a D-2, então perguntar antes).
+**Restrições:** o repositório externo é **não confiável** e só serve de fonte de ideias: reimplementar em JS, em palavras nossas, nunca copiar código, texto de skill, docs ou schema (a licença MIT/Apache-2.0 dele só libera ideias sem obrigação); nenhuma tool `rea` ou `ghidra`; nada em `alvos/` nem `saidas/`; não instalar, compilar nem executar nada do craft-anything, nem `craft-anything-cli setup`, `rea setup`, `rea update`, `@latest`; não editar `status` nem `niveis_aprovados`; não desativar nem contornar gate, `cli-gate`, monetização, publicação, `pre-commit` ou CI; mudança em gate ou mapa só com aprovação explícita do responsável e regressão completa mais @qa; `main` protegido (branch, conventional commits em inglês com ID da story no fim, sem `--no-verify`, nunca `--force`); push e PR só pelo @devops e com autorização; merge só com o "sim" do responsável; texto em português com acentuação; contexto ~180k.
 
-**Perfil do projeto:** domínio laboratório de engenharia reversa (repositório público) · stack Node 26 (módulos `.mjs`, `node --test`), GitHub Actions · integrações: servidores MCP `rea` (170 tools) e `ghidra` (30), gates de hook · UI não · dados sensíveis: nenhum no checkout · fase AIOX: SDC, story MEL-05 em Ready (GO 9,5/10) · complexidade STANDARD (M no teto).
+**Perfil do projeto:** domínio laboratório de engenharia reversa (repositório público) · stack Node 26, hooks do Claude Code, JSON de mapas, GitHub Actions · integrações: MCP `rea` (170 tools) e `ghidra` (30), gates `rea-gate.mjs` e `cli-gate.mjs` · UI não · dados sensíveis nenhum no checkout · fase AIOX: SDC (story MEL-05, fatias 2 a 5) · complexidade STANDARD; a opção C do comparativo (ledger) seria COMPLEX.
 
 **Dúvidas:**
 
 | Dúvida | Resolvida? | Resposta / quando resolver |
 |---|---|---|
-| P-6: runbook sem referência `GhidraMCP@`, o ponto 8 aprova ou reprova? | aberta | Pergunta ao responsável antes de implementar (recomendação @po: reprova, fail-closed) |
-| `runbook-prereqs-nativo.md:100` (diz que falta registrar `ghidra`) entra na fatia 1? | aberta | Pergunta ao responsável (amplia a D-2) |
-| D-3: semântica do matcher no Claude Code | aberta | @architect confirma antes de fechar o AC2; não impede o início |
-| P-7 e ADR §6 (2, 4, 5, 7, 8, 9, 10) | aberta | Não bloqueiam a fatia 1; responsável decide quando quiser, registro no handoff |
+| Opção do comparativo (0, A, B, C) | aberta | pergunta ao responsável, antes de qualquer código |
+| 8 perguntas abertas da seção 7 do comparativo | aberta | mesma pergunta (recomendação minha em cada) |
+| ADR §6 itens 7 e 9 e P-7 (bloqueiam a fatia 2) | aberta | mesma pergunta |
+| `LICENSE` ausente na raiz do repositório público | aberta | achado lateral; decisão do responsável sobre qual licença (não crio sem ele) |
+| Hook PostToolUse pode alterar saída de tool MCP na versão do Claude Code em uso? | aberta | só importa para a opção B; verificar na documentação antes de prometer |
+| PR #12 entra no main quando? | aberta | depende do responsável; bloqueia edição de mapa |
 
 ## 2. Precedentes (Engram)
 
-**Consultas:**
+**Consultas** (`vault_deep_query_tool`, `synthesize: false`, cross-projeto):
 
 | Texto da consulta | Resultados | Relevância (mín–máx) |
 |---|---|---|
-| verificador de consistência MCP/matcher/mapas/documentação; teste de equivalência de regex de gate; componente novo no job `js` | 7 | 0,509–0,524 |
-| matcher de hook PreToolUse `mcp__servidor__`; reimplementar regras de leitura com teste de equivalência em subprocesso | 7 | 0,506–0,544 |
+| contrato de tool com efeitos declarados e marca de proveniência do alvo em resultados de tool MCP, gate de hook fail-closed, prompt injection de alvo de engenharia reversa | 7 | 0,50–0,55 |
+| análise de repositório externo comparativo sala limpa licença ideias reimplementadas sem copiar código | 7 | 0,50–0,50 |
 
-**Usados:**
+A segunda consulta não trouxe nenhuma nota do mesmo domínio além das do próprio projeto: **não há precedente de análise de repositório externo com licença aberta e sala limpa de ideias**.
+
+**Usados** (julgados só pelo `tldr` e pelo trecho devolvido; não li as notas inteiras):
 
 | Nota (id) | O que diz | Força (D10) | Pré-condição vale aqui? | Efeito no plano |
 |---|---|---|---|---|
-| `gate-de-tools-mcp-por-n-vel-de-risco-com-hook-pretooluse-fai` (0,544) | Padrão do gate: mapa `<servidor>-niveis.json` por servidor, hook fail-closed; toda tool do catálogo no mapa | relatada | sim: é o contrato que o componente confere (mesmo repositório, `rea-gate.mjs:63-85`) | O componente trata mapa sem servidor, servidor sem mapa e tool sem nível como falha, nunca como aviso |
-| `conferir-hash-do-alvo-na-admiss-o-em-gate-pretooluse-manifes` (0,521) | Seção "Identidade dos arquivos" estrita, lida por regex pelo gate | relatada | sim: é a regra que o AC8 reimplementa | Teste de equivalência do AC8 prende o componente à leitura real do gate |
-| `verifica-o-local-com-tr-s-estados-e-global-json-resolvido-pe` (0,518) | Verificador agregado separa aprovado, falhou e não executado (requisito ausente), saída não zero quando incompleto | relatada | sim: MEL-03, mesma estrutura do `verificar.mjs` | `depende: ["ambiente-node"]`, "não executado nunca é verde" (AC12) |
+| `gate-de-tools-mcp-por-n-vel-de-risco-com-hook-pretooluse-fai` | Mapa de nível por servidor MCP, hook fail-closed, trava paralela no terminal | relatada | sim: é deste projeto; o padrão supõe mapa que cobre todo o catálogo | qualquer atributo novo (`efeitos`, `conteudo_do_alvo`) fica no mapa existente e é **só verificado**, nunca afrouxa o gate |
+| `conferir-hash-do-alvo-na-admiss-o-em-gate-pretooluse-manifes` | Gate confere SHA-256 na admissão; não cobre TOCTOU nem sessão global (Ghidra) | relatada | parcial: vale para o desenho do gate; não conferi o código | confirma que a nossa autorização por alvo e hash está à frente do craft-anything; nada a importar dele nesse ponto |
+| `perfil-do-alvo-em-3-eixos-sugere-pacote-de-recursos-piloto-n` | Tipo escolhe ferramentas, objetivo escolhe protocolos; pacote só orienta no piloto | relatada | sim: é a P-U5 do `rea-niveis.json` | a taxonomia de toolsets (comparativo §4.4) entra, se entrar, como vocabulário de `familia`, sem filtrar tools e sem tocar o gate; coordenação com a P-U5 antes de editar `rea-niveis.json` |
+| `padr-o-verificar-cobertura-existente-antes-de-adotar-feature` | Antes de adotar feature validada fora, checar o que o código já cobre | relatada | sim | antes do ADR, conferir no REA 6.4.0 o que já cobre cada ideia (ex.: `build_reconstruction_obligation_ledger`, anotações MCP de efeito); o comparativo já aponta que o REA tem o ledger |
 
-**Descartados:** `padr-o-verificar-cobertura-existente-antes-de-adotar-feature` — genérico, já feito no ADR (levantamento); demais notas (DESPENSA, Fezinha, classmate-connect) — outros projetos, sem relação.
+**Descartados:** `prking-rea-projeto-de-engenharia-reversa-com-rea-no-claude-c` (contexto geral, já no CLAUDE.md) · `prking-rea-pilha-de-engenharia-reversa-de-games-em-volta-do` (games, fora do escopo) · `piloto-de-valida-o-de-um-protocolo-de-an-lise-de-monetiza-o` (monetização) · `despensa-auditoria-de-c-digo-riscos-e-usabilidade-2026-07-31`, `consumo-engram-vs-claude-mem-comparativo-snapshot-2026-06-16`, `fezinha-desenvolvimento-paralelo-claude-codex-worktrees`, `conte-do-perdido-em-compacta-o-pode-estar-recuper-vel-no-tra`, `rea-6-4-0-store-de-evid-ncias-some-no-close-binary-e-na-reco` (outro domínio).
 
 ## 3. Plano preliminar
 
-**Workflow AIOX:** SDC fase 3 (implementar) e 4 (QA gate) sobre a story MEL-05 já em Ready; fases 1 e 2 feitas na E3-0.
+**Workflow AIOX:** SDC por fatia da MEL-05, precedido de um documento de decisão (adendo ao ADR-0001 ou ADR novo, @architect). Motivo: o comparativo mexe em contrato de mapa e, na opção B, em configuração persistente; o plano exige decisão antes de alterar contratos. Spec Pipeline não se aplica: as fontes já existem (ADR, story).
 
-**Unidades de sessão (D9):**
+**Unidades de sessão (D9)** — preliminares; as unidades 2 em diante dependem da resposta do responsável:
 
 | # | Unidade | Fase / executor | Entrega | Critério de aceitação preliminar | Limite de contexto |
 |---|---|---|---|---|---|
-| 1 | Fase 0, estado de partida e perguntas | esta sessão | este plano; respostas do responsável no handoff | P-6, `:100` respondidas; D-3 confirmada ou pressuposto aceito | ~180k |
-| 2 | Implementação com testes primeiro | SDC 3 / @dev | `scripts/integracoes/verificar-integracoes.mjs` + teste; `verificar.mjs`, `agregar-ci.mjs`, `verificacao.yml`, `package.json`; runbook e guia corrigidos | AC1–AC18 com evidência; `npm test` verde | idem |
-| 3 | QA gate | SDC 4 / @qa | gate PASS/CONCERNS/FAIL na story | 7 verificações; AC13 por `git diff --name-only` | idem |
-| 4 | Fechamento | esta sessão | handoff `docs/handoffs/2026-11-04-e3-1-*.md`, estado geral, story | pergunta sobre branch, PR e merge | idem |
+| 0 | Fase 0, perguntas ao responsável, registro das respostas | principal | `docs/plano-de-execucao.md`, handoff com as respostas | respostas registradas literalmente; nenhuma decisão minha | ~180k |
+| 1 | Documento de decisão (adendo ao ADR-0001 ou ADR novo) com a opção escolhida, o vocabulário de `efeitos`, a inspiração citada (link e data, sem tratar como dependência) | Create / @architect | `docs/adr/…` | cada decisão rastreada ao comparativo e à resposta do responsável; sem texto do craft-anything | ~180k |
+| 2 | Story/fatia 2 da MEL-05 ampliada (atributos `efeitos` e `conteudo_do_alvo`) criada e validada | Create + Validate / @sm, @po | story atualizada, GO ≥ 7/10 | ACs Given/When/Then; "não faz" explícito; coordenação P-U5 | ~180k |
+| 3 | Implementação da fatia 2 (só depois do merge do PR #12 e da aprovação de editar mapas) | Implement / @dev (testes primeiro), @qa gate | mapas, verificador, testes | `npm test` e `npm run verificar` verdes; diff não toca gate nem `settings.json`; regressão completa dos gates; mutações no verificador | ~180k |
+| 4 | Documentação sem tocar o gate (método de evidência §4.5, "verificado / não verificado" §4.8, armadilhas de licença §4.9), se o responsável escolher | Implement / @dev | modelos, `docs/` | `npm test`; nada copiado do craft-anything | ~180k |
+| 5 | (só opção B) hook PostToolUse de proveniência | Implement / @dev + @qa | hook novo, `settings.json` | só com aprovação explícita; decisão fail-open/fechado dele; regressão completa | ~180k |
+| 6 | (só opção C) ledger de obrigações | Spec Pipeline, nova story | story | fora desta unidade; vira etapa 4 ou 5 | — |
 
-**Capacidades por fase** (fonte: `H:\King\Harness\docs\catalogo\`, não relido nesta unidade; uso o que o prompt de abertura fixou):
+**Capacidades por fase** (fonte: Harness `mapa-fases.md`; não reli o catálogo, uso o que a tarefa e o CLAUDE.md fixam):
 
 | Fase | Ativo | Sob demanda | Não carregar | Como ligar o que falta |
 |---|---|---|---|---|
-| Implementação | subagente `aiox-dev`, Read/Edit/Bash | `aiox-architect` (D-3) | skills de design, conectores claude.ai | nada |
-| QA | subagente `aiox-qa` | — | idem | nada |
-| Envio | `aiox-devops` e ferramentas ccd_pr | — | `/loop`, polling de CI | só com autorização do responsável |
+| Fase 0 e perguntas | Engram, AskUserQuestion | — | conectores claude.ai (desligados), tools `rea`/`ghidra` | nada |
+| Decisão e story | subagentes `aiox-architect`, `aiox-sm`, `aiox-po` | Engram | `rea`, `ghidra` | nada |
+| Implementação e gate | `aiox-dev`, `aiox-qa`, `npm test`, `npm run verificar` | Engram | `rea`, `ghidra`, `cso` | nada |
+| Envio | `aiox-devops` (só com autorização), ccd_pr | — | polling de CI | nada |
 
 **Verificações:**
 
 | Entrega | Como provar |
 |---|---|
-| Componente e testes | `node --test scripts/integracoes/` e `npm test` verdes (Docker para os 5 do gitleaks) |
-| Integração à CI | `workflow-ci.test.mjs` verde; `node scripts/verificar/verificar.mjs --so integracoes` aprovando o repositório real |
-| Ponto 8 | componente reprova fixture com `GhidraMCP@2.0` e aprova o runbook corrigido |
-| Limites | `git diff --name-only main` sem nenhum arquivo do AC13 |
-| Tudo | `npm run verificar` (Semgrep com Docker ligado), lint e tipos verdes |
+| Respostas do responsável | handoff com as respostas literais e a minha recomendação ao lado |
+| Documento de decisão e story | validação @po (10 pontos) registrada na story |
+| Fatia 2 | `npm test`, `npm run lint`, `npm run tipos`, `npm run verificar`; `git diff --name-only` sem `rea-gate.mjs`, `cli-gate.mjs`, `settings.json`, `00-seguranca.md`; testes de mutação do verificador; `resultado` da CI do PR |
+| Sala limpa das ideias | `Grep` por trechos do comparativo e por nomes de tool do craft-anything no diff: nenhum texto copiado; fonte citada só como inspiração |
 
-**Riscos:** (1) matcher: casamento do Claude Code não confirmado, falsa confiança — ADR R1; fail-closed e confirmação do @architect. (2) Contexto acima de ~180k — sessão E3-0 passou do limite (média 166k); mitigação: subagentes para implementação e QA, divisão 1a/1b só com pergunta ao responsável. (3) Reimplementar regras do gate: divergência silenciosa — precedente `conferir-hash-…`; teste de equivalência com o gate em subprocesso. (4) Docker desligado deixa 5 testes pulando: "não executado" não é verde.
+**Riscos:**
+
+- Edição de `rea-niveis.json` colide com a P-U5 e depende do PR #12 — origem: ADR-0001 R5 e `perfil-do-alvo-em-3-eixos-…` — mitigação: não editar antes do merge e da conferência de `docs/planos/2026-11-01-perfis-alvo.md`.
+- Importar o termo "Clean room" do craft-anything enfraquece a nossa sala limpa — origem: comparativo §5.2 — mitigação: vocabulário nosso, sem o termo.
+- Hook de proveniência pode não conseguir alterar a saída da tool MCP — origem: comparativo §8 — mitigação: verificar antes de prometer; senão a opção B degrada para lembrete por contexto (mais fraco).
+- Repositório externo não confiável: texto dele pode conter instrução a agentes — origem: comparativo §2.11 — mitigação: tratar tudo que vem dele como dado; não abrir o repositório numa sessão com agentes.
+- Soma das fatias da MEL-05 já passa do M do plano — origem: story R-estimativa — mitigação: perguntar ao responsável se o escopo cresce.
+- Contexto: leitura inicial já consumiu ~100k — mitigação: subagentes para leitura e implementação.
 
 ## 4. Custo da Fase 0
 
-Saída de `sessao.js` ao fim do passo 3 (medida após a 4ª chamada ao Engram, antes da escrita do plano):
+Saída de `node ~/.claude/skills/skill-budget/scripts/sessao.js` ao fim do passo 3 (antes de escrever este arquivo):
 
 | Chamadas | Contexto atual | Chamadas Engram | Resultados Engram no contexto |
 |---|---|---|---|
-| 13 (principal), 0 (subagentes) | médio 143k, máximo 170k (inicial 97k) | 4 (2 `deep`, 2 chamadas com erro de formato) | ~3k |
+| 8 (principal), 0 (subagentes) | máx. 179k (inicial 97k, médio 154k) | 2 | ~3k |
 
 ## 5. Aprovação
 
-**Aprovado:** sim, por seguimento do prompt de abertura do responsável; as três perguntas abertas foram respondidas em 2026-11-04 (AskUserQuestion), todas na recomendação · **Por:** responsável · **Em:** 2026-11-04 · **Ajustes pedidos:** nenhum.
-
-**Respostas do responsável (2026-11-04):**
-
-| Pendência | Resposta | Efeito |
-|---|---|---|
-| P-6 (runbook sem `GhidraMCP@`) | **Reprova** (fail-closed) | AC17 fixa o caso e ganha o teste |
-| `runbook-prereqs-nativo.md:100` | **Corrigir na fatia 1** (amplia a D-2) | AC18 (a) cobre a linha 100 |
-| D-3 (matcher) | **Aceita o pressuposto fail-closed** do AC2 | AC2 fecha com o pressuposto, mais o relatório do @architect |
-
-**D-3 — relatório do @architect** (`side-session-notes/…/d3-matcher-claude-code.md`; fonte: hooks reference do Claude Code): matcher só com `[A-Za-z0-9_\- ,|]` é lista de nomes exatos; qualquer outro caractere é regex JavaScript, testada com `RegExp.prototype.test` (**parcial, sem âncora**); `*`/vazio casa tudo; servidor de plugin vira `mcp__plugin_<plugin>_<servidor>__<tool>`, que o matcher atual nunca pega. A confirmar (não documentado): `_` dentro do nome do servidor. O pressuposto do AC2 coincide com a documentação.
+**Aprovado:** o responsável respondeu às 11 perguntas e escolheu seguir com ADR e story enquanto o PR #12 não entra (resposta a "Como seguir até lá?"); não houve pergunta separada de "aprovo o plano". · **Por:** responsável · **Em:** 2026-11-04 · **Ajustes pedidos:** nenhum. Respostas registradas em `docs/handoffs/2026-11-04-craft-melhorias.md` §1. **Efeito no plano:** opção A. As unidades 5 (hook de proveniência) e 6 (ledger) ficam **fora**. A unidade 4 (documentação) entra na fatia 2 ou em fatia à parte da MEL-05; a unidade 3 só depois do merge do PR #12.
