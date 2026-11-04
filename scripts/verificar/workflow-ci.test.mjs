@@ -18,8 +18,8 @@ const semComentarios = YAML.split("\n").filter((l) => !/^\s*#/.test(l)).join("\n
 const conta = (re) => [...semComentarios.matchAll(re)].length;
 
 /** Seções dos jobs: id → texto (do "  <id>:" até o próximo job). */
-function jobsDoYaml() {
-  const corpo = semComentarios.slice(semComentarios.indexOf("\njobs:\n") + 7);
+function jobsDoYaml(yaml = semComentarios) {
+  const corpo = yaml.slice(yaml.indexOf("\njobs:\n") + 7);
   const secoes = new Map();
   let atual;
   for (const linha of corpo.split("\n")) {
@@ -55,9 +55,33 @@ test("cada job roda o verificador com o --so igual aos componentes do agregador 
   }
 });
 
+/** Jobs cujo --so no YAML difere dos componentes do agregador (as duas pontas que o teste acima prende). */
+function soDivergente(yaml, jobs) {
+  const secoes = jobsDoYaml(yaml);
+  return jobs
+    .filter((job) => {
+      const so = [...(secoes.get(job.id) ?? "").matchAll(/node scripts\/verificar\/verificar\.mjs --so ([\w,-]+) --json/g)];
+      return so.length !== 1 || so[0][1] !== job.componentes.join(",");
+    })
+    .map((j) => j.id);
+}
+const naoCobertos = (jobs, componentes) => componentes.map((c) => c.id).filter((id) => !jobs.some((j) => j.componentes.includes(id)));
+
 test("todo componente do verificador aparece em algum job da CI", () => {
   const cobertos = new Set(JOBS.flatMap((j) => j.componentes));
   for (const c of COMPONENTES) assert.ok(cobertos.has(c.id), `${c.id} não roda em nenhum job`);
+});
+
+test("integracoes no job js dos dois lados; tirar de um lado só reprova (MEL-05 AC11)", () => {
+  assert.deepEqual(soDivergente(semComentarios, JOBS), []);
+  assert.deepEqual(naoCobertos(JOBS, COMPONENTES), []);
+  assert.ok(JOBS.find((j) => j.id === "js")?.componentes.includes("integracoes"));
+  const yamlSem = semComentarios.replace(",monetizacao,integracoes --json", ",monetizacao --json");
+  assert.notEqual(yamlSem, semComentarios, "o --so do job js cita integracoes");
+  assert.deepEqual(soDivergente(yamlSem, JOBS), ["js"], "só no agregador");
+  const jobsSem = JOBS.map((j) => (j.id === "js" ? { ...j, componentes: j.componentes.filter((c) => c !== "integracoes") } : j));
+  assert.deepEqual(soDivergente(semComentarios, jobsSem), ["js"], "só no YAML");
+  assert.deepEqual(naoCobertos(jobsSem, COMPONENTES), ["integracoes"], "fora do agregador, nenhum job o roda");
 });
 
 test("actions só as auditadas, pelo SHA completo da auditoria, com a versão no comentário", () => {

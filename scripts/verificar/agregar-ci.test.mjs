@@ -136,3 +136,24 @@ test("componentes declarados nos jobs existem no verificador", async () => {
   const ids = new Set(COMPONENTES.map((c) => c.id));
   for (const j of JOBS) for (const c of j.componentes) assert.ok(ids.has(c), `${j.id} → ${c}`);
 });
+
+test("JSON do job js sem o componente integracoes → incompleto, código 3 (MEL-05 AC12)", () => {
+  const { componentes } = JOBS.find((j) => j.id === "js");
+  assert.ok(componentes.includes("integracoes"), "integracoes no job js");
+  assert.equal(componentes[0], "ambiente-node");
+  const semIntegracoes = new Map([...todos()].map(([id, texto]) => [id, id === "js" ? json(componentes.filter((c) => c !== "integracoes").map(aprovado)) : texto]));
+  const r = agregarCi(semIntegracoes);
+  assert.equal(r.decisao.estado, "incompleto");
+  assert.equal(r.decisao.codigo, SAIDA.incompleto);
+  assert.equal(r.decisao.codigo, 3);
+  const linha = linhaDe(r, "integracoes");
+  assert.equal(linha.estado, ESTADOS.naoExecutado);
+  assert.equal(linha.motivo, "componente ausente do JSON do job");
+});
+
+test("integracoes falhou ou não executado no job js nunca é verde", () => {
+  const falha = { id: "integracoes", estado: ESTADOS.falhou, duracao_s: 0.1, motivo: "1 contrato(s) de integração incompleto(s): documentação" };
+  assert.equal(agregarCi(todos({ js: { integracoes: falha } })).decisao.codigo, SAIDA.falhou);
+  const ne = { id: "integracoes", estado: ESTADOS.naoExecutado, duracao_s: 0, motivo: 'depende de "ambiente-node", que falhou' };
+  assert.equal(agregarCi(todos({ js: { integracoes: ne } })).decisao.codigo, SAIDA.incompleto);
+});

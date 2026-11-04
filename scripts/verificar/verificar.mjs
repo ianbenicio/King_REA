@@ -15,6 +15,7 @@ import { tmpdir, userInfo } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { componenteGitleaks, sondarDocker } from "../publicacao/gitleaks.mjs";
+import { formatarAchado, verificarIntegracoes } from "../integracoes/verificar-integracoes.mjs";
 
 export const ESTADOS = { aprovado: "aprovado", falhou: "falhou", naoExecutado: "não executado" };
 export const SAIDA = { aprovado: 0, falhou: 1, uso: 2, incompleto: 3 };
@@ -22,7 +23,7 @@ export const SAIDA = { aprovado: 0, falhou: 1, uso: 2, incompleto: 3 };
 // Pendências do contrato que o verificador ainda não cobre (story MEL-03). Aparecem em toda execução.
 export const PENDENCIAS = [
   "lint só em .claude/hooks/ e scripts/; reimplementacoes/puzzle-piloto/ e .githooks/ ainda fora (story MEL-03)",
-  "tipos só nos módulos de política (rea-gate, cli-gate, verificar-perfis, publicacao, gitleaks), sem @types/node (APIs do Node como any) e sem noImplicitAny (57 erros com ele ligado) (story MEL-03)",
+  "tipos só nos módulos de política (rea-gate, cli-gate, verificar-perfis, publicacao, gitleaks, verificar-integracoes), sem @types/node (APIs do Node como any) e sem noImplicitAny (57 erros com ele ligado) (story MEL-03)",
 ];
 
 // --- regras puras (testadas em verificar.test.mjs) -------------------------------------------
@@ -245,6 +246,25 @@ export function componenteTipos({ raiz = RAIZ, tsc = TSC } = {}) {
   };
 }
 
+/**
+ * Componente integracoes (MEL-05, fatia 1; ADR-0001 §2f): .mcp.json, mapas de níveis, matcher do gate, versões,
+ * modelo do 00-seguranca.md e documentação em prosa coerentes entre si. Leitura estática, sem rede e sem escrita.
+ * O parâmetro `raiz` existe para os testes com projeto temporário.
+ */
+export function componenteIntegracoes({ raiz = RAIZ } = {}) {
+  return {
+    id: "integracoes",
+    descricao: "contratos de integração: .mcp.json, mapas de níveis, matcher do gate, versões, modelo e documentação",
+    depende: ["ambiente-node"],
+    executar() {
+      const achados = verificarIntegracoes(raiz);
+      if (achados.length === 0) return { ok: true, detalhe: "contratos coerentes" };
+      const contratos = [...new Set(achados.map((a) => a.contrato))].join(", ");
+      return { ok: false, motivo: `${achados.length} contrato(s) de integração incompleto(s): ${contratos}`, detalhe: achados.map(formatarAchado).join("\n") };
+    },
+  };
+}
+
 const dotnet = (args) => () => resultadoDe(rodar("dotnet", [...args, "--artifacts-path", ARTEFATOS], { cwd: NOTEPAD }), `dotnet ${args[0]}`, resumoDotnet);
 const nodeRun = (script, resumo = () => undefined) => () =>
   resultadoDe(rodar(process.execPath, ["--run", script]), `node --run ${script}`, resumo);
@@ -286,6 +306,7 @@ export const COMPONENTES = [
   componenteTipos(),
   { id: "js", descricao: "npm test: gates, assets, monetização e puzzle-piloto", depende: ["ambiente-node", "dependencias-npm"], executar: nodeRun("test", resumoNodeTest) },
   { id: "monetizacao", descricao: "checagem dos perfis de monetização", depende: ["ambiente-node"], executar: nodeRun("check:monetizacao") },
+  componenteIntegracoes(),
   {
     // Política de publicação (MEL-04) sobre todos os arquivos rastreados no HEAD. Na CI, a mesma decisão roda
     // sobre o diff do PR: node scripts/publicacao/publicacao.mjs --base <base> --head <head>.

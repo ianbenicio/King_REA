@@ -22,7 +22,7 @@ export const CLASSES = { obrigatorio: "obrigatório", ambiente: "dependente de a
 // verificador aparece em algum job. `ambiente-node` vem primeiro em todos: cada job instala o Node e o confere
 // (auditoria das actions, QA-E24B-02).
 export const JOBS = [
-  { id: "js", classe: CLASSES.obrigatorio, componentes: ["ambiente-node", "dependencias-npm", "sintaxe-js", "lint", "tipos", "js", "monetizacao"] },
+  { id: "js", classe: CLASSES.obrigatorio, componentes: ["ambiente-node", "dependencias-npm", "sintaxe-js", "lint", "tipos", "js", "monetizacao", "integracoes"] },
   { id: "dotnet", classe: CLASSES.obrigatorio, componentes: ["ambiente-node", "dotnet-restore", "notepad-build", "notepad-core"] },
   { id: "wpf-interativo", classe: CLASSES.ambiente, componentes: ["ambiente-node", "notepad-ui"] },
   { id: "semgrep", classe: CLASSES.obrigatorio, componentes: ["ambiente-node", "semgrep-scan", "semgrep-test", "semgrep-mutacoes"] },

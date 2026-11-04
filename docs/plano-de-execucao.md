@@ -1,85 +1,103 @@
-# Plano de execução — etapa 3 do plano de evolução: preparação (E3-0)
+# Plano de execução — etapa 3 do plano de evolução: E3-1 (MEL-05, fatia 1)
 
 <!--
-Saída da Fase 0 (Harness D5, D30; skill fase-0). Unidade E3-0 do prompt de abertura da etapa 3
-(docs/handoffs/2026-11-03-prompt-etapa3.md). O plano anterior (E2-5, ativação da CI) está em
-docs/planos/2026-11-03-e2-5-ativacao-ci.md.
+Saída da Fase 0 (Harness D5, D30; skill fase-0). Unidade E3-1 do prompt de abertura enviado pela sessão
+local_a61030e0. O plano anterior (E3-0, preparação) está em docs/planos/2026-11-04-e3-0-preparo-mel05.md.
 -->
 
-**Data:** 2026-11-03 · **Sessão:** a desta conversa (abertura 13:51) · **Projeto:** PRKing_REA · **Branch/commit:** `docs/e3-0-preparo` a partir de `main` @ `3b082f3`, igual ao `origin/main` (`0 0`)
+**Data:** 2026-11-04 · **Sessão:** `b9cc59a4` (abertura 13:21) · **Projeto:** PRKing_REA · **Branch/commit:** `main` @ `a431045`, igual ao `origin/main`; a branch de trabalho será `feat/e3-1-integracoes`
 
 ## 0. Sessão concorrente
 
-Nenhuma escrevendo. `sessao.js --lista 5`: esta (13:51) e as duas anteriores do mesmo dia (13:00, 50 min; 12:10, 47 min), que são a E2-5 e a E2-3b, fechadas pelos handoffs já no `main` (PR #10). As demais são de 2026-11-01 e anteriores. `git status`: só `.claude/agent-memory/`, fora do git. Conferido no início: `git fetch`, `origin/main...main` = `0 0`, `npm test` 277/277, proteção do `main` igual ao handoff (check `resultado`, `enforce_admins` ligado, sem force push nem exclusão). Nada divergiu do handoff.
+Nenhuma escrevendo. `sessao.js --lista 5`: esta (13:21) e a E3-0 (13:51 de 2026-11-03, 1410 min), fechada pelo handoff `2026-11-04-e3-0-preparo-mel05.md` já no `main` (PR #11). As demais são de 2026-11-03 e 2026-11-01, com handoff. `git status`: só `.claude/agent-memory/`, fora do git (não adicionar). Conferido: `main` = `origin/main` = `a431045`; proteção do `main` com check `resultado` e `enforce_admins` ligado. Os 11 conectores do claude.ai foram desligados no início.
 
 ## 1. Enquadramento
 
-**Objetivo:** preparar a etapa 3 (controle da investigação) sem mudar código nem hooks: ADR proposto dos contratos da MEL-05, story MEL-05 em fatias validada pelo @po, e a sequência proposta das unidades da etapa.
+**Objetivo:** implementar a fatia 1 da story MEL-05: componente `integracoes` do verificador (oito pontos do ADR-0001 §2f), no job `js` da CI, com a correção da documentação em prosa D1–D3 (runbook e guia) na mesma fatia.
 
-**Restrições:** nenhuma tool `rea` ou `ghidra`, nada em `alvos/` nem `saidas/`; não editar `status`, `niveis_aprovados` nem a seção 8 de nenhum `00-seguranca.md`, nem `rea-niveis.json`, `ghidra-niveis.json` ou o matcher do gate (a E3-0 só lê); não desativar nem contornar gate, `cli-gate`, monetização, publicação, `pre-commit` ou CI; `main` protegido (branch, conventional commits em inglês com `[Story MEL-05]`, sem `--no-verify`, nunca `--force`); push e PR só pelo @devops com autorização; merge só com "sim" do responsável; ADR fica "Proposto" (decisão do responsável); textos em português com acentuação.
+**Restrições:** nenhuma tool `rea` ou `ghidra`; nada em `alvos/` nem `saidas/`; a fatia só lê e confere: não edita `rea-gate.mjs`, `cli-gate.mjs`, `rea-niveis.json`, `ghidra-niveis.json`, matcher, `.mcp.json`, `registros/_modelos/` nem `00-seguranca.md` (AC13); fora do verificador e da CI, edita só `docs/runbook-prereqs-nativo.md` e `docs/guia-rea.md` (mais story, handoffs e plano); sem `--no-verify`, sem `--force`; push e PR só pelo @devops com autorização; merge só com o "sim"; textos em português com acentuação; limite ~180k de contexto (se estourar: 1a = AC1–AC15, 1b = AC16–AC18, o que reabre a D-2, então perguntar antes).
 
-**Perfil do projeto:** domínio laboratório de engenharia reversa (repositório público) · stack Node 26, .NET 10/WPF, Docker (Semgrep, gitleaks), GitHub Actions · integrações: servidores MCP `rea` (170 tools) e `ghidra` (30), gates de hook (`rea-gate.mjs`, `cli-gate.mjs`) · UI não (nesta unidade) · dados sensíveis: nenhum no checkout · fase AIOX: SDC, story nova MEL-05 · complexidade STANDARD (M no plano; ADR com decisões de contrato).
+**Perfil do projeto:** domínio laboratório de engenharia reversa (repositório público) · stack Node 26 (módulos `.mjs`, `node --test`), GitHub Actions · integrações: servidores MCP `rea` (170 tools) e `ghidra` (30), gates de hook · UI não · dados sensíveis: nenhum no checkout · fase AIOX: SDC, story MEL-05 em Ready (GO 9,5/10) · complexidade STANDARD (M no teto).
 
 **Dúvidas:**
 
 | Dúvida | Resolvida? | Resposta / quando resolver |
 |---|---|---|
-| Onde mora o inventário único (arquivo novo versus um dos mapas existentes) | aberta | ADR propõe; o responsável decide |
-| Como acomodar a família de tool da P-U5 sem segundo mecanismo | aberta | ADR propõe campo opcional no contrato; aplicação no gate continua condicionada à U4 e à aprovação |
-| Primeira fatia: só verificador de consistência entre arquivos existentes | resolvida | definido no prompt e no plano §6 |
+| P-6: runbook sem referência `GhidraMCP@`, o ponto 8 aprova ou reprova? | aberta | Pergunta ao responsável antes de implementar (recomendação @po: reprova, fail-closed) |
+| `runbook-prereqs-nativo.md:100` (diz que falta registrar `ghidra`) entra na fatia 1? | aberta | Pergunta ao responsável (amplia a D-2) |
+| D-3: semântica do matcher no Claude Code | aberta | @architect confirma antes de fechar o AC2; não impede o início |
+| P-7 e ADR §6 (2, 4, 5, 7, 8, 9, 10) | aberta | Não bloqueiam a fatia 1; responsável decide quando quiser, registro no handoff |
 
 ## 2. Precedentes (Engram)
 
-**Consultas** (`deep`, cross-projeto, `synthesize: false`):
+**Consultas:**
 
 | Texto da consulta | Resultados | Relevância (mín–máx) |
 |---|---|---|
-| contrato de integrações servidor MCP tool inventário único schema de protocolo gate níveis consistência | 7 | 0,493–0,520 |
-| inventário de servidores MCP e matcher de hook divergem; schema estruturado de protocolo de segurança; verificador de consistência entre configurações | 6 | 0,505–0,520 |
-
-(Consulta `vault_query_tool` simples por "REA gate rea-niveis ghidra-niveis MEL-05": 0 resultados.)
+| verificador de consistência MCP/matcher/mapas/documentação; teste de equivalência de regex de gate; componente novo no job `js` | 7 | 0,509–0,524 |
+| matcher de hook PreToolUse `mcp__servidor__`; reimplementar regras de leitura com teste de equivalência em subprocesso | 7 | 0,506–0,544 |
 
 **Usados:**
 
 | Nota (id) | O que diz | Força (D10) | Pré-condição vale aqui? | Efeito no plano |
 |---|---|---|---|---|
-| `gate-de-tools-mcp-por-n-vel-de-risco-com-hook-pretooluse-fai` | Mapa de nível por servidor + hook fail-closed; toda tool do catálogo precisa de nível | relatada (só o excerto lido) | sim: é o padrão que o gate atual implementa; o ADR parte do código real, não da nota | verificador deve apontar tool do catálogo sem nível, no sentido do padrão |
-| `perfil-do-alvo-em-3-eixos-sugere-pacote-de-recursos-piloto-n` | Pacote de recursos por perfil; U5 propõe família de tool no `rea-niveis.json` | relatada | parcial: piloto só orienta, não muda gate | contrato da MEL-05 acomoda o campo da família como opcional, sem aplicar no gate |
-| `padr-o-verificar-cobertura-existente-antes-de-adotar-feature` | Verificar o que já existe antes de construir | relatada | sim | o ADR e a story partem do levantamento dos arquivos existentes |
+| `gate-de-tools-mcp-por-n-vel-de-risco-com-hook-pretooluse-fai` (0,544) | Padrão do gate: mapa `<servidor>-niveis.json` por servidor, hook fail-closed; toda tool do catálogo no mapa | relatada | sim: é o contrato que o componente confere (mesmo repositório, `rea-gate.mjs:63-85`) | O componente trata mapa sem servidor, servidor sem mapa e tool sem nível como falha, nunca como aviso |
+| `conferir-hash-do-alvo-na-admiss-o-em-gate-pretooluse-manifes` (0,521) | Seção "Identidade dos arquivos" estrita, lida por regex pelo gate | relatada | sim: é a regra que o AC8 reimplementa | Teste de equivalência do AC8 prende o componente à leitura real do gate |
+| `verifica-o-local-com-tr-s-estados-e-global-json-resolvido-pe` (0,518) | Verificador agregado separa aprovado, falhou e não executado (requisito ausente), saída não zero quando incompleto | relatada | sim: MEL-03, mesma estrutura do `verificar.mjs` | `depende: ["ambiente-node"]`, "não executado nunca é verde" (AC12) |
 
-**Descartados:** `fezinha-*`, `despensa-*`, `classmate-*` (outro domínio) · `gotcha-mcp-json-aceita-caminho-relativo…` (já conhecido: `.mcp.json` usa caminho relativo) · `01HZ_HANDOFF_2026_05_25_VD`, `spec-v1-critique-qa-review-qa`, `mem-ria-engram-compartilhada…` (sem relação com contrato de integrações).
+**Descartados:** `padr-o-verificar-cobertura-existente-antes-de-adotar-feature` — genérico, já feito no ADR (levantamento); demais notas (DESPENSA, Fezinha, classmate-connect) — outros projetos, sem relação.
 
 ## 3. Plano preliminar
 
-**Workflow AIOX:** SDC, fases 1 e 2 (criar e validar a story) com ADR do @architect antes de alterar contratos; nenhuma fase de implementação nesta unidade.
+**Workflow AIOX:** SDC fase 3 (implementar) e 4 (QA gate) sobre a story MEL-05 já em Ready; fases 1 e 2 feitas na E3-0.
 
 **Unidades de sessão (D9):**
 
 | # | Unidade | Fase / executor | Entrega | Critério de aceitação preliminar | Limite de contexto |
 |---|---|---|---|---|---|
-| E3-0a | ADR dos contratos da MEL-05 | arquitetura / @architect | `docs/adr/` ADR "Proposto" (levantamento dos arquivos existentes, decisões, alternativas, consequências) | cobre os quatro pontos do prompt; só lê os arquivos de integração; cita arquivo e linha | ~180k total |
-| E3-0b | Story MEL-05 em fatias | criar / @sm | `docs/stories/mel-05-contratos-integracoes.story.md` | fatias com ACs testáveis e "o que não faz"; fatia 1 = verificador de consistência (componente do verificador e job da CI) | idem |
-| E3-0c | Validação da story | validar / @po | checklist de 10 pontos, GO/NO-GO, correções na story | veredito registrado; pendências nomeadas | idem |
-| E3-0d | Sequência da etapa 3 e fechamento | @aiox-master (esta sessão) | handoff `docs/handoffs/2026-11-03-e3-0-*.md`, relatório de estado atualizado | sequência com tamanhos e decisões pendentes; `npm test` verde | idem |
+| 1 | Fase 0, estado de partida e perguntas | esta sessão | este plano; respostas do responsável no handoff | P-6, `:100` respondidas; D-3 confirmada ou pressuposto aceito | ~180k |
+| 2 | Implementação com testes primeiro | SDC 3 / @dev | `scripts/integracoes/verificar-integracoes.mjs` + teste; `verificar.mjs`, `agregar-ci.mjs`, `verificacao.yml`, `package.json`; runbook e guia corrigidos | AC1–AC18 com evidência; `npm test` verde | idem |
+| 3 | QA gate | SDC 4 / @qa | gate PASS/CONCERNS/FAIL na story | 7 verificações; AC13 por `git diff --name-only` | idem |
+| 4 | Fechamento | esta sessão | handoff `docs/handoffs/2026-11-04-e3-1-*.md`, estado geral, story | pergunta sobre branch, PR e merge | idem |
 
-**Capacidades por fase:** não consultei `mapa-fases.md` nem `capacidades.yaml`; as capacidades vêm do prompt de abertura. Ativas: Read, Grep, Glob, Edit, Write, PowerShell, subagentes `aiox-architect`, `aiox-sm`, `aiox-po`, Engram. Não carregar: tools `rea` e `ghidra`, conectores do claude.ai (desligados). Sob demanda: `aiox-qa` só se sobrar contexto (dívida D-1).
+**Capacidades por fase** (fonte: `H:\King\Harness\docs\catalogo\`, não relido nesta unidade; uso o que o prompt de abertura fixou):
+
+| Fase | Ativo | Sob demanda | Não carregar | Como ligar o que falta |
+|---|---|---|---|---|
+| Implementação | subagente `aiox-dev`, Read/Edit/Bash | `aiox-architect` (D-3) | skills de design, conectores claude.ai | nada |
+| QA | subagente `aiox-qa` | — | idem | nada |
+| Envio | `aiox-devops` e ferramentas ccd_pr | — | `/loop`, polling de CI | só com autorização do responsável |
 
 **Verificações:**
 
 | Entrega | Como provar |
 |---|---|
-| Nenhum código nem hook mudou | `git diff --stat main...docs/e3-0-preparo` só com `docs/` |
-| Testes e hooks intactos | `npm test` 277/277 ao fim |
-| ADR ancorado no real | cada afirmação sobre arquivo existente cita caminho e linha; revisão por amostragem |
-| Story validada | seção de validação do @po com checklist e veredito |
-| Pre-commit | commits sem `--no-verify`, hook passa |
+| Componente e testes | `node --test scripts/integracoes/` e `npm test` verdes (Docker para os 5 do gitleaks) |
+| Integração à CI | `workflow-ci.test.mjs` verde; `node scripts/verificar/verificar.mjs --so integracoes` aprovando o repositório real |
+| Ponto 8 | componente reprova fixture com `GhidraMCP@2.0` e aprova o runbook corrigido |
+| Limites | `git diff --name-only main` sem nenhum arquivo do AC13 |
+| Tudo | `npm run verificar` (Semgrep com Docker ligado), lint e tipos verdes |
 
-**Riscos:** (1) ADR inventar contrato que o código não suporta — origem: padrão de verificar cobertura — mitigação: levantamento primeiro, cada decisão com a evidência. (2) Story M grande demais para uma sessão — origem: relatório de estado (limite ~180k, custo fixo ~95k) — mitigação: fatias, e só a fatia 1 descrita com AC detalhado. (3) Colisão com a P-U5 no `rea-niveis.json` — origem: plano §3 — mitigação: ADR registra o campo da família como opcional e não altera o arquivo.
+**Riscos:** (1) matcher: casamento do Claude Code não confirmado, falsa confiança — ADR R1; fail-closed e confirmação do @architect. (2) Contexto acima de ~180k — sessão E3-0 passou do limite (média 166k); mitigação: subagentes para implementação e QA, divisão 1a/1b só com pergunta ao responsável. (3) Reimplementar regras do gate: divergência silenciosa — precedente `conferir-hash-…`; teste de equivalência com o gate em subprocesso. (4) Docker desligado deixa 5 testes pulando: "não executado" não é verde.
 
 ## 4. Custo da Fase 0
 
-Medido ao fim do passo 3 (antes de escrever o ADR): ver o handoff `docs/handoffs/2026-11-03-e3-0-*.md`, que fecha o `sessao.js` da unidade inteira. Parcial na abertura: 5 chamadas, contexto ~118k–131k, 2 consultas `deep` e 1 simples ao Engram, resultados no contexto ~7 notas cada.
+Saída de `sessao.js` ao fim do passo 3 (medida após a 4ª chamada ao Engram, antes da escrita do plano):
+
+| Chamadas | Contexto atual | Chamadas Engram | Resultados Engram no contexto |
+|---|---|---|---|
+| 13 (principal), 0 (subagentes) | médio 143k, máximo 170k (inicial 97k) | 4 (2 `deep`, 2 chamadas com erro de formato) | ~3k |
 
 ## 5. Aprovação
 
-**Aprovado:** sim · **Por:** responsável, pelo prompt de abertura da etapa 3 (passo 5, unidade E3-0, itens a–d) · **Em:** 2026-11-03 · **Ajustes pedidos:** nenhum. Precedentes `aplicável`: nenhum marcado.
+**Aprovado:** sim, por seguimento do prompt de abertura do responsável; as três perguntas abertas foram respondidas em 2026-11-04 (AskUserQuestion), todas na recomendação · **Por:** responsável · **Em:** 2026-11-04 · **Ajustes pedidos:** nenhum.
+
+**Respostas do responsável (2026-11-04):**
+
+| Pendência | Resposta | Efeito |
+|---|---|---|
+| P-6 (runbook sem `GhidraMCP@`) | **Reprova** (fail-closed) | AC17 fixa o caso e ganha o teste |
+| `runbook-prereqs-nativo.md:100` | **Corrigir na fatia 1** (amplia a D-2) | AC18 (a) cobre a linha 100 |
+| D-3 (matcher) | **Aceita o pressuposto fail-closed** do AC2 | AC2 fecha com o pressuposto, mais o relatório do @architect |
+
+**D-3 — relatório do @architect** (`side-session-notes/…/d3-matcher-claude-code.md`; fonte: hooks reference do Claude Code): matcher só com `[A-Za-z0-9_\- ,|]` é lista de nomes exatos; qualquer outro caractere é regex JavaScript, testada com `RegExp.prototype.test` (**parcial, sem âncora**); `*`/vazio casa tudo; servidor de plugin vira `mcp__plugin_<plugin>_<servidor>__<tool>`, que o matcher atual nunca pega. A confirmar (não documentado): `_` dentro do nome do servidor. O pressuposto do AC2 coincide com a documentação.
