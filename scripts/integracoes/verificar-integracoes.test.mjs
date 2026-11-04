@@ -529,8 +529,14 @@ test("AC14: não escreve nada e só lê a lista fechada (nada em alvos/, saidas/
   const padrao = lerArquivosPadrao(raiz);
   verificarIntegracoes(raiz, {
     fs: {
-      ler: (rel) => (lidos.push(rel), padrao.ler(rel)),
-      listar: (rel) => (listados.push(rel), padrao.listar(rel)),
+      ler: (rel) => {
+        lidos.push(rel);
+        return padrao.ler(rel);
+      },
+      listar: (rel) => {
+        listados.push(rel);
+        return padrao.listar(rel);
+      },
     },
   });
   assert.deepEqual(hashes(raiz), antes, "nenhum arquivo mudou");
