@@ -59,7 +59,7 @@ Situação conferida em 13/10/2026 com `rea capabilities --json` e `rea provider
 | **Electron / Node em execução** | Páginas, scripts e contextos em execução, de forma passiva | App iniciado com porta de depuração | ✅ Pronto (você inicia o app) |
 | **.NET** (assemblies PE/CLI) | Metadados, CIL, membros, P/Invoke, comparação entre builds | Nenhum | ✅ Disponível ⚠️ O Windows não é host oficial |
 | **Pacotes e arquivos compactados** | Inventário de conteúdo, extração | Nenhum | ✅ Pronto |
-| **Binários nativos Windows** (EXE/DLL x86/x64) | Funções, pseudocódigo, assembly, xrefs, strings, chamadas | Ghidra 12.1.x + JDK 21 | ⏳ Falta instalar (seção 7.4) |
+| **Binários nativos Windows** (EXE/DLL x86/x64) | Funções, pseudocódigo, assembly, xrefs, strings, chamadas | Ghidra 12.1.x + JDK 21 | ✅ Ghidra 12.1.4 e JDK 21 instalados (`docs/runbook-prereqs-nativo.md`); uso pelo REA: seção 7.4 |
 | **Binários nativos via IDA** | Mesmo que acima, pelo IDA | IDA + `ida-pro-mcp` | ⏳ Não configurado |
 | **APK Android** (estático) | Manifesto, permissões, classes, métodos | JDK 17+ e `jadx-headless-mcp` 0.7.1 | ⏳ Falta instalar ⚠️ No Windows, só no `main` |
 | **Dispositivo Android** (adb) | Pacotes, logcat, arquivos, instalar ou iniciar app | `adb` (platform-tools) | ⏳ Falta instalar |
@@ -74,8 +74,9 @@ Este projeto **não usa** o `rea setup` oficial, que grava configuração global
 |---|---|
 | Pacote `rea-agents@6.4.0` (versão exata, hash travado) | `package.json`, `package-lock.json` |
 | Servidor MCP `rea` | `.mcp.json` (só vale dentro desta pasta) |
+| Servidor MCP `ghidra` (GhidraMCP, fixado no commit `1e98025`) | `.mcp.json`; registro e auditoria em `docs/runbook-prereqs-nativo.md` |
 | Skill de investigação | `.claude/skills/reverse-engineer-anything/` |
-| Trava de segurança | `.claude/hooks/rea-gate.mjs` e `rea-niveis.json` |
+| Trava de segurança | `.claude/hooks/rea-gate.mjs`, com um mapa de níveis por servidor: `rea-niveis.json` e `ghidra-niveis.json` |
 | Auditoria da versão | `docs/seguranca/auditoria-rea-6.4.0.md` |
 
 **Conferir se está funcionando:**

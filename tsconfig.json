@@ -17,6 +17,7 @@
     ".claude/hooks/cli-gate.mjs",
     "scripts/monetizacao/verificar-perfis.mjs",
     "scripts/publicacao/publicacao.mjs",
-    "scripts/publicacao/gitleaks.mjs"
+    "scripts/publicacao/gitleaks.mjs",
+    "scripts/integracoes/verificar-integracoes.mjs"
   ]
 }

@@ -71,7 +71,7 @@ Auditado em 13/10/2026 (tag `2.0`, commit `1e98025`): Apache-2.0, servidor HTTP 
 - No Ghidra: `File → Install Extensions → +`, escolher essa extensão, reiniciar o Ghidra, e habilitar o `GhidraMCPPlugin` em `File → Configure → Developer`.
 - A porta do servidor fica em `Edit → Tool Options → GhidraMCP HTTP Server` (padrão `127.0.0.1:8080`).
 
-**Servidor MCP** (precisa do `uv`/`uvx`; se faltar: `winget install --id astral-sh.uv`). Registro **fixado na tag 2.0**, a cargo do @devops, no `.mcp.json` do projeto:
+**Servidor MCP** (precisa do `uv`/`uvx`; se faltar: `winget install --id astral-sh.uv`). Registro **fixado no commit completo** `1e980252087b2479a21b9ca6d82d5829538651a7` (o commit `1e98025` auditado, da tag 2.0), com as dependências Python fixadas em `mcp==1.30.0` e `requests==2.34.2`, a cargo do @devops, no `.mcp.json` do projeto. É o registro que está no `.mcp.json` hoje; o verificador (`node scripts/verificar/verificar.mjs --so integracoes`) confere que o commit de cada referência ao GhidraMCP com arroba neste runbook é prefixo desse commit.
 
 ```json
 {
@@ -79,7 +79,9 @@ Auditado em 13/10/2026 (tag `2.0`, commit `1e98025`): Apache-2.0, servidor HTTP 
     "ghidra": {
       "command": "uvx",
       "args": [
-        "--from", "git+https://github.com/LaurieWired/GhidraMCP@2.0",
+        "--from", "git+https://github.com/LaurieWired/GhidraMCP@1e980252087b2479a21b9ca6d82d5829538651a7",
+        "--with", "mcp==1.30.0",
+        "--with", "requests==2.34.2",
         "ghidra-mcp",
         "--ghidra-server", "http://127.0.0.1:8080/"
       ]
@@ -97,7 +99,7 @@ Auditado em 13/10/2026 (tag `2.0`, commit `1e98025`): Apache-2.0, servidor HTTP 
 
 ## 4. Segurança ao registrar o GhidraMCP
 
-> **Atualização 13/10/2026:** feito. O gate agora cobre `mcp__(rea|ghidra)__.*` com um mapa por servidor; `.claude/hooks/ghidra-niveis.json` mapeia as 30 tools do GhidraMCP 2.0, todas N1. Falta só o @devops registrar o servidor `ghidra` no `.mcp.json`, depois que JDK e Ghidra estiverem instalados. O texto abaixo fica como histórico.
+> **Atualização 13/10/2026:** feito. O gate agora cobre `mcp__(rea|ghidra)__.*` com um mapa por servidor; `.claude/hooks/ghidra-niveis.json` mapeia as 30 tools do GhidraMCP 2.0, todas N1. O servidor `ghidra` também já está registrado no `.mcp.json` pelo @devops (`b92a651`, seção 3), fixado no commit `1e98025`. O texto abaixo fica como histórico.
 
 ### Situação original
 

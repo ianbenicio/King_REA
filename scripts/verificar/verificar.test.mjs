@@ -1,6 +1,9 @@
 // Testes do verificador local agregado (npm test). Só as regras puras: nada de dotnet, Docker ou rede.
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
   COMPONENTES,
   ESTADOS,
@@ -10,6 +13,7 @@ import {
   avaliarSonda,
   comDependencias,
   compararLockNpm,
+  componenteIntegracoes,
   executarPlano,
   motivoSemSessaoInterativa,
   resumoDotnet,
@@ -175,4 +179,38 @@ test("componentes declarados: ids únicos, dependências existentes e seleção 
   for (const c of COMPONENTES) for (const d of c.depende ?? []) assert.ok(ids.indexOf(d) >= 0 && ids.indexOf(d) < ids.indexOf(c.id), `${c.id} → ${d}`);
   assert.deepEqual([...comDependencias(["notepad-core"])].sort(), ["dotnet-restore", "notepad-build", "notepad-core"]);
   for (const id of ["semgrep-scan", "semgrep-test", "semgrep-mutacoes", "notepad-ui", "notepad-core", "js"]) assert.ok(ids.includes(id), id);
+});
+
+test("integracoes: ambiente-node reprovado ou ausente deixa o componente não executado, nunca aprovado (MEL-05 AC12)", () => {
+  let rodou = false;
+  const integracoes = { ...componenteIntegracoes(), executar: () => {
+      rodou = true;
+      return { ok: true };
+    } };
+  const [node, r] = executarPlano([{ id: "ambiente-node", executar: () => ({ ok: false, motivo: "Node 24 em uso" }) }, integracoes], {}, relogio);
+  assert.equal(node.estado, ESTADOS.falhou);
+  assert.equal(r.estado, ESTADOS.naoExecutado);
+  assert.match(r.motivo, /depende de "ambiente-node", que falhou/);
+  const [ausente] = executarPlano([integracoes], {}, relogio);
+  assert.equal(ausente.estado, ESTADOS.naoExecutado);
+  assert.match(ausente.motivo, /depende de "ambiente-node", que não foi selecionado/);
+  assert.equal(rodou, false);
+  assert.notEqual(agregar([ausente]).codigo, SAIDA.aprovado);
+  const declarado = COMPONENTES.find((c) => c.id === "integracoes");
+  assert.deepEqual(declarado?.depende, ["ambiente-node"]);
+  assert.deepEqual([...comDependencias(["integracoes"])].sort(), ["ambiente-node", "integracoes"]);
+});
+
+test("integracoes: falha do componente (arquivo ausente na raiz) reprova o resultado, com o contrato no motivo", () => {
+  const vazia = mkdtempSync(join(tmpdir(), "verificar-integracoes-"));
+  try {
+    const [node, r] = executarPlano([{ id: "ambiente-node", executar: ok() }, componenteIntegracoes({ raiz: vazia })], {}, relogio);
+    assert.equal(node.estado, ESTADOS.aprovado);
+    assert.equal(r.estado, ESTADOS.falhou);
+    assert.match(r.motivo, /contrato\(s\) de integração incompleto\(s\): .*\.mcp\.json/);
+    assert.match(r.detalhe, /\[\.mcp\.json\] \.mcp\.json \(\(arquivo\)\): arquivo ausente/);
+    assert.equal(agregar([node, r]).codigo, SAIDA.falhou);
+  } finally {
+    rmSync(vazia, { recursive: true, force: true });
+  }
 });
