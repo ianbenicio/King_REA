@@ -321,3 +321,14 @@ Checklist de 10 pontos (`story-lifecycle.md`; a task `validate-next-story.md` n�
 - **Q4 (L3).** `catalogo.digest` do `ghidra`. *Recomendo* `digest` obrigatório só quando `origem.tipo` é `npm` (o REA tem `catalog_digest`); no `git`, a fixação é o commit, e só `ferramentas` (30) é obrigatório.
 - **Q5 (DA-16).** Menções abreviadas `1e98025`/`b92a651` no runbook e no guia podem ficar como histórico? *Recomendo sim:* o ponto 8 prende só a forma `GhidraMCP@`; o commit completo sai do runbook de qualquer jeito.
 - **P1.** Aprovação para editar `rea-niveis.json` e `ghidra-niveis.json` (só os blocos `contrato` e `atributos`). *Recomendo* aprovar depois da Q2, por lote, como está no F2-AC25.
+
+## Decisões do responsável após a validação @po (2026-11-04)
+
+Respondidas por `AskUserQuestion`, seguindo a recomendação do @po em todas. Registro do @sm/orquestrador; nenhum AC foi alterado por este registro.
+
+- **Q1:** **dois PRs.** PR-A (auditoria do GhidraMCP em `docs/seguranca/`, runbook, guia, ponto 8 do verificador; sem editar mapas) e PR-B (blocos, 200 registros em lotes, regras C1–C11, avisos, matriz).
+- **Q2 (L1/L4):** **o @architect propõe um adendo 2** com a lista de `recurso` e a tabela C11; `recurso` e `contexto_execucao` obrigatórios por tool (contexto na lista fechada de 5 valores) e `recurso_padrao` só como declaração do servidor. O PR-B espera o aceite desse adendo.
+- **Q3 (L2):** `nao-testado` com evidência "a confirmar: …"; Codex = um item por mapa com `sem-adaptador` e `caminho: mcp`; provider Ghidra do REA = item `mcp` do mapa `rea` com evidência que o identifica. Sem adendo.
+- **Q4 (L3):** `catalogo.digest` obrigatório só com `origem.tipo: npm`.
+- **Q5 (DA-16):** as menções abreviadas `1e98025` e `b92a651` podem ficar como histórico; o commit completo sai do runbook.
+- **P1 (aprovação para editar os mapas): ainda NÃO dada.** Vem depois do adendo 2, por lote.

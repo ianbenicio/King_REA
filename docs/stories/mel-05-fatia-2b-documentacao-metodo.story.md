@@ -199,3 +199,13 @@ Checklist de 10 pontos (`story-lifecycle.md`). 1 atende, 0,5 parcial, 0 não ate
 - **M3.** O campo `licença` vale só para auditorias futuras? *Recomendo sim;* atualizar as seis existentes vira tarefa à parte, se ele quiser.
 - **M4.** Os campos novos entram também nas skills `protocolo-*`? *Recomendo não nesta fatia;* rever na próxima revisão das skills.
 - **AC9.** Uma linha no `CLAUDE.md` apontando a convenção? *Recomendo sim:* sem ela, a convenção fica invisível para as sessões.
+
+## Decisões do responsável após a validação @po (2026-11-04)
+
+Respondidas por `AskUserQuestion`, seguindo a recomendação do @po em todas.
+
+- **M1:** definições de observado, derivado e inferido propostas pelo @sm **aprovadas**; libera F2b-AC1 a AC4.
+- **M2:** manter o campo `Confiança` do `03-mecanicas.md` e acrescentar um eixo de origem (dois eixos, nada removido).
+- **M3:** o campo `licença` vale só para auditorias futuras.
+- **M4:** as skills `protocolo-*` não mudam nesta fatia.
+- **F2b-AC9:** **aprovada** uma linha no `CLAUDE.md` apontando a convenção "Verificado / Não verificado" (aprovação explícita dada em 2026-11-04; vale só para essa linha).
