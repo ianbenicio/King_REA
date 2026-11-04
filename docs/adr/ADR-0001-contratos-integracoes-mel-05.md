@@ -2,8 +2,8 @@
 
 | Campo | Valor |
 |---|---|
-| Status | **Proposto** (decisão do responsável; este documento não autoriza mudança de contrato, gate, mapa ou registro) |
-| Data | 2026-11-03 |
+| Status | **Aceito** em 2026-11-04 pelo responsável (§7). Este documento, por si, não autoriza mudança de contrato, gate, mapa ou registro |
+| Data | 2026-11-03 (proposto); 2026-11-04 (aceito) |
 | Autoria | @architect (Aria), unidade E3-0a da etapa 3 |
 | Origem | `docs/planos/2026-11-01-evolucao-arquitetura-qualidade.md:266-285` (MEL-05) e `:69` (coordenação com a U5 do plano de perfil do alvo) |
 | Revisão sugerida | @qa (fatias), @dev (implementação), responsável (aprovação) |
@@ -41,7 +41,7 @@ Divergências reais encontradas no levantamento:
 
 - **D1.** `docs/runbook-prereqs-nativo.md:74,82` registra o GhidraMCP "fixado na tag 2.0" (`@2.0`), sem `mcp`/`requests`. `.mcp.json:14-18` usa o commit `1e980252…` e fixa as duas dependências. A configuração está mais rígida que o documento, mas o documento está desatualizado.
 - **D2.** `docs/guia-rea.md:76-78` só cita o servidor `rea` e o `rea-niveis.json`. Não cita `ghidra` (`.mcp.json:10`, `settings.json:10`) nem `ghidra-niveis.json`.
-- **D3.** `docs/guia-rea.md:62` marca Ghidra + JDK como "⏳ Falta instalar", e `docs/runbook-prereqs-nativo.md:91-94` registra a instalação em 14/10/2026. Falta confirmar se o guia trata do provider do REA, que em `.mcp.json:3-9` não tem `REA_ANALYSIS_PROVIDER` (`guia-rea.md:226-231`), ou se está desatualizado.
+- **D3.** `docs/guia-rea.md:62` marca Ghidra + JDK como "⏳ Falta instalar", e `docs/runbook-prereqs-nativo.md:91-94` registra a instalação em 14/10/2026. **Resolvida em 2026-11-04 (§7, D-1):** o Ghidra está instalado; o guia é que está desatualizado. Continua aberto se o provider Ghidra do REA está em uso, porque `.mcp.json:3-9` não tem `REA_ANALYSIS_PROVIDER` (`guia-rea.md:226-231`). Esse ponto fica na matriz (§2e, pergunta 6.9).
 - **D4.** Os cabeçalhos dos mapas não seguem um schema comum: `rea_version` e `catalog_digest` de um lado, `servidor`, `versao` e `nota` do outro. O gate absorve a diferença (`rea-gate.mjs:84`). Nada confere a versão do mapa com `package.json`/lock ou com o commit do `.mcp.json`. O digest de catálogo só aparece no mapa e na auditoria.
 - **D5.** A mensagem do gate manda "registre um adendo" (`rea-gate.mjs:285`), mas a liberação depende só de `niveis_aprovados` (`:278`). A tabela de adendos (`modelo:93-96`) é por tool e ninguém a lê. Aprovar um nível libera todas as tools desse nível. Falta confirmar se essa é a semântica pretendida.
 - **D6.** O caminho CLI não tem mapa de tool para nível (`cli-gate.mjs:95-105`). Por isso, "tool desconhecida recusada" só vale hoje no caminho MCP.
@@ -122,7 +122,7 @@ Nunca se reescreve o arquivo. A migração é humana, por adendo aprovado, porqu
 
 **Consequências:**
 
-- O gate só passa a usar o parser na fatia 4.
+- Os gates só passam a usar o parser nas fatias 4a (`rea-gate.mjs`) e 4b (`cli-gate.mjs`).
 - "Revisão nova" foi lida como "registro na revisão nova do schema". Outra leitura possível é "protocolo novo para versão nova do alvo" (`rea-gate.mjs:243`). Fica a confirmar.
 
 ### (c) Onde mora o inventário e o que é gerado
@@ -154,7 +154,7 @@ Nunca se reescreve o arquivo. A migração é humana, por adendo aprovado, porqu
 | Claude Code | rea | MCP + hook | testado (unitário do hook) | `.claude/hooks/rea-gate.test.mjs`; doctor em `auditoria-rea-6.4.0.md:51` |
 | Claude Code | ghidra | MCP + hook | testado (unitário do hook) | `rea-gate.test.mjs:120,192` |
 | Claude Code | rea | CLI + hook | testado (unitário) | `.claude/hooks/cli-gate.test.mjs` |
-| Claude Code | rea + provider ghidra | MCP | a confirmar (D3) | `guia-rea.md:62,226-231` |
+| Claude Code | rea + provider ghidra | MCP | a confirmar (Ghidra instalado, D-1; uso pelo provider do REA aberto, 6.9) | `guia-rea.md:62,226-231` |
 | Codex | todos | — | sem adaptador | nenhum `.codex/` nem `AGENTS.md` no checkout; Codex citado só para WPF (`contrato-ambiente.md:83,128`) |
 
 **Consequência:** a fatia 1 não promete enforcement no Codex. A forma de nomear tools e a existência de hooks no Codex ficam a confirmar.
@@ -162,18 +162,31 @@ Nunca se reescreve o arquivo. A migração é humana, por adendo aprovado, porqu
 ### (f) Fatias
 
 - **Fatia 1 (recomendada para começar).** Componente `integracoes` (sugestão: `scripts/integracoes/verificar-integracoes.mjs` + teste), `depende: ["ambiente-node"]`, no job `js` (`agregar-ci.mjs:25`, `verificacao.yml:50`, `package.json:12`, tsconfig). Confere, só com leitura estática:
-  1. o mesmo conjunto de servidores em `.mcp.json`, nos mapas e no matcher (testando `mcp__<servidor>__x` contra a regex);
+  1. o mesmo conjunto de servidores em `.mcp.json`, nos mapas e no matcher (testando `mcp__<servidor>__x` contra a regex); mapa sem servidor no `.mcp.json` **falha** (D-4, §7), com a mensagem descrita abaixo;
   2. JSON válido, `ferramentas` não vazio, nome de tool `^[A-Za-z0-9_-]+$` e não herdado;
   3. nível ∈ `niveis` e `niveis` igual entre os mapas;
   4. `rea_version` = `package.json` = lock;
   5. commit do mapa ghidra como prefixo do commit do `.mcp.json`;
-  6. o modelo `registros/_modelos/00-seguranca.md` legível pelas regras do gate (frontmatter, lista inline, uma única seção de identidade).
+  6. o modelo `registros/_modelos/00-seguranca.md` legível pelas regras do gate (frontmatter, lista inline, uma única seção de identidade);
+  7. `docs/guia-rea.md` cita cada servidor do `.mcp.json` e o mapa dele (`<servidor>-niveis.json`), o que detecta a D2;
+  8. toda referência `GhidraMCP@<ref>` em `docs/runbook-prereqs-nativo.md` é prefixo do commit do `.mcp.json:14`, o que detecta a D1 (hoje falharia em `runbook-prereqs-nativo.md:82`, que usa `@2.0`).
 
-  Mensagens dizem qual contrato está incompleto. **Não faz:** não muda gate, mapa, `.mcp.json`, settings nem registros; não executa o REA; não lê `alvos/`, `saidas/` nem `registros/<slug>/`.
-- **Fatia 2.** Bloco `contrato` (+ `atributos` opcional) nos dois mapas; o verificador passa a exigi-lo. **Não faz:** não muda o gate nem aplica família.
-- **Fatia 3.** `schema: 00-seguranca/1` no modelo, parser compartilhado e relatório legado/inválido/revisão nova dos registros versionados. **Não faz:** não migra, não edita `status`/`niveis_aprovados`, não muda a decisão do gate.
-- **Fatia 4.** Gate e `cli-gate` usam o parser compartilhado: v1 estrito, legado pelo caminho atual, inválido nega; `Object.hasOwn` na busca da tool. **Não faz:** não aprova nada, não afrouxa nenhum caso hoje negado, não entra sem regressão completa e @qa.
-- **Fatia 5 (opcional).** Gerar o matcher a partir dos mapas. **Não faz:** não gera `.mcp.json`.
+  Mensagens dizem qual contrato está incompleto. A mensagem do mapa sem servidor (ponto 1) deve conter:
+  - o arquivo do mapa, o nome de servidor que o gate deriva dele (`<servidor>-niveis.json` ↔ `mcp__<servidor>__`, `rea-gate.mjs:63-85`) e a lista de servidores do `.mcp.json`;
+  - as causas prováveis, cada uma com a solução:
+    - servidor removido do `.mcp.json` e mapa esquecido → apagar o mapa e tirar o servidor do matcher (`settings.json:10`);
+    - nome do servidor divergente entre o mapa e a chave do `.mcp.json` → dar o mesmo nome aos dois, citando, se existir, o servidor do `.mcp.json` que ficou sem mapa;
+    - mapa de servidor ainda não registrado → registrar o servidor no `.mcp.json` e no matcher, depois da auditoria e da fixação de versão (regra de servidor novo de RE em `CLAUDE.md`);
+  - o aviso de que o verificador não corrige nada: a correção é manual.
+
+  **Documentação em prosa (D-2, §7).** A fatia 1 também corrige o texto. No runbook (D1): o registro do GhidraMCP passa a usar o commit e as fixações de `mcp` e `requests` de `.mcp.json:14-18`. No guia: a D2 ganha o servidor `ghidra` e o `ghidra-niveis.json` na tabela de instalação (`guia-rea.md:73-79`); a D3 passa a marcar Ghidra + JDK como instalados, conforme `runbook-prereqs-nativo.md:91-94`. Depois disso, a D1 e a D2 são detectadas pelos pontos 8 e 7. A D3 só é corrigida, não detectada. Justificativa: os pontos 7 e 8 só buscam nomes e referências em arquivos versionados, dentro do escopo estático; já a instalação do Ghidra é estado da máquina, fora do checkout, e nenhuma leitura estática a confere.
+
+  **Não faz:** não muda gate, mapa, `.mcp.json`, settings nem registros; não executa o REA; não lê `alvos/`, `saidas/` nem `registros/<slug>/`. **Depende de:** nada além de `ambiente-node`.
+- **Fatia 2.** Bloco `contrato` (+ `atributos` opcional) nos dois mapas; o verificador passa a exigi-lo. **Não faz:** não muda o gate nem aplica família. **Depende de:** fatia 1.
+- **Fatia 3.** `schema: 00-seguranca/1` no modelo, parser compartilhado e relatório legado/inválido/revisão nova dos registros versionados. **Não faz:** não migra, não edita `status`/`niveis_aprovados`, não muda a decisão do gate. **Depende de:** fatia 1.
+- **Fatia 4a (gate MCP).** `rea-gate.mjs` usa o parser compartilhado: v1 estrito, legado pelo caminho atual, inválido nega; `Object.hasOwn` na busca da tool (`rea-gate.mjs:80`). **Não faz:** não toca `cli-gate.mjs`, não aprova nada, não afrouxa nenhum caso hoje negado, não entra sem regressão completa (`rea-gate.test.mjs`) e @qa. **Depende de:** fatia 3.
+- **Fatia 4b (`cli-gate`).** `cli-gate.mjs` troca a regex duplicada (`cli-gate.mjs:93,95`) pelo parser compartilhado, com as mesmas regras da 4a. Se a pergunta 6.5 decidir que o CLI entra em "tool desconhecida recusada", a 4b também recusa comando sem classificação. O mapa de comando para nível que isso exige não existe hoje (D6), e o desenho dele fica para depois da 6.5. **Não faz:** não toca `rea-gate.mjs`, não aprova nada, não afrouxa nenhum caso hoje negado, não entra sem regressão completa (`cli-gate.test.mjs`) e @qa. **Depende de:** fatia 3; a parte da recusa depende também da 6.5. Não depende da 4a: as duas são separadas para que cada gate mude com regressão e revisão próprias.
+- **Fatia 5 (opcional).** Gerar o matcher a partir dos mapas. **Não faz:** não gera `.mcp.json`. **Depende de:** fatia 1 e pergunta 6.10.
 - **Fora da MEL-05.** Aplicar família no gate (U5) e adaptador do Codex.
 
 ## 3. Alternativas globais descartadas
@@ -184,33 +197,48 @@ Nunca se reescreve o arquivo. A migração é humana, por adendo aprovado, porqu
 ## 4. Consequências gerais
 
 - **Positivas:**
-  - servidor ou tool nova sem mapa, matcher ou versão coerente falha na CI, antes da chamada;
-  - as D1–D4 passam a ser detectáveis;
+  - servidor ou tool nova sem mapa, matcher ou versão coerente, e mapa sem servidor, falham na CI antes da chamada;
+  - a D4 passa a ser detectável (pontos 4 e 5 da fatia 1; cabeçalho uniforme na fatia 2);
+  - a D1 e a D2 são corrigidas na fatia 1 e passam a ser detectáveis (pontos 8 e 7 do §2f); a D3 é só corrigida, sem detecção;
+  - a D5 e a D6 continuam dependendo das perguntas 6.4 e 6.5;
   - a matriz de clientes fica explícita.
 - **Negativas:**
   - mais um componente no job `js`;
   - `atributos` aumenta o `rea-niveis.json`;
-  - parser compartilhado entre `.claude/hooks/` e `scripts/` cria acoplamento (a localização fica para decisão).
-- **Compatibilidade:** fatias 1–3 sem mudança de comportamento do gate; registros legados seguem lidos como hoje.
+  - parser compartilhado entre `.claude/hooks/` e `scripts/` cria acoplamento (a localização fica para decisão);
+  - os pontos 7 e 8 prendem o guia e o runbook ao `.mcp.json`: mudar um servidor passa a exigir a documentação no mesmo commit.
+- **Compatibilidade:** fatias 1–3 sem mudança de comportamento do gate; registros legados seguem lidos como hoje. As fatias 4a e 4b mudam um gate cada.
 
 ## 5. Riscos
 
 - **R1.** A semântica de casamento do matcher no Claude Code (âncoras, regex completa ou parcial) está a confirmar. Sem isso, a checagem do matcher pode dar falsa confiança.
 - **R2.** Classificação errada de nível só a auditoria pega; o verificador confere forma, não risco.
-- **R3.** A fatia 4 mexe no caminho de segurança: regressão pode liberar demais (pior caso) ou bloquear tudo. Mitigação: fail-closed e testes de mutação.
+- **R3.** As fatias 4a e 4b mexem no caminho de segurança: regressão pode liberar demais (pior caso) ou bloquear tudo. Mitigação: fail-closed e testes de mutação.
 - **R4.** Os registros de alvos são dados derivados do alvo. O parser só lê e não ecoa trechos longos nas mensagens.
 - **R5.** Conflito com o plano de perfil do alvo no `rea-niveis.json` (`:69`).
 - **R6.** A leitura do catálogo real do REA (`mcp doctor`) executa código do pacote. Fica fora da fatia 1; onde o catálogo mora no pacote está a confirmar.
 
 ## 6. Itens pendentes de decisão do responsável
 
-1. Aceitar, alterar ou recusar este ADR (Proposto → Aceito).
-2. "Revisão nova": revisão do schema ou protocolo novo para versão nova do alvo?
-3. Mapa órfão (sem servidor no `.mcp.json`): falha ou aviso?
-4. Semântica de aprovação: por nível, como hoje, ou por tool via adendo (D5)?
-5. O caminho CLI entra em "tool desconhecida recusada" (D6) ou fica fora dos "caminhos suportados"?
-6. Corrigir D1–D3 na documentação: unidade própria ou junto com a fatia 1?
-7. Auditoria do GhidraMCP: manter no runbook (`runbook-prereqs-nativo.md:67`) ou mover para `docs/seguranca/`?
-8. Localização do parser compartilhado (`.claude/hooks/lib/` ou `scripts/`) e se a fatia 3 valida registros reais na CI.
-9. Estado inicial da matriz (§2e) e prazo para um adaptador do Codex.
-10. Gerar o matcher (fatia 5) ou só conferir.
+A numeração é estável: itens decididos ficam no lugar, marcados.
+
+1. **Decidida (D-1, §7):** ADR aceito.
+2. "Revisão nova": revisão do schema ou protocolo novo para versão nova do alvo? (aberta)
+3. **Decidida (D-4, §7):** mapa órfão (sem servidor no `.mcp.json`) falha, com causas e soluções na mensagem (§2f, ponto 1).
+4. Semântica de aprovação: por nível, como hoje, ou por tool via adendo (D5)? (aberta)
+5. O caminho CLI entra em "tool desconhecida recusada" (D6) ou fica fora dos "caminhos suportados"? Define o escopo da fatia 4b. (aberta)
+6. **Decidida (D-2, §7):** D1–D3 corrigidas junto com a fatia 1.
+7. Auditoria do GhidraMCP: manter no runbook (`runbook-prereqs-nativo.md:67`) ou mover para `docs/seguranca/`? (aberta)
+8. Localização do parser compartilhado (`.claude/hooks/lib/` ou `scripts/`) e se a fatia 3 valida registros reais na CI. (aberta)
+9. Estado inicial da matriz (§2e), incluindo o uso do provider Ghidra pelo REA, e prazo para um adaptador do Codex. (aberta)
+10. Gerar o matcher (fatia 5) ou só conferir. (aberta)
+
+## 7. Decisões do responsável (2026-11-04)
+
+Tomadas pelo responsável na conversa, em 2026-11-04.
+
+- **D-1.** ADR aceito (Proposto → Aceito). Informação dele: o Ghidra está instalado. Isso resolve a D3: o guia (`guia-rea.md:62`) está desatualizado, e o runbook registra a instalação em 14/10/2026 (`runbook-prereqs-nativo.md:91-94`).
+- **D-2.** A correção da documentação em prosa (D1–D3) entra junto com a fatia 1, não em unidade própria (§2f).
+- **D-4.** Mapa de níveis sem servidor correspondente no `.mcp.json` não tem utilidade e **falha**. A mensagem identifica as causas prováveis e as soluções (§2f, ponto 1).
+- **§4 corrigido** (apontado pelo @po): o texto dizia que as D1–D3 passavam a ser detectáveis, mas os seis pontos da fatia 1 não liam documentação em prosa. Com a D-2, a fatia 1 ganhou os pontos 7 e 8, que detectam a D1 e a D2; a D3 é só corrigida.
+- **P-5.** A fatia 4 foi dividida em 4a (gate MCP, `rea-gate.mjs`) e 4b (`cli-gate.mjs`, com a recusa de tool desconhecida condicionada à 6.5).
