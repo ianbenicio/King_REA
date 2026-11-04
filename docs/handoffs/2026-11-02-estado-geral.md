@@ -44,11 +44,11 @@ Condição para encerrar a etapa 2: clone limpo executa as verificações e a CI
 
 Impacto: as próximas perguntas de volta do PRKing_UO que pedirem análise do binário (e não só pesquisa pública) ficam paradas até a M-1 do `uo-classic`.
 
-### Etapas 3 a 5 (não iniciadas)
+### Etapas 3 a 5
 
 | Etapa | Itens | Nota |
 |---|---|---|
-| 3. Controle da investigação | MEL-05 (contratos e inventário de integrações), MEL-06 (identidade e isolamento por execução: substituição depois da admissão, troca de programa no Ghidra, proveniência de `saidas/`, bundle, `run_id`), MEL-07 (política comum CLI e MCP; hoje o `cli-gate.mjs` não confere hash; clientes suportados: Claude Code e Codex) | MEL-07 é G; dividir em fatias |
+| 3. Controle da investigação (**em andamento desde 2026-11-04**: E3-0 feita; ADR-0001 Proposto e story MEL-05 em Ready, aguardando decisões D-1 a D-4 do responsável) | MEL-05 (contratos e inventário de integrações), MEL-06 (identidade e isolamento por execução: substituição depois da admissão, troca de programa no Ghidra, proveniência de `saidas/`, bundle, `run_id`), MEL-07 (política comum CLI e MCP; hoje o `cli-gate.mjs` não confere hash; clientes suportados: Claude Code e Codex) | MEL-07 é G; dividir em fatias |
 | 4. Uso real e conhecimento | MEL-09 (testes em navegador do puzzle), MEL-10 (índice de conhecimento), MEL-11 (métricas por pergunta respondida) | documentação e métricas podem começar antes |
 | 5. Otimização | MEL-12, MEL-13, MEL-14 | só com evidência de ganho |
 
@@ -90,4 +90,5 @@ Registradas para não se perderem; o trabalho acontece no PRKing_UO, em sessão 
 3. ~~**E2-4a**~~ e ~~**E2-4b**~~ (feitas em 2026-11-02). Não sobra unidade da etapa 2 sem decisão pendente.
 4. ~~**E2-2**~~ (feita em 2026-11-02, com o AC6/E2-6). ~~**E2-3**~~ parte fechada em 2026-11-02; **E2-3b** (auditoria do gitleaks) fecha a MEL-04.
 5. ~~**E2-5**~~ (feita em 2026-11-03). PR #1 no `main` e `enforce_admins` ligado. Falta só o novo gate @qa da MEL-08.
-6. **Próxima:** etapa 3, começando pela E3-0 (ADR e story da MEL-05, validação @po), sem mudar código. Fechamento da etapa 2 em [`2026-11-03-etapa2-fechamento.md`](2026-11-03-etapa2-fechamento.md); prompt da próxima sessão em [`2026-11-03-prompt-etapa3.md`](2026-11-03-prompt-etapa3.md).
+6. ~~**E3-0**~~ (feita em 2026-11-04, branch `docs/e3-0-preparo`): ADR-0001 Proposto, story MEL-05 em Ready (GO condicional, 9,5/10), sequência da etapa 3 proposta. Handoff: [`2026-11-04-e3-0-preparo-mel05.md`](2026-11-04-e3-0-preparo-mel05.md). Fechamento da etapa 2 em [`2026-11-03-etapa2-fechamento.md`](2026-11-03-etapa2-fechamento.md).
+7. **Etapa 3 em andamento. Próxima:** o responsável aceita ou ajusta o ADR-0001 e responde D-1 a D-4; depois E3-1 (fatia 1 da MEL-05, verificador `integracoes`). Sequência completa, com tamanhos e decisões, na §4 do handoff da E3-0.
