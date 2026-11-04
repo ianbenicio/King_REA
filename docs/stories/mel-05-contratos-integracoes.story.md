@@ -1,6 +1,6 @@
 # Story MEL-05 — contratos e inventário único de integrações
 
-**Status:** Ready (validação @po da unidade E3-0c, 2026-11-04: GO condicional, ver "Validação @po"; decisões do responsável de 2026-11-04 aplicadas pelo @sm, ver Change Log e "Decisões do responsável"). **A fatia 1 está liberada para InProgress quanto às decisões do responsável** (D-1, D-2 e D-4 decididas; não resta pergunta que bloqueie o início). A transição Ready → InProgress é do @dev. Nova rodada de validação @po sobre o AC3 reescrito e os AC16 a AC18: **GO, 9,5/10** (2026-11-04, rodada 2); o @dev pode partir
+**Status:** InProgress (fatia 1, E3-1, @dev, 2026-11-04; antes: Ready, validação @po da unidade E3-0c, 2026-11-04: GO condicional, ver "Validação @po"; decisões do responsável de 2026-11-04 aplicadas pelo @sm, ver Change Log e "Decisões do responsável"). **A fatia 1 está liberada para InProgress quanto às decisões do responsável** (D-1, D-2 e D-4 decididas; não resta pergunta que bloqueie o início). A transição Ready → InProgress é do @dev. Nova rodada de validação @po sobre o AC3 reescrito e os AC16 a AC18: **GO, 9,5/10** (2026-11-04, rodada 2); o @dev pode partir. Decisões do responsável de 2026-11-04, depois do início da E3-1 (P-6 decidida, linha 100 do runbook na fatia 1, D-3 fechada com o pressuposto aceito), aplicadas pelo @po: ver "Decisões do responsável (2026-11-04, após o início da E3-1)"
 **Workflow:** SDC, ciclo completo em fatias (entrega M no plano; @sm → @po → @dev, critérios @qa) · **Origem:** A08 do [parecer de 01/11/2026](../analises/2026-11-01-arquitetura-cto-comparativo.md) · **Pacote:** MEL-05 do [plano de evolução](../planos/2026-11-01-evolucao-arquitetura-qualidade.md) §6 (linhas 266-285) · **Decisões:** [ADR-0001 (Aceito, 2026-11-04)](../adr/ADR-0001-contratos-integracoes-mel-05.md) · **Ponto de partida:** [handoff da etapa 2, §5](../handoffs/2026-11-03-etapa2-fechamento.md)
 **Complexidade:** STANDARD · estimativa do plano M no total; estimativa por fatia no fim desta story (a fatia 4 foi dividida em 4a e 4b; a soma das fatias ainda passa do M do plano, ver Riscos) · **Dependências:** MEL-03 (o verificador é o executor do componente novo) e MEL-08 (o job `js` da CI roda o componente), ambas na base de validação; coordenação com a U5 do plano de perfil do alvo
 
@@ -14,7 +14,7 @@
 
 Mapa de níveis, matcher, configuração MCP e documentação podem divergir, e o gate lê campos de aprovação por regex (plano §6, "Problema e justificativa"). O ADR levantou o que cada arquivo declara hoje (ADR §1.1, linhas 15-36), as divergências já presentes (D1–D6, linhas 40-47) e as possíveis sem detecção (linhas 49-58). O ADR foi aceito pelo responsável em 2026-11-04 (ADR §7, D-1) e atualizado pelo @architect para refletir as decisões daquele dia.
 
-O plano manda começar "por um verificador de consistência entre os arquivos existentes; gerar configurações só onde simplificar a manutenção" (plano linha 272), e o handoff repete: sem migrar nem aprovar níveis automaticamente (handoff §5). Por isso a story é fatiada: a **fatia 1 confere por leitura estática e corrige só a documentação em prosa** (D1–D3, decisão D-2); mudar o formato dos mapas, o schema do `00-seguranca.md` e os gates vêm depois, uma fatia por vez (ADR §2f, linhas 162-190).
+O plano manda começar "por um verificador de consistência entre os arquivos existentes; gerar configurações só onde simplificar a manutenção" (plano linha 272), e o handoff repete: sem migrar nem aprovar níveis automaticamente (handoff §5). Por isso a story é fatiada: a **fatia 1 confere por leitura estática e corrige só a documentação em prosa** (D1–D3, decisão D-2, mais a linha 100 do runbook, decisão do responsável de 2026-11-04); mudar o formato dos mapas, o schema do `00-seguranca.md` e os gates vêm depois, uma fatia por vez (ADR §2f, linhas 162-190).
 
 **Aplicação das decisões de 2026-11-04 (ADR §7):** D-1 (ADR aceito; o Ghidra está instalado, o que resolve a D3), D-2 (D1–D3 corrigidas na fatia 1), D-4 (mapa sem servidor no `.mcp.json` falha, com causas e soluções na mensagem), correção do ADR §4 (resolve P-1) e P-5 (fatia 4 dividida em 4a e 4b). Só entra aqui o que o ADR atualizado diz; o que as decisões implicam e o ADR não diz está nas "Lacunas das fontes".
 
@@ -27,7 +27,7 @@ O plano manda começar "por um verificador de consistência entre os arquivos ex
 
 | # | Fatia | Estimativa | Depende de |
 |---|---|---|---|
-| 1 | Verificador de consistência por leitura estática (componente `integracoes`, job `js`), mais a correção da documentação em prosa D1–D3 (`docs/runbook-prereqs-nativo.md`, `docs/guia-rea.md`) | M | MEL-03, MEL-08. Decisões do responsável D-1, D-2 e D-4: **decididas** (2026-11-04); sem bloqueio de início. D-3 (matcher) bloqueia só o fechamento do AC2 |
+| 1 | Verificador de consistência por leitura estática (componente `integracoes`, job `js`), mais a correção da documentação em prosa D1–D3 e da linha 100 do runbook (`docs/runbook-prereqs-nativo.md`, `docs/guia-rea.md`) | M | MEL-03, MEL-08. Decisões do responsável D-1, D-2 e D-4: **decididas** (2026-11-04); sem bloqueio de início. D-3 (matcher): **fechada** em 2026-11-04 (pressuposto aceito pelo responsável, semântica confirmada pelo @architect) |
 | 2 | Bloco `contrato` (+ `atributos` opcional) nos dois mapas; verificador passa a exigi-lo; matriz cliente/provider | P | Fatia 1; decisões 7 (campo `auditoria` do Ghidra) e 9 (estado inicial da matriz); coordenação U5 |
 | 3 | `schema: 00-seguranca/1` no modelo, parser compartilhado, relatório legado/inválido/revisão nova | M | Fatia 1; decisões 2 e 8 |
 | 4a | Gate MCP: `rea-gate.mjs` usa o parser compartilhado (v1 estrito, legado pelo caminho atual, inválido nega, `Object.hasOwn`) | M | Fatia 3; decisão 8 (localização do parser); decisão 4 (semântica de aprovação) a confirmar, ver "Decisões"; regressão completa (`rea-gate.test.mjs`) e @qa |
@@ -41,7 +41,7 @@ Estimativas são do @sm, não do plano, que dá só o M da story inteira. A fati
 ### Escopo da fatia 1
 
 **Dentro:** componente novo `integracoes` do verificador (`scripts/verificar/verificar.mjs`, lista de componentes com `depende` e `requisito`; ADR linha 62), implementado em módulo próprio (sugestão do ADR: `scripts/integracoes/verificar-integracoes.mjs` + teste), com `depende: ["ambiente-node"]`; entrada no job `js` da CI; testes no `npm test`. Confere, só com leitura estática, os **oito** pontos do ADR §2f (linhas 164-172), listados nos ACs abaixo: os pontos 1 a 6 sobre `.mcp.json`, mapas, matcher, versões e modelo; os pontos 7 e 8 sobre a documentação em prosa (o guia cita cada servidor do `.mcp.json` e o mapa dele; toda referência `GhidraMCP@<ref>` do runbook é prefixo do commit do `.mcp.json:14`).
-**Também dentro (D-2, ADR §2f "Documentação em prosa", linha 182):** a fatia corrige o texto de `docs/runbook-prereqs-nativo.md` (D1) e `docs/guia-rea.md` (D2 e D3). Depois da correção, a D1 e a D2 passam a ser detectadas pelos pontos 8 e 7; a D3 **só é corrigida, não detectada** (a instalação do Ghidra é estado da máquina, fora do checkout; nenhuma leitura estática a confere).
+**Também dentro (D-2, ADR §2f "Documentação em prosa", linha 182):** a fatia corrige o texto de `docs/runbook-prereqs-nativo.md` (D1 e, por decisão do responsável de 2026-11-04 que amplia a D-2, a linha 100) e `docs/guia-rea.md` (D2 e D3). Depois da correção, a D1 e a D2 passam a ser detectadas pelos pontos 8 e 7; a D3 **só é corrigida, não detectada** (a instalação do Ghidra é estado da máquina, fora do checkout; nenhuma leitura estática a confere).
 **Fora:** ver "O que cada fatia não faz".
 
 ### Onde entra na CI (ADR §1.3 e §2f; handoff §2)
@@ -64,7 +64,7 @@ Cada AC aponta a origem: **P** = item do aceite do plano (P1 servidor sem classi
 **Cobertura de servidores (P1; ADR §2f.1, §2c)**
 
 - [ ] **AC1** — Dado um servidor em `.mcp.json` sem `.claude/hooks/<servidor>-niveis.json`, quando o componente roda, então reprova com mensagem que cita o servidor e diz que falta o **mapa de níveis** ("integração incompleta: servidor `x` sem mapa de níveis"). Teste com fixture em pasta temporária. *Origem:* P1, ADR §2f.1; ADR linha 51.
-- [ ] **AC2** — Dado um servidor com mapa e sem cobertura do matcher de `.claude/settings.json` (a chamada `mcp__<servidor>__x` não casa), quando o componente roda, então reprova citando o servidor e dizendo que falta o **matcher do gate** (a tool ficaria sem trava). Dado o inverso (servidor nomeado no matcher sem entrada no `.mcp.json`), reprova dizendo que o matcher cita servidor que não está configurado. *Origem:* P1, ADR §2f.1; ADR linha 52. Pressuposto: ver D-3.
+- [ ] **AC2** — Dado um servidor com mapa e sem cobertura do matcher de `.claude/settings.json` (a chamada `mcp__<servidor>__x` não casa), quando o componente roda, então reprova citando o servidor e dizendo que falta o **matcher do gate** (a tool ficaria sem trava). Dado o inverso (servidor nomeado no matcher sem entrada no `.mcp.json`), reprova dizendo que o matcher cita servidor que não está configurado. **Leitura do matcher (D-3 fechada em 2026-11-04):** o componente reproduz a regra da documentação do Claude Code (hooks reference): matcher só com letras, dígitos, `_`, `-`, espaço, `,` e `|` é lista de nomes exatos; com qualquer outro caractere é regex JavaScript testada com `RegExp.prototype.test` (casamento parcial, sem âncora); `*` ou vazio casa tudo. Há **cobertura** do servidor só se `mcp__<servidor>__<tool>` casa nas duas leituras: a parcial (`test` com a regex como está) **e** a ancorada (`^(?:<matcher>)$`). O componente **reprova** (fail-closed) matcher fora da forma `mcp__(n1|n2…)__.*` com nomes em `[a-z0-9-]+` (o mesmo conjunto da regex do gate, `rea-gate.mjs:63`), inclusive matcher vazio, `*` e lista de nomes exatos. Testes negativos, com fixture: `mcp__rea` sem `.*` reprova; nome de servidor de plugin (`mcp__plugin_x_rea__t`, forma `mcp__plugin_<plugin>_<servidor>__<tool>`, que o matcher atual nunca pega) não conta como cobertura de `rea`; servidor com `_` no nome reprova (fora de `[a-z0-9-]+`; o tratamento do `_` dentro do nome do servidor não é documentado pelo Claude Code, a confirmar). *Origem:* P1, ADR §2f.1; ADR linha 52; D-3 (decisão do responsável e confirmação do @architect, 2026-11-04).
 - [ ] **AC3** — Dado um mapa `.claude/hooks/<servidor>-niveis.json` sem servidor correspondente em `.mcp.json` (mapa órfão), quando o componente roda, então **reprova** (D-4 decidida: falha, não aviso), e a mensagem contém: (a) o arquivo do mapa; (b) o nome de servidor derivado dele (`<servidor>-niveis.json` ↔ `mcp__<servidor>__`, `rea-gate.mjs:63-85`); (c) a lista de servidores do `.mcp.json`; (d) as **três causas prováveis, cada uma com a solução**: servidor removido do `.mcp.json` e mapa esquecido → apagar o mapa e tirar o servidor do matcher (`settings.json:10`); nome do servidor divergente entre o mapa e a chave do `.mcp.json` → dar o mesmo nome aos dois, citando, se existir, o servidor do `.mcp.json` que ficou sem mapa; mapa de servidor ainda não registrado → registrar o servidor no `.mcp.json` e no matcher, depois da auditoria e da fixação de versão (regra de servidor novo de RE em `CLAUDE.md`); (e) o aviso de que **o verificador não corrige nada** e a correção é manual. A mensagem traz **sempre as três causas**: o componente não escolhe uma, porque "removido e esquecido" e "ainda não registrado" não se distinguem por leitura estática, e o ADR pede na mensagem as causas prováveis, cada uma com a solução; a única parte que varia é a citação do servidor sobrando na causa "nome divergente". Testes, com fixtures em pasta temporária: (1) mapa sem servidor e nenhum servidor do `.mcp.json` sobrando sem mapa → a mensagem traz as três causas, **uma asserção por causa**, cada uma com a sua solução (removido e esquecido → apagar o mapa e tirar do matcher; nome divergente → dar o mesmo nome aos dois; ainda não registrado → registrar no `.mcp.json` e no matcher, depois da auditoria e da fixação de versão), e a causa "nome divergente" não cita servidor nenhum ("se existir"); (2) mapa `x-niveis.json` com o `.mcp.json` tendo um servidor `y` sem mapa → a causa "nome divergente" **cita `y`**, e as outras duas continuam na mensagem. Nos dois testes, afirma também (a), (b), (c) e (e), e que o componente reprova (não avisa). O mesmo cenário do teste (2) também reprova o AC1 (servidor `y` sem mapa); os dois diagnósticos aparecem. *Origem:* ADR §2c (linha 138), §2f ponto 1 (linhas 165 e 174-180), §6 item 3, §7 (D-4).
 
 **Forma do mapa (P1, P2; ADR §2f.2–3)**
@@ -100,14 +100,14 @@ Cada AC aponta a origem: **P** = item do aceite do plano (P1 servidor sem classi
 **Documentação em prosa (D-2; ADR §2f pontos 7 e 8 e "Documentação em prosa", linhas 171-172 e 182)** — AC novos, numerados em sequência para não renumerar os anteriores.
 
 - [ ] **AC16** — (ponto 7, detecta a D2) Dado o `docs/guia-rea.md`, quando o componente roda, então confere que ele **cita cada servidor do `.mcp.json` e o mapa dele** (`<servidor>-niveis.json`). Dado um servidor do `.mcp.json` que o guia não cita, ou citado sem o nome do mapa, reprova citando o servidor, o arquivo do guia e o mapa esperado. Teste com fixture em pasta temporária: guia que só cita `rea` e `rea-niveis.json`, com `.mcp.json` de `rea` e `ghidra`, reprova (o caso da D2 em `guia-rea.md:76-78`); guia que cita os dois e os dois mapas aprova. O componente só busca nomes, em texto de arquivo versionado. *Origem:* ADR §2f ponto 7 (linha 171), D2 (linha 43).
-- [ ] **AC17** — (ponto 8, detecta a D1) Dado o `docs/runbook-prereqs-nativo.md`, quando o componente roda, então confere que **toda referência `GhidraMCP@<ref>`** é **prefixo do commit** dos `args` do `.mcp.json` (`.mcp.json:14`). Dada uma referência que não é prefixo (como `@2.0`), reprova citando o arquivo, a referência e o commit esperado (abreviado). Teste com fixture: runbook com `GhidraMCP@2.0` reprova; com `GhidraMCP@1e98025` (prefixo do commit da fixture) aprova. **Runbook sem nenhuma referência `GhidraMCP@`: comportamento não fixado por este AC** (o ADR não trata o caso; aprovar por vacuidade faria o ponto 8 deixar de detectar a D1 sem aviso; pendência P-6 da validação @po, rodada 2). Nenhum teste afirma esse caso até a resposta; o AC17 fecha sem ele. No repositório real o caso não ocorre: o AC18 (a) mantém a referência. No repositório real, **hoje o ponto 8 falharia em `docs/runbook-prereqs-nativo.md:82`**, que usa `@2.0`: é o caso que o AC18 corrige. *Origem:* ADR §2f ponto 8 (linha 172), D1 (linha 42).
-- [ ] **AC18** — (correção da documentação, D1–D3) Dada a entrega da fatia 1, então: (a) **D1** — `docs/runbook-prereqs-nativo.md` passa a registrar o GhidraMCP com o commit e as fixações de `mcp` e `requests` de `.mcp.json:14-18`, no lugar da "tag 2.0" (`runbook-prereqs-nativo.md:74,82`), **mantendo a referência na forma `GhidraMCP@<commit>`** que o `.mcp.json:14` usa (`git+https://github.com/LaurieWired/GhidraMCP@<commit>`), para que o ponto 8 tenha o que conferir (ADR §2f: depois da correção, a D1 "é detectada pelo ponto 8"); (b) **D2** — `docs/guia-rea.md` ganha o servidor `ghidra` e o `ghidra-niveis.json` na tabela de instalação (`guia-rea.md:73-79`); (c) **D3** — `docs/guia-rea.md` passa a marcar Ghidra + JDK como instalados (`guia-rea.md:62`), conforme `runbook-prereqs-nativo.md:91-94` (instalação em 14/10/2026) e a informação do responsável (ADR §7, D-1). Depois disso, o componente aprova o repositório real nos pontos 7 e 8 (AC16, AC17, AC10). A D3 **não é detectada** por nenhum AC: só corrigida. O que o responsável não disse nem o ADR registra (por exemplo, se o provider Ghidra do REA está em uso, 6.9) **não é afirmado** no texto corrigido. *Origem:* ADR §2f "Documentação em prosa" (linha 182), §7 (D-1, D-2), D1–D3 (linhas 42-44).
+- [ ] **AC17** — (ponto 8, detecta a D1) Dado o `docs/runbook-prereqs-nativo.md`, quando o componente roda, então confere que **toda referência `GhidraMCP@<ref>`** é **prefixo do commit** dos `args` do `.mcp.json` (`.mcp.json:14`). Dada uma referência que não é prefixo (como `@2.0`), reprova citando o arquivo, a referência e o commit esperado (abreviado). Teste com fixture: runbook com `GhidraMCP@2.0` reprova; com `GhidraMCP@1e98025` (prefixo do commit da fixture) aprova. **Runbook sem nenhuma referência `GhidraMCP@`: reprova** (fail-closed, como o AC7 trata o campo sem commit legível; P-6 decidida pelo responsável em 2026-11-04), com mensagem que cita o arquivo do runbook e diz que não há referência `GhidraMCP@<ref>` a conferir. Teste com fixture: runbook sem nenhuma `GhidraMCP@` reprova. No repositório real o caso não ocorre: o AC18 (a) mantém a referência. No repositório real, **hoje o ponto 8 falharia em `docs/runbook-prereqs-nativo.md:82`**, que usa `@2.0`: é o caso que o AC18 corrige. *Origem:* ADR §2f ponto 8 (linha 172), D1 (linha 42); caso sem referência: decisão do responsável (P-6, 2026-11-04).
+- [ ] **AC18** — (correção da documentação, D1–D3 e linha 100 do runbook) Dada a entrega da fatia 1, então: (a) **D1** — `docs/runbook-prereqs-nativo.md` passa a registrar o GhidraMCP com o commit e as fixações de `mcp` e `requests` de `.mcp.json:14-18`, no lugar da "tag 2.0" (`runbook-prereqs-nativo.md:74,82`), **mantendo a referência na forma `GhidraMCP@<commit>`** que o `.mcp.json:14` usa (`git+https://github.com/LaurieWired/GhidraMCP@<commit>`), para que o ponto 8 tenha o que conferir (ADR §2f: depois da correção, a D1 "é detectada pelo ponto 8"); (b) **D2** — `docs/guia-rea.md` ganha o servidor `ghidra` e o `ghidra-niveis.json` na tabela de instalação (`guia-rea.md:73-79`); (c) **D3** — `docs/guia-rea.md` passa a marcar Ghidra + JDK como instalados (`guia-rea.md:62`), conforme `runbook-prereqs-nativo.md:91-94` (instalação em 14/10/2026) e a informação do responsável (ADR §7, D-1); (d) **linha 100 do runbook** — `docs/runbook-prereqs-nativo.md:100` deixa de dizer que falta o @devops registrar o servidor `ghidra` no `.mcp.json` (já registrado: `.mcp.json:14-18`; o próprio runbook, linha 96, registra o `b92a651`); só prosa, sem nova checagem do componente (decisão do responsável de 2026-11-04, que amplia a D-2). Depois disso, o componente aprova o repositório real nos pontos 7 e 8 (AC16, AC17, AC10). A D3 **não é detectada** por nenhum AC: só corrigida. O que o responsável não disse nem o ADR registra (por exemplo, se o provider Ghidra do REA está em uso, 6.9) **não é afirmado** no texto corrigido. *Origem:* ADR §2f "Documentação em prosa" (linha 182), §7 (D-1, D-2), D1–D3 (linhas 42-44); item (d): decisão do responsável de 2026-11-04 (observação da validação @po, rodada 2).
 
 ### Rastreabilidade AC da fatia 1 → aceite do plano e ADR
 
 | AC | Plano (linhas 278-281) | ADR |
 |---|---|---|
-| AC1, AC2 | P1 | §2f.1; §2c; D-lista "possíveis" |
+| AC1, AC2 | P1 | §2f.1; §2c; D-lista "possíveis"; AC2: D-3 (2026-11-04) |
 | AC3 | P1 (servidor e mapa incoerentes apontados) | §2c; §2f.1 (mensagem, linhas 174-180); §6 item 3; §7 D-4 |
 | AC4, AC5, AC6 | P1, P2 (parte schema e nível) | §2f.2–3 |
 | AC7 | "Trabalho proposto" (versão no contrato, linha 272) | §2f.4–5; D4 |
@@ -116,8 +116,8 @@ Cada AC aponta a origem: **P** = item do aceite do plano (P1 servidor sem classi
 | AC10 a AC12 | "Dependências" (MEL-03 e MEL-08 como base de validação, linha 283) | §1.3; handoff §2 e §5 |
 | AC13, AC14 | P3 (não migra nem aprova) | §2f "Não faz"; R6 |
 | AC15 | — (qualidade da entrega) | handoff §2 e §5 |
-| AC16, AC17 | "Trabalho proposto" (o verificador confere a documentação, handoff §5) | §2f pontos 7 e 8; D1, D2; §4; §7 D-2 |
-| AC18 | — (correção de D1–D3; não é aceite P1–P4) | §2f "Documentação em prosa"; §7 D-1 e D-2; D1–D3 |
+| AC16, AC17 | "Trabalho proposto" (o verificador confere a documentação, handoff §5) | §2f pontos 7 e 8; D1, D2; §4; §7 D-2; AC17 sem referência: P-6 (responsável, 2026-11-04) |
+| AC18 | — (correção de D1–D3 e da linha 100 do runbook; não é aceite P1–P4) | §2f "Documentação em prosa"; §7 D-1 e D-2; D1–D3; item (d): decisão do responsável (2026-11-04) |
 
 Os aceites **P2 completo** (tool desconhecida e nível sem autorização recusados nos caminhos suportados), **P3 completo** (legado/inválido/revisão nova) e **P4** (matriz) **não** são atendidos pela fatia 1: ver as fatias 2 a 4b.
 
@@ -157,12 +157,20 @@ Numeração do ADR §6, estável. Decididas em 2026-11-04, na conversa com o res
 **Decididas (2026-11-04):**
 
 - **D-1 (ADR 6.1) — decidida.** ADR aceito (Proposto → Aceito, 2026-11-04). Informação do responsável: o Ghidra está instalado, o que resolve a D3: o guia (`guia-rea.md:62`) está desatualizado (ADR §7). O plano exigia ADR antes de alterar contratos (plano linha 283): cumprido.
-- **D-2 (ADR 6.6) — decidida.** A correção da documentação em prosa (D1–D3) entra **junto com a fatia 1**, não em unidade própria. Efeito na story: tasks e File List do runbook e do guia, AC16 a AC18, "não faz" e estimativa da fatia 1 (continua M).
+- **D-2 (ADR 6.6) — decidida.** A correção da documentação em prosa (D1–D3) entra **junto com a fatia 1**, não em unidade própria. Efeito na story: tasks e File List do runbook e do guia, AC16 a AC18, "não faz" e estimativa da fatia 1 (continua M). **Ampliada em 2026-11-04** (ver abaixo): D1–D3 mais a linha 100 do runbook.
 - **D-4 (ADR 6.3) — decidida.** Mapa de níveis sem servidor no `.mcp.json` não tem utilidade e **falha**, com causas e soluções na mensagem (ADR §2f ponto 1). Efeito: AC3 reescrito.
 
-**Não é decisão do responsável, continua pendente de confirmação:**
+**Fechada em 2026-11-04 (ver "Decisões do responsável (2026-11-04, após o início da E3-1)"):**
 
-- **D-3 (ADR R1) — semântica de casamento do matcher no Claude Code** (âncoras; regex completa ou parcial). O ADR §7 não a decide. Pressuposto: o AC2 testa a string `mcp__<servidor>__x` contra o matcher e só considera cobertura quando casa nas duas leituras (ancorada e parcial); caso o matcher não seja da forma `mcp__(a|b)__.*` que o componente consegue ler, reprova por fail-closed. **A confirmar pelo @architect** (ou pressuposto aceito pelo responsável). **Não impede o início da fatia 1; bloqueia só o fechamento do AC2.** Sem isso, a checagem do matcher pode dar falsa confiança (ADR R1).
+- **D-3 (ADR R1) — semântica de casamento do matcher no Claude Code — fechada.** O responsável aceitou o pressuposto fail-closed do AC2 e o @architect confirmou a semântica pela documentação do Claude Code (hooks reference). O comportamento concreto está no AC2. Resta, sem bloquear nada, o tratamento do `_` dentro do nome do servidor (não documentado; a confirmar), coberto pelo fail-closed do AC2.
+
+### Decisões do responsável (2026-11-04, após o início da E3-1)
+
+Respostas do responsável registradas em `docs/plano-de-execucao.md` §5, aplicadas à story pelo @po.
+
+- **P-6 — decidida: reprova.** Runbook sem nenhuma referência `GhidraMCP@<ref>` reprova no ponto 8 (fail-closed, como o AC7 trata o campo sem commit legível). Efeito: AC17 fixa o caso, com mensagem e teste.
+- **Linha 100 do runbook — entra na fatia 1.** `docs/runbook-prereqs-nativo.md:100` diz que falta registrar o servidor `ghidra` no `.mcp.json`, já registrado. Amplia a D-2 (D1–D3 mais a linha 100). Efeito: AC18 (d), só prosa; task da correção da documentação.
+- **D-3 — fechada com o pressuposto aceito.** Semântica confirmada pelo @architect (hooks reference): matcher só com letras, dígitos, `_`, `-`, espaço, `,` e `|` é lista de nomes exatos; outro caractere torna-o regex JavaScript testada com `RegExp.prototype.test` (parcial, sem âncora); `*` ou vazio casa tudo; servidor de plugin vira `mcp__plugin_<plugin>_<servidor>__<tool>`, que o matcher atual nunca pega; `_` dentro do nome do servidor não é documentado (a confirmar). Efeito: AC2 com o comportamento concreto e os casos negativos.
 
 **Abertas (ADR §6: 2, 4, 5, 7, 8, 9, 10) e o que cada uma bloqueia.** Nenhuma bloqueia a fatia 1.
 
@@ -176,7 +184,7 @@ Numeração do ADR §6, estável. Decididas em 2026-11-04, na conversa com o res
 | 6.9 | Estado inicial da matriz (§2e), incluindo o uso do provider Ghidra pelo REA, e prazo do adaptador do Codex | Fatia 2 |
 | 6.10 | Gerar o matcher (fatia 5) ou só conferir | Fatia 5 |
 
-**Resultado para a fatia 1:** D-1, D-2 e D-4 decididas; nenhuma das abertas (2, 4, 5, 7, 8, 9, 10) nem D-3 impede o início. Não resta bloqueio de decisão do responsável para a fatia 1; a única pendência que a toca é o fechamento do AC2 (D-3).
+**Resultado para a fatia 1:** D-1, D-2 (ampliada) e D-4 decididas; D-3 fechada e P-6 decidida (2026-11-04); nenhuma das abertas (2, 4, 5, 7, 8, 9, 10) impede o início. Não resta pendência de decisão que toque a fatia 1.
 
 ## Dependências e coordenação
 
@@ -188,7 +196,7 @@ Numeração do ADR §6, estável. Decididas em 2026-11-04, na conversa com o res
 
 ## Riscos
 
-- **R-matcher.** Casamento do matcher no Claude Code não confirmado (ADR R1): falsa confiança. Mitigação: D-3, fail-closed, teste do caso inverso.
+- **R-matcher.** Casamento do matcher no Claude Code não confirmado (ADR R1): falsa confiança. Mitigação: D-3 fechada em 2026-11-04 (semântica confirmada pelo @architect pela documentação do Claude Code; o AC2 a reproduz), fail-closed para matcher fora da forma `mcp__(n1|n2…)__.*`, teste do caso inverso e dos casos negativos do AC2. Resta não documentado o `_` no nome do servidor, coberto pelo fail-closed.
 - **R-classificação.** O verificador confere forma, não risco: nível errado de tool perigosa só a auditoria pega (ADR R2). A fatia 1 não promete detectá-lo.
 - **R-catálogo.** A fatia 1 não compara o mapa com o catálogo real do REA (ADR R6); tool nova do pacote sem entrada no mapa só aparece na chamada (o gate nega) ou numa fatia futura, se o responsável quiser comparação com o catálogo.
 - **R-caminho de segurança.** As fatias 4a e 4b mexem num gate cada: regressão pode liberar demais ou bloquear tudo (ADR R3). Mitigação: fail-closed, testes de mutação, regressão e @qa próprios de cada uma. Fatia 1 não tem esse risco (AC13).
@@ -200,21 +208,22 @@ Numeração do ADR §6, estável. Decididas em 2026-11-04, na conversa com o res
 
 ## Definition of Done
 
-**Fatia 1:** AC1–AC18 marcados com evidência (o AC2 só fecha com D-3 confirmada ou o pressuposto aceito; o AC17 fecha sem o caso "sem referência", que espera a P-6); `npm test` verde; `resultado` da CI do PR verde; decisões D-1, D-2 e D-4 respondidas e registradas (feito em 2026-11-04, ADR §7); runbook e guia corrigidos (AC18) e o componente aprovando o repositório real; @qa com gate; push e PR pelo @devops com autorização do responsável; merge só com o "sim" do responsável (handoff §2). A story **permanece InProgress até a última fatia aceita pelo responsável** e só vai a Done depois do aceite P1–P4 do plano (linhas 278-281) com evidência; fatias 2 a 5 são puxadas uma por vez, cada uma com validação @po de seus ACs.
+**Fatia 1:** AC1–AC18 marcados com evidência (o AC2 com a semântica da D-3, fechada em 2026-11-04, e os casos negativos; o AC17 com o caso "sem referência" reprovando, P-6 decidida em 2026-11-04; o AC18 com a linha 100 do runbook corrigida); `npm test` verde; `resultado` da CI do PR verde; decisões D-1, D-2 e D-4 respondidas e registradas (feito em 2026-11-04, ADR §7); runbook e guia corrigidos (AC18) e o componente aprovando o repositório real; @qa com gate; push e PR pelo @devops com autorização do responsável; merge só com o "sim" do responsável (handoff §2). A story **permanece InProgress até a última fatia aceita pelo responsável** e só vai a Done depois do aceite P1–P4 do plano (linhas 278-281) com evidência; fatias 2 a 5 são puxadas uma por vez, cada uma com validação @po de seus ACs.
 
 ## Tasks
 
 - [x] Responsável decide D-1 (aceite do ADR), D-2 (documentação junto com a fatia 1) e D-4 (mapa órfão falha) — 2026-11-04; registrado no ADR §7 e nesta story.
 - [x] Aplicar as decisões na story (@sm) — 2026-11-04.
-- [ ] @architect confirma D-3 (semântica do matcher) ou o responsável aceita o pressuposto (fecha o AC2; não bloqueia o início).
+- [x] @architect confirma D-3 (semântica do matcher) ou o responsável aceita o pressuposto — 2026-11-04, os dois: pressuposto aceito e semântica confirmada; AC2 atualizado pelo @po.
+- [x] Responsável decide a P-6 (reprova) e a linha 100 do runbook (entra na fatia 1) — 2026-11-04; aplicadas pelo @po (AC17, AC18 (d)).
 - [x] Validação @po da story (10 pontos) — 2026-11-04, GO condicional.
 - [x] Nova rodada de validação @po sobre o AC3 reescrito e os AC16 a AC18 — 2026-11-04, rodada 2, GO (ver "Validação @po (2026-11-04, rodada 2)").
 - **Fatia 1**
   - [ ] Módulo do verificador de integrações (leitura estática, sem escrita, sem rede, sem `alvos/`/`saidas/`/`registros/<slug>/`).
   - [ ] Checagens 1 a 6 do ADR §2f com mensagens por contrato (AC1–AC9), inclusive a mensagem do mapa sem servidor, com as três causas e soluções (AC3).
   - [ ] Checagens 7 e 8 do ADR §2f: o guia cita cada servidor do `.mcp.json` e o mapa dele (AC16); toda referência `GhidraMCP@<ref>` do runbook é prefixo do commit do `.mcp.json` (AC17).
-  - [ ] Corrigir `docs/runbook-prereqs-nativo.md` (D1: commit e fixações de `mcp` e `requests` de `.mcp.json:14-18`, no lugar de `@2.0`, linhas 74 e 82) e `docs/guia-rea.md` (D2: servidor `ghidra` e `ghidra-niveis.json` na tabela, linhas 73-79; D3: Ghidra + JDK instalados, linha 62) (AC18). Só esses dois arquivos de documentação.
-  - [ ] Testes com fixtures em pasta temporária, um por caso dos AC1–AC9, AC16 e AC17 (no AC3, os dois cenários, com uma asserção por causa e a de que reprova; no AC17, sem o caso "sem referência" até a P-6), e teste de não escrita (AC14).
+  - [ ] Corrigir `docs/runbook-prereqs-nativo.md` (D1: commit e fixações de `mcp` e `requests` de `.mcp.json:14-18`, no lugar de `@2.0`, linhas 74 e 82) e `docs/guia-rea.md` (D2: servidor `ghidra` e `ghidra-niveis.json` na tabela, linhas 73-79; D3: Ghidra + JDK instalados, linha 62) e a linha 100 do runbook (servidor `ghidra` já registrado no `.mcp.json`; decisão do responsável de 2026-11-04) (AC18). Só esses dois arquivos de documentação.
+  - [ ] Testes com fixtures em pasta temporária, um por caso dos AC1–AC9, AC16 e AC17 (no AC3, os dois cenários, com uma asserção por causa e a de que reprova; no AC2, os casos negativos da D-3; no AC17, o caso "sem referência" reprovando, P-6 decidida em 2026-11-04), e teste de não escrita (AC14).
   - [ ] Componente `integracoes` em `verificar.mjs` (`depende: ["ambiente-node"]`) e `--so integracoes` (AC10).
   - [ ] `JOBS` do agregador e `--so` do `verificacao.yml` (job `js`) na mesma mudança; `workflow-ci.test.mjs` verde (AC11).
   - [ ] Teste do "não executado nunca é verde" no verificador e no agregador (AC12).
@@ -230,7 +239,7 @@ Fatia 1:
 - `docs/stories/mel-05-contratos-integracoes.story.md` — esta story.
 - `scripts/integracoes/verificar-integracoes.mjs` (novo, nome sugerido pelo ADR) — verificador de consistência.
 - `scripts/integracoes/verificar-integracoes.test.mjs` (novo) — testes dos AC1–AC9, AC16, AC17 e AC14.
-- `docs/runbook-prereqs-nativo.md` — D1: registro do GhidraMCP com o commit e as fixações de `.mcp.json:14-18` (AC18, D-2).
+- `docs/runbook-prereqs-nativo.md` — D1: registro do GhidraMCP com o commit e as fixações de `.mcp.json:14-18`; linha 100 (servidor `ghidra` já registrado) (AC18, D-2 ampliada).
 - `docs/guia-rea.md` — D2 (servidor `ghidra` e `ghidra-niveis.json`) e D3 (Ghidra + JDK instalados) (AC18, D-2).
 - `scripts/verificar/verificar.mjs` — componente `integracoes`.
 - `scripts/verificar/verificar.test.mjs` — "não executado" do componente (AC12).
@@ -251,10 +260,10 @@ Fatias 2, 3, 4a, 4b e 5 (previsão, a detalhar): `.claude/hooks/rea-niveis.json`
 - **Mapa sem servidor (AC3):** o nome do servidor sai do nome do arquivo, `<servidor>-niveis.json` ↔ `mcp__<servidor>__` (`rea-gate.mjs:63-85`). A mensagem é multilinha por exigência do ADR (causas com solução); o componente não corrige nada.
 - **`rea-gate.mjs` não exporta nada** (executa ao ser importado): o verificador não pode importar as regras dele. As regras de leitura de `status`, `niveis_aprovados` e seção de identidade são as de `rea-gate.mjs:150,157,183-212,278-281` (e `cli-gate.mjs:93,95`, duplicadas). Reimplementar com teste de equivalência; unificar é fatia 3/4 (decisão 6.8).
 - **Leitura do mapa:** o gate só lê `ferramentas`, `versao`/`rea_version` e `niveis` (ADR linha 75; `rea-gate.mjs:80,84,293`). O verificador deve tolerar os dois cabeçalhos atuais (D4) sem exigir schema comum; isso é a fatia 2.
-- **Matcher:** `.claude/settings.json:10` (`mcp__(rea|ghidra)__.*`, ADR linha 21). O matcher de `Bash|PowerShell` (`settings.json:20-25`) é do `cli-gate` e fora do alcance dos AC2.
+- **Matcher:** `.claude/settings.json:10` (`mcp__(rea|ghidra)__.*`, ADR linha 21). O matcher de `Bash|PowerShell` (`settings.json:20-25`) é do `cli-gate` e fora do alcance dos AC2. Semântica de casamento: D-3, fechada em 2026-11-04; o comportamento que o componente reproduz está no AC2.
 - **Ghidra:** o commit do mapa é texto livre (`ghidra-niveis.json:3`, "commit 1e98025") e o do `.mcp.json` é completo (`.mcp.json:14-18`): daí o "prefixo" do AC7 (ADR linha 20, §2f.5).
 - **Regras da CI a respeitar** (handoff §2): componente novo precisa estar em algum job; `--so` do YAML igual ao `JOBS`; action fora da auditoria reprova; "não executado" nunca é verde.
-- **Constitution Art. IV:** nada acima inventa requisito; os pontos sem fonte (comparação com o catálogo real, matriz na documentação do P4, caso "referência ausente" do ponto 8) estão em "Lacunas".
+- **Constitution Art. IV:** nada acima inventa requisito; os pontos sem fonte (comparação com o catálogo real, matriz na documentação do P4) estão em "Lacunas"; o caso "referência ausente" do ponto 8 foi decidido pelo responsável (P-6, 2026-11-04).
 
 ## Lacunas das fontes (para o @po e o responsável)
 
@@ -271,7 +280,7 @@ Fatias 2, 3, 4a, 4b e 5 (previsão, a detalhar): `.claude/hooks/rea-niveis.json`
 3. **Tamanho por fatia:** o ADR não dá estimativa por fatia; as da tabela são do @sm. *A parte "fatia 4 tende a G" foi resolvida pela P-5 (divisão em 4a e 4b).*
 4. **Aceite P2 ("recusados nos caminhos suportados"):** o ADR não define quais são os "caminhos suportados"; a decisão 6.5 (CLI) fecha parte disso.
 5. **Matriz cliente/provider (P4):** só existe depois da fatia 2; a fatia 1 não atende esse aceite.
-6. **(nova) Ponto 8 sem referência.** O ADR diz que toda referência `GhidraMCP@<ref>` do runbook é prefixo do commit; não diz o que fazer se o runbook não tiver nenhuma. *Tratamento na rodada 2 do @po:* aprovar por vacuidade não tem fonte e esvazia a detecção da D1; o AC17 deixou de fixar o caso e virou pendência P-6 (responsável ou @architect). O AC18 (a) mantém a referência no runbook real.
+6. **(nova) Ponto 8 sem referência.** O ADR diz que toda referência `GhidraMCP@<ref>` do runbook é prefixo do commit; não diz o que fazer se o runbook não tiver nenhuma. *Tratamento na rodada 2 do @po:* aprovar por vacuidade não tem fonte e esvazia a detecção da D1; o AC17 deixou de fixar o caso e virou pendência P-6 (responsável ou @architect). O AC18 (a) mantém a referência no runbook real. *Decidida em 2026-11-04 pelo responsável: reprova (fail-closed); o AC17 fixa o caso e ganha o teste.*
 7. **(nova) Dependência da fatia 5.** O ADR §2f diz "Depende de: fatia 1 e pergunta 6.10". *Resolvida na rodada 2 do @po:* vale o ADR aceito; a "fatia 2" da tabela não tinha fonte (gerar o matcher precisa só dos mapas que já existem, descobertos pelo nome, ADR §2c C2) e foi corrigida.
 8. **(nova) Fatia 4a e a 6.4.** O ADR não diz a que fatia a pergunta 6.4 (semântica de aprovação) pertence depois da divisão; a story a manteve na 4a e no desenho do schema (fatia 3), pela atribuição que já tinha. A confirmar.
 
@@ -283,6 +292,8 @@ Fatias 2, 3, 4a, 4b e 5 (previsão, a detalhar): `.claude/hooks/rea-niveis.json`
 | 2026-11-04 | Validação @po (unidade E3-0c): 8,5/10 como estava; correções de AC ambíguo (AC3, AC6, AC7, AC8, AC14), rastreabilidade (AC7, AC10–AC12, AC15; tabela aceite do plano → fatia) e dependências das fatias 2 e 4; D-3 esclarecida; 9,5/10, GO condicional; status Draft → Ready | @po (Pax) |
 | 2026-11-04 | Aplicação das decisões do responsável e do ADR atualizado (ADR §7): D-1 (ADR aceito), D-2 (D1–D3 na fatia 1: pontos 7 e 8, AC16 a AC18, tasks e File List do runbook e do guia, "não faz" e estimativa; fatia 1 continua M), D-4 (AC3 reescrito com mensagem de três causas e um teste por causa), P-5 (fatia 4 em 4a e 4b), P-1 resolvida pelo §4 corrigido; perguntas do ADR §6 reclassificadas (decididas 1, 3, 6; abertas 2, 4, 5, 7, 8, 9, 10), linhas do ADR atualizadas; AC9, AC10, AC13 e AC14 ajustados às mudanças. Status segue Ready; fatia 1 liberada quanto às decisões do responsável. A seção "Validação @po" não foi alterada; nova rodada do @po pendente (AC3, AC16 a AC18) | @sm (River) |
 | 2026-11-04 | Validação @po, rodada 2 (só o que mudou): 8,5/10 como estava; AC3 sem ambiguidade (as três causas sempre na mensagem, dois cenários de teste), AC13 sem conflito com artefatos de processo em `docs/handoffs/` (e "não faz" e File List alinhados), AC17 sem fixar o caso "sem referência" (P-6), AC18 (a) mantém a forma `GhidraMCP@<commit>`, dependência da fatia 5 alinhada ao ADR (fatia 1); lacunas 6 e 7 tratadas; pendências P-6 e P-7 novas; 9,5/10, GO. Status segue Ready | @po (Pax) |
+| 2026-11-04 | Decisões do responsável após o início da E3-1 (`docs/plano-de-execucao.md` §5): P-6 decidida, runbook sem `GhidraMCP@` reprova (AC17 com mensagem e teste); linha 100 do runbook entra na fatia 1, ampliando a D-2 (AC18 (d), task, File List); D-3 fechada com o pressuposto aceito e a semântica confirmada pelo @architect (AC2 com a regra da hooks reference, cobertura nas leituras parcial e ancorada, fail-closed fora de `mcp__(n1|n2…)__.*` e casos negativos). Estado, tabela de fatias, decisões, R-matcher, DoD, tasks, lacuna 6 e pendências da rodada 2 atualizados. Pontuação da validação inalterada. Status segue Ready | @po (Pax) |
+| 2026-11-04 | **Transição de status: Ready → InProgress.** Início da fatia 1 (unidade E3-1), branch `feat/e3-1-integracoes` a partir de `main` @ `a431045`; modo YOLO | @dev (Dex) |
 
 ## Validação @po (2026-11-04)
 
@@ -307,7 +318,7 @@ Checklist de 10 pontos (`story-lifecycle.md`; a task `validate-next-story.md` n�
 **Condições do GO:**
 
 - Ready não é InProgress: a fatia 1 só começa com D-1 (aceite do ADR, ao menos §2c e §2f fatia 1) e D-2 respondidas pelo responsável.
-- O AC2 só fecha com D-3 confirmada pelo @architect ou com o pressuposto aceito pelo responsável.
+- O AC2 só fecha com D-3 confirmada pelo @architect ou com o pressuposto aceito pelo responsável. *Cumprida em 2026-11-04.*
 - Se D-4 for "aviso", o @po reescreve o AC3 antes do @dev partir.
 - Fatias 2 a 5: cada uma com ACs detalhados e nova validação @po quando puxada.
 
@@ -365,18 +376,18 @@ Nenhum AC novo contradiz "O que cada fatia não faz": a fatia 1 edita o guia e o
 
 **Observações (sem correção, fora do escopo da story):**
 
-- `docs/runbook-prereqs-nativo.md:100` ainda diz "Falta só o @devops registrar o servidor `ghidra` no `.mcp.json`", que já está registrado. Não é D1, D2 nem D3, e o AC18 não o cobre. Incluir na correção da fatia 1 amplia a D-2: decisão do responsável.
+- `docs/runbook-prereqs-nativo.md:100` ainda diz "Falta só o @devops registrar o servidor `ghidra` no `.mcp.json`", que já está registrado. Não é D1, D2 nem D3, e o AC18 não o cobre. Incluir na correção da fatia 1 amplia a D-2: decisão do responsável. *Decidida em 2026-11-04: entra na fatia 1, AC18 (d).*
 - No AC16, o nome do servidor sozinho quase sempre aparece no guia (`Ghidra + JDK`, linha 62); quem detecta a D2 é o nome do mapa (`ghidra-niveis.json`). O formato da busca é do @dev (Dev Notes); o teste da fixture do AC16 já cobre o caso.
 
 **Condições do GO:**
 
-- O AC2 só fecha com D-3 confirmada pelo @architect ou com o pressuposto aceito pelo responsável (inalterado).
-- O AC17 fecha sem o caso "sem referência"; se a P-6 for respondida antes do PR, o teste entra na fatia 1.
+- O AC2 só fecha com D-3 confirmada pelo @architect ou com o pressuposto aceito pelo responsável (inalterado). *Cumprida em 2026-11-04: os dois; AC2 atualizado.*
+- O AC17 fecha sem o caso "sem referência"; se a P-6 for respondida antes do PR, o teste entra na fatia 1. *P-6 decidida em 2026-11-04 (reprova): o teste entra na fatia 1.*
 - Fatias 2 a 5: ACs detalhados e nova validação @po quando puxadas; antes da fatia 2, a P-7; antes da fatia 3, o tamanho com o responsável (R-estimativa).
 
 ### Pendências novas (rodada 2; nenhuma decidida aqui)
 
 | # | Pendência | Bloqueia a fatia 1? | Onde resolve |
 |---|---|---|---|
-| P-6 | **Ponto 8 sem referência.** Runbook sem nenhuma `GhidraMCP@<ref>`: aprova (vacuidade) ou reprova (fail-closed, como o AC7 trata o campo sem commit legível)? O ADR não diz. | Não. O caso não ocorre no repositório real (AC18 (a)) e o AC17 fecha sem ele. | Responsável, ou o @architect no ADR §2f ponto 8. |
+| P-6 | **Ponto 8 sem referência.** Runbook sem nenhuma `GhidraMCP@<ref>`: aprova (vacuidade) ou reprova (fail-closed, como o AC7 trata o campo sem commit legível)? O ADR não diz. | Não. O caso não ocorre no repositório real (AC18 (a)). | **Decidida em 2026-11-04 pelo responsável: reprova** (fail-closed); AC17 fixa o caso e o teste. O ADR §2f ponto 8 não foi alterado por esta story. |
 | P-7 | **Matriz cliente/provider na documentação (P4).** O ADR §2e põe a matriz em `contrato.clientes` e a imprime no verificador; o plano (linha 281) pede que inventário **e documentação** a indiquem. Não há fatia para a parte da documentação. | Não. | Antes de detalhar a fatia 2: o responsável diz se a saída impressa pelo verificador basta ou se a matriz entra num documento (qual), e o @architect registra no ADR. Sem isso, o P4 não fecha e a story não vai a Done. |
