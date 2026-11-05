@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Status | **Proposto** em 2026-11-05. O aceite é do responsável. Enquanto não for aceito, a P3 da story continua aberta e a P1 (aprovada com condições em 2026-11-05) não tem efeito |
+| Status | **Aceito** pelo responsável em 2026-11-05 (proposto no mesmo dia; ver §11). Com o aceite, a P3, a L1 e a L4 da story ficam fechadas e a P1 (aprovada com condições em 2026-11-05) passa a ter efeito, nas condições registradas na story |
 | Data | 2026-11-05 |
 | Autoria | @architect (Aria), a pedido do responsável (Q2 da story, 2026-11-04) |
 | Altera | ADR-0001 §2a (valores de `recurso`, `contexto_execucao` e papel de `recurso_padrao`, linhas 87, 90, 94 e 95) e adendo 1 §3.1 (relação com `recurso`) e §4 (C1 ampliada; conteúdo da C11). Nenhum dos dois documentos é editado: continuam sendo a base |
@@ -190,6 +190,23 @@ Efeitos laterais: a P3, a L1 e a L4 se fecham com o aceite; a tabela de revisão
 | Q-A2-6 | A busca de source maps de `analyze_web_bundle` (§8) aciona a reavaliação do `usa_rede` (adendo 1 §7)? | Reavaliar no L-1, que contém essa tool, sem mudar o vocabulário antes |
 | Q-A2-7 | Conferir os nossos `efeitos` contra a auditoria do REA (`TOOL_EFFECTS`), agora que ela se lê sem executar o pacote? | Como insumo de revisão dos lotes, sim. Como regra do verificador, não nesta fatia: exigiria ler o pacote (fora do AC14 e do F2-AC24) |
 | Q-A2-8 | `recurso_padrao`: `banco_de_analise` nos dois mapas (§6)? | Sim. O campo não tem efeito |
+
+## 11. Decisões do responsável (2026-11-05)
+
+Tomadas na conversa, por `AskUserQuestion`; registro do orquestrador. Todas na recomendação do @architect.
+
+| # | Decisão |
+|---|---|
+| Q-A2-1 | **Adendo aceito**, com os 8 valores de `recurso` (inclusive `ferramenta_de_analise` e `nenhum`, novos, e a separação de `banco_de_analise` e `evidencia`) e os 5 de `contexto_execucao` |
+| Q-A2-2 | As duas casas **A** da C11 entram como **aviso**, com justificativa na tabela do lote |
+| Q-A2-3 | **Sem C12 agora**; reavaliar depois do L-1 e do L-2 |
+| Q-A2-4 | Registrar evidência na sessão **não conta** como `altera_sessao` |
+| Q-A2-5 | CLI auxiliar **conta** como `lanca_processo` (muitos avisos C9 esperados) |
+| Q-A2-6 | Reavaliar o `usa_rede` no L-1, sem mudar o vocabulário antes |
+| Q-A2-7 | Auditoria do REA só como **insumo** de revisão dos lotes, não como regra do verificador |
+| Q-A2-8 | `recurso_padrao` = `banco_de_analise` nos dois mapas, sem efeito |
+
+As respostas às Q-A2-6 a Q-A2-8 vieram na forma "aceitar com as recomendações" (uma resposta para o conjunto), não item a item.
 
 ## Anexo A — Grupos de derivação (cobertura das 200 tools)
 
