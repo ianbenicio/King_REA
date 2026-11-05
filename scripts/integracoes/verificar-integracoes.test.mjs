@@ -52,8 +52,11 @@ const BASE = {
   "package-lock.json": { lockfileVersion: 3, packages: { "": { dependencies: { "rea-agents": "6.4.0" } }, "node_modules/rea-agents": { version: "6.4.0" } } },
   "registros/_modelos/00-seguranca.md": MODELO_REAL,
   "docs/guia-rea.md": "| Servidor MCP `rea` | `.mcp.json` |\n| Servidor MCP `ghidra` | `.mcp.json` |\n| Trava | `rea-niveis.json` e `ghidra-niveis.json` |\n",
-  "docs/runbook-prereqs-nativo.md": `Registro fixado: \`git+https://github.com/LaurieWired/GhidraMCP@${COMMIT}\`, com \`mcp==1.30.0\` e \`requests==2.34.2\`.\n`,
+  "docs/runbook-prereqs-nativo.md": "Registro no `.mcp.json`; auditoria e commit fixado em `docs/seguranca/auditoria-ghidramcp-2.0.md`.\n",
+  "docs/seguranca/auditoria-ghidramcp-2.0.md": `Registro fixado: \`git+https://github.com/LaurieWired/GhidraMCP@${COMMIT}\`, com \`mcp==1.30.0\` e \`requests==2.34.2\`.\n`,
 };
+const RUNBOOK = "docs/runbook-prereqs-nativo.md";
+const AUDITORIA = "docs/seguranca/auditoria-ghidramcp-2.0.md";
 
 /** Projeto temporário: BASE com trocas (objeto = JSON, texto = como está, null = arquivo ausente). */
 function projeto(t, trocas = {}) {
@@ -437,28 +440,74 @@ test("AC16: guia que cita o servidor mas não o mapa reprova; o nome dentro de o
   assert.match(texto(soPalavra), /servidor `rea` do \.mcp\.json não citado/);
 });
 
-// ---------- AC17 — runbook ----------
+// ---------- ponto 8 — auditoria do GhidraMCP e runbook (F2-AC21, substitui o AC17 da fatia 1) ----------
 
-test("AC17: referência GhidraMCP@2.0 reprova citando o runbook, a referência e o commit esperado", (t) => {
-  const achados = verificar(projeto(t, { "docs/runbook-prereqs-nativo.md": '"--from", "git+https://github.com/LaurieWired/GhidraMCP@2.0",\n' }));
+test("F2-AC21 (7): fixture padrão (referência na auditoria, runbook só com o apontamento) aprova", (t) => {
+  assert.deepEqual(verificar(projeto(t)), []);
+  assert.ok(ARQUIVOS_FIXOS.includes(AUDITORIA), "(a) AUDITORIA_GHIDRA na lista fechada");
+});
+
+test("F2-AC21 (4): auditoria com GhidraMCP@2.0 reprova citando a auditoria, a referência e o commit esperado", (t) => {
+  const achados = verificar(projeto(t, { [AUDITORIA]: '"--from", "git+https://github.com/LaurieWired/GhidraMCP@2.0",\n' }));
   assert.equal(achados.length, 1, texto(achados));
   assert.equal(achados[0].contrato, CONTRATOS.documentacao);
-  assert.equal(achados[0].arquivo, "docs/runbook-prereqs-nativo.md");
+  assert.equal(achados[0].arquivo, AUDITORIA);
   assert.match(achados[0].mensagem, /referência `GhidraMCP@2\.0` não é prefixo \(7 a 40 hexadecimais\) do commit `1e98025…` do \.mcp\.json/);
 });
 
-test("AC17: referência abreviada que é prefixo do commit aprova; uma ruim entre boas reprova", (t) => {
-  assert.deepEqual(verificar(projeto(t, { "docs/runbook-prereqs-nativo.md": "GhidraMCP@1e98025\n" })), []);
-  const achados = verificar(projeto(t, { "docs/runbook-prereqs-nativo.md": `GhidraMCP@1e98025 e GhidraMCP@${COMMIT} e GhidraMCP@1e98026\n` }));
+test("F2-AC21 (b): na auditoria, referência abreviada que é prefixo do commit aprova; uma ruim entre boas reprova", (t) => {
+  assert.deepEqual(verificar(projeto(t, { [AUDITORIA]: "GhidraMCP@1e98025\n" })), []);
+  const achados = verificar(projeto(t, { [AUDITORIA]: `GhidraMCP@1e98025 e GhidraMCP@${COMMIT} e GhidraMCP@1e98026\n` }));
   assert.equal(achados.length, 1, texto(achados));
+  assert.equal(achados[0].arquivo, AUDITORIA);
   assert.match(achados[0].mensagem, /`GhidraMCP@1e98026`/);
 });
 
-test("AC17: runbook sem nenhuma referência GhidraMCP@ reprova (P-6, fail-closed)", (t) => {
-  const achados = verificar(projeto(t, { "docs/runbook-prereqs-nativo.md": "GhidraMCP 2.0, tag 2.0, sem a forma com arroba.\n" }));
+test("F2-AC21 (5): auditoria sem nenhuma referência GhidraMCP@ reprova (P-6, fail-closed)", (t) => {
+  const achados = verificar(projeto(t, { [AUDITORIA]: "GhidraMCP 2.0, tag 2.0, sem a forma com arroba.\n" }));
   assert.equal(achados.length, 1, texto(achados));
-  assert.equal(achados[0].arquivo, "docs/runbook-prereqs-nativo.md");
-  assert.match(achados[0].mensagem, /docs\/runbook-prereqs-nativo\.md não tem referência `GhidraMCP@<ref>` a conferir/);
+  assert.equal(achados[0].contrato, CONTRATOS.documentacao);
+  assert.equal(achados[0].arquivo, AUDITORIA);
+  assert.match(achados[0].mensagem, /docs\/seguranca\/auditoria-ghidramcp-2\.0\.md não tem referência `GhidraMCP@<ref>` a conferir/);
+});
+
+test("F2-AC21 (3, d): auditoria ausente ou ilegível reprova com o motivo", (t) => {
+  const ausente = verificar(projeto(t, { [AUDITORIA]: null }));
+  assert.equal(ausente.length, 1, texto(ausente));
+  assert.equal(ausente[0].contrato, CONTRATOS.documentacao);
+  assert.equal(ausente[0].arquivo, AUDITORIA);
+  assert.match(ausente[0].mensagem, /arquivo ausente/);
+  const raiz = projeto(t);
+  const padrao = lerArquivosPadrao(raiz);
+  const ilegivel = verificarIntegracoes(raiz, { fs: { ...padrao, ler: (rel) => (rel === AUDITORIA ? { erro: "ilegível" } : padrao.ler(rel)) } });
+  assert.equal(ilegivel.length, 1, texto(ilegivel));
+  assert.equal(ilegivel[0].arquivo, AUDITORIA);
+  assert.match(ilegivel[0].mensagem, /arquivo ilegível/);
+});
+
+test("F2-AC21 (1, c): runbook com GhidraMCP@ reprova, mesmo com hexadecimal válido: o commit só pode estar na auditoria", (t) => {
+  for (const ref of [COMMIT, "1e98025", "2.0", ""]) {
+    const achados = verificar(projeto(t, { [RUNBOOK]: `${BASE[RUNBOOK]}Fixado em GhidraMCP@${ref}.\n` }));
+    assert.equal(achados.length, 1, `"${ref}": ${texto(achados)}`);
+    assert.equal(achados[0].contrato, CONTRATOS.documentacao);
+    assert.equal(achados[0].arquivo, RUNBOOK);
+    assert.equal(achados[0].campo, "GhidraMCP@");
+    assert.match(achados[0].mensagem, /o commit do GhidraMCP só pode estar em docs\/seguranca\/auditoria-ghidramcp-2\.0\.md/);
+  }
+});
+
+test("F2-AC21 (2, c): runbook sem o apontamento para a auditoria reprova", (t) => {
+  const achados = verificar(projeto(t, { [RUNBOOK]: "Registro no `.mcp.json`; auditoria em outro lugar.\n" }));
+  assert.equal(achados.length, 1, texto(achados));
+  assert.equal(achados[0].contrato, CONTRATOS.documentacao);
+  assert.equal(achados[0].arquivo, RUNBOOK);
+  assert.match(achados[0].mensagem, /docs\/runbook-prereqs-nativo\.md não aponta para a auditoria `docs\/seguranca\/auditoria-ghidramcp-2\.0\.md`/);
+});
+
+test("F2-AC21 (c): runbook com GhidraMCP@ e sem apontamento gera os dois achados", (t) => {
+  const achados = verificar(projeto(t, { [RUNBOOK]: `GhidraMCP@${COMMIT}\n` }));
+  assert.equal(achados.length, 2, texto(achados));
+  assert.ok(achados.every((a) => a.arquivo === RUNBOOK && a.contrato === CONTRATOS.documentacao), texto(achados));
 });
 
 // ---------- AC9 — mensagens ----------
@@ -473,7 +522,9 @@ test("AC9: toda mensagem diz contrato, arquivo e campo em uma linha curta (AC3 �
     { ".claude/hooks/rea-niveis.json": { ...BASE[".claude/hooks/rea-niveis.json"], rea_version: "9.9.9" } },
     { "registros/_modelos/00-seguranca.md": REPETIDA },
     { "docs/guia-rea.md": "nada\n" },
-    { "docs/runbook-prereqs-nativo.md": "GhidraMCP@2.0\n" },
+    { [AUDITORIA]: "GhidraMCP@2.0\n" },
+    { [AUDITORIA]: null },
+    { [RUNBOOK]: "GhidraMCP@2.0\n" },
   ];
   const vistos = new Set();
   for (const trocas of cenarios) {
@@ -541,6 +592,8 @@ test("AC14: não escreve nada e só lê a lista fechada (nada em alvos/, saidas/
   });
   assert.deepEqual(hashes(raiz), antes, "nenhum arquivo mudou");
   assert.deepEqual(listados, [".claude/hooks"]);
+  assert.ok(ARQUIVOS_FIXOS.includes(AUDITORIA), "lista fechada inclui a auditoria do GhidraMCP (F2-AC21 (a))");
+  assert.ok(lidos.includes(AUDITORIA), "a auditoria é lida");
   const permitido = (rel) => ARQUIVOS_FIXOS.includes(rel) || /^\.claude\/hooks\/[^/]+-niveis\.json$/.test(rel);
   for (const rel of lidos) {
     assert.ok(permitido(rel), `fora da lista fechada: ${rel}`);
@@ -566,15 +619,14 @@ test("QA-1 (M6/M6b): nível com nome de propriedade herdada (constructor, __prot
   }
 });
 
-test("QA-2 (M10, QA-4): referência do runbook vazia, não hexadecimal ou com menos de 7 caracteres reprova; 7 ou mais aprova", (t) => {
+test("QA-2 (M10, QA-4): referência da auditoria vazia, não hexadecimal ou com menos de 7 caracteres reprova; 7 ou mais aprova", (t) => {
   for (const ref of ["", "zzzzzzz", "1e9802g", "1", "1e", "1e9", "1e98", "1e980", "1e9802"]) {
-    const achados = verificar(projeto(t, { "docs/runbook-prereqs-nativo.md": `GhidraMCP@${ref} \n` }));
+    const achados = verificar(projeto(t, { [AUDITORIA]: `GhidraMCP@${ref} \n` }));
     assert.equal(achados.length, 1, `"${ref}": ${texto(achados)}`);
-    assert.equal(achados[0].arquivo, "docs/runbook-prereqs-nativo.md");
+    assert.equal(achados[0].arquivo, AUDITORIA);
     assert.match(achados[0].mensagem, /não é prefixo \(7 a 40 hexadecimais\)/);
   }
-  for (const ref of ["1e98025", "1e980252", "1E980252087B", COMMIT])
-    assert.deepEqual(verificar(projeto(t, { "docs/runbook-prereqs-nativo.md": `GhidraMCP@${ref}\n` })), [], ref);
+  for (const ref of ["1e98025", "1e980252", "1E980252087B", COMMIT]) assert.deepEqual(verificar(projeto(t, { [AUDITORIA]: `GhidraMCP@${ref}\n` })), [], ref);
 });
 
 test("QA-4: commit do mapa do Ghidra com menos de 7 caracteres reprova (sem commit legível); 7 ou mais aprova", (t) => {
@@ -602,7 +654,7 @@ test("QA-3 (M19): pasta .claude/hooks ausente ou ilegível é falha, não ignora
   assert.ok(injetada.some((x) => x.arquivo === ".claude/hooks" && /pasta ilegível/.test(x.mensagem)), texto(injetada));
 });
 
-test("QA-3 (M26): args do ghidra no .mcp.json sem commit reprova (versão e runbook)", (t) => {
+test("QA-3 (M26): args do ghidra no .mcp.json sem commit reprova (versão e auditoria)", (t) => {
   for (const args of [["--from", "git+https://github.com/LaurieWired/GhidraMCP@2.0", "ghidra-mcp"], ["--from", "git+https://github.com/LaurieWired/GhidraMCP", "ghidra-mcp"], "não é lista"]) {
     const achados = verificar(projeto(t, { ".mcp.json": mcpCom({ ghidra: { command: "uvx", args } }) }));
     const versao = achados.find((a) => a.contrato === CONTRATOS.versao);
@@ -610,7 +662,7 @@ test("QA-3 (M26): args do ghidra no .mcp.json sem commit reprova (versão e runb
     assert.equal(versao.arquivo, ".mcp.json");
     assert.equal(versao.campo, "mcpServers.ghidra.args");
     assert.match(versao.mensagem, /args do servidor ghidra sem referência GhidraMCP@<commit>/);
-    assert.ok(achados.some((a) => a.arquivo === "docs/runbook-prereqs-nativo.md" && /sem commit GhidraMCP@<commit> no \.mcp\.json/.test(a.mensagem)), texto(achados));
+    assert.ok(achados.some((a) => a.arquivo === AUDITORIA && /sem commit GhidraMCP@<commit> no \.mcp\.json para conferir as referências da auditoria/.test(a.mensagem)), texto(achados));
   }
 });
 
@@ -649,7 +701,8 @@ test("QA-7: nomes longos de servidor, tool, nível, referência e matcher são c
     { [`.claude/hooks/x${"b".repeat(200)}-niveis.json`]: mapa({ t1: "N1" }) },
     { ".claude/settings.json": settingsCom(`mcp__(rea|ghidra|${longo})__.*`) },
     { ".claude/settings.json": settingsCom(`${longo}*`) },
-    { "docs/runbook-prereqs-nativo.md": `GhidraMCP@${hexLongo}\n` },
+    { [AUDITORIA]: `GhidraMCP@${hexLongo}\n` },
+    { [RUNBOOK]: `${BASE[RUNBOOK]}GhidraMCP@${hexLongo}\n` },
   ];
   for (const trocas of cenarios) {
     const achados = verificar(projeto(t, trocas));
