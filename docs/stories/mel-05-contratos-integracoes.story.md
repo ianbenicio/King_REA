@@ -184,6 +184,15 @@ Respostas do responsável registradas em `docs/plano-de-execucao.md` §5, aplica
 | 6.9 | Estado inicial da matriz (§2e), incluindo o uso do provider Ghidra pelo REA, e prazo do adaptador do Codex | Fatia 2 |
 | 6.10 | Gerar o matcher (fatia 5) ou só conferir | Fatia 5 |
 
+**Decididas em 2026-11-05 (ADR §7, D-5 a D-9; registro do orquestrador, nenhum AC alterado por este registro):**
+
+- **6.2 (D-5):** "revisão nova" = protocolo novo por versão do alvo, `schema: 00-seguranca/1`. Fatia 3.
+- **6.4 (D-6):** aprovação **por nível**, como hoje. Fatias 3 e 4a sem lista de tools aprovadas.
+- **6.5 (D-7):** o CLI **entra** na recusa de tool desconhecida (contra a recomendação do @po). Fatia 4b passa a incluir a recusa e o **mapa de comando para nível**, que exige adendo ao ADR e eleva a 4b (provável G). **A reconciliar pelo @po/@sm antes da 4b:** a story diz que "o desenho dele fica para depois da 6.5"; agora é a hora.
+- **6.8 (D-8):** parser em `.claude/hooks/lib/`; a CI da fatia 3 testa só fixtures, sem registros reais.
+- **6.10 (D-9):** matcher só conferido; a fatia 5 fica sem objeto (fecha sem implementação, salvo decisão nova).
+- **6.7 e 6.9** já decididas pelo adendo 1 (DA-6, DA-7); a tabela de abertas acima está desatualizada nesses dois itens.
+
 **Resultado para a fatia 1:** D-1, D-2 (ampliada) e D-4 decididas; D-3 fechada e P-6 decidida (2026-11-04); nenhuma das abertas (2, 4, 5, 7, 8, 9, 10) impede o início. Não resta pendência de decisão que toque a fatia 1.
 
 ## Dependências e coordenação
@@ -320,6 +329,7 @@ Fatias 2, 3, 4a, 4b e 5 (previsão, a detalhar): `.claude/hooks/rea-niveis.json`
 | 2026-11-04 | Revalidação @po do AC17 e dos trechos substituídos pela fatia 2 (story `mel-05-fatia-2-contrato-e-atributos.story.md`, Ready, e adendo 1 do ADR-0001, Aceito): AC17 marcado como substituído pelo F2-AC21; AC18 (a) revogado no ponto da forma `GhidraMCP@<commit>` no runbook (F2-AC18, F2-AC19); AC14 ampliado (F2-AC24); linha da fatia 2 na tabela de fatias (atributos obrigatório, G, dependências decididas, links das stories 2 e 2b); descrição da "Fatia 2"; nota em R-estimativa. Fatia 1 não reaberta: marcações, Dev Notes, tasks e "QA Results" intactos. Status inalterado (InReview) | @po (Pax) |
 | 2026-11-04 | Correções dos achados low do gate @qa (QA-1 a QA-5 e QA-7), commit `a765251`: testes que matam as 5 mutações sobreviventes (`Object.hasOwn`, hexadecimal, pasta de hooks ilegível, `args` do ghidra sem commit); commit abreviado com 7 a 40 hexadecimais no AC7 e no ponto 8 (decisão do @dev, aceita pelo @qa, sem mudar o texto dos AC); matcher só vira regex quando está na forma `mcp__(n1|n2…)__.*`; nomes cortados em 60 caracteres nas mensagens. `npm test` 327/327; `npm run verificar` 17/17 (`notepad-ui` falhou em duas execuções por Shift/Ctrl reais no teclado e passou na repetição) | @dev (Dex), registrado pela sessão da E3-1 |
 | 2026-11-04 | Pós-merge: [PR #12](https://github.com/ianbenicio/King_REA/pull/12) mesclado no `main` (merge `7d48dd1`) com a autorização do responsável; `resultado` da CI do PR verde (6 de 6 checks), AC15 marcado. Status **mantido em InReview** (fatias 2 a 5 pendentes) | Claude (sessão E3-1) |
+| 2026-11-05 | Decisões do responsável sobre o ADR §6, itens 2, 4, 5, 8 e 10 (ADR §7, D-5 a D-9): protocolo novo por versão; aprovação por nível; CLI entra na recusa (4b ganha o mapa comando→nível, provável G, a reconciliar pelo @po/@sm); parser em `.claude/hooks/lib/` e CI só com fixtures; matcher só conferido (fatia 5 sem objeto). Só o registro na seção de decisões; nenhum AC, escopo ou tabela de fatias alterado (cabe ao @po) | Claude (orquestrador) |
 
 ## Validação @po (2026-11-04)
 
