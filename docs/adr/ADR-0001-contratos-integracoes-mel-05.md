@@ -223,15 +223,15 @@ Nunca se reescreve o arquivo. A migração é humana, por adendo aprovado, porqu
 A numeração é estável: itens decididos ficam no lugar, marcados.
 
 1. **Decidida (D-1, §7):** ADR aceito.
-2. "Revisão nova": revisão do schema ou protocolo novo para versão nova do alvo? (aberta)
+2. **Decidida (D-5, §7):** "revisão nova" = protocolo novo para versão nova do alvo, com `schema: 00-seguranca/1`.
 3. **Decidida (D-4, §7):** mapa órfão (sem servidor no `.mcp.json`) falha, com causas e soluções na mensagem (§2f, ponto 1).
-4. Semântica de aprovação: por nível, como hoje, ou por tool via adendo (D5)? (aberta)
-5. O caminho CLI entra em "tool desconhecida recusada" (D6) ou fica fora dos "caminhos suportados"? Define o escopo da fatia 4b. (aberta)
+4. **Decidida (D-6, §7):** aprovação continua por nível, como hoje (D5 não vira aprovação por tool).
+5. **Decidida (D-7, §7):** o caminho CLI **entra** em "tool desconhecida recusada" (D6); a fatia 4b inclui a recusa e o mapa de comando para nível.
 6. **Decidida (D-2, §7):** D1–D3 corrigidas junto com a fatia 1.
-7. Auditoria do GhidraMCP: manter no runbook (`runbook-prereqs-nativo.md:67`) ou mover para `docs/seguranca/`? (aberta)
-8. Localização do parser compartilhado (`.claude/hooks/lib/` ou `scripts/`) e se a fatia 3 valida registros reais na CI. (aberta)
-9. Estado inicial da matriz (§2e), incluindo o uso do provider Ghidra pelo REA, e prazo para um adaptador do Codex. (aberta)
-10. Gerar o matcher (fatia 5) ou só conferir. (aberta)
+7. Auditoria do GhidraMCP: manter no runbook (`runbook-prereqs-nativo.md:67`) ou mover para `docs/seguranca/`? **Decidida (adendo 1, DA-6):** `docs/seguranca/auditoria-ghidramcp-2.0.md`.
+8. **Decidida (D-8, §7):** parser compartilhado em `.claude/hooks/lib/`; a CI da fatia 3 testa só fixtures, sem validar registros reais.
+9. Estado inicial da matriz (§2e), incluindo o uso do provider Ghidra pelo REA, e prazo para um adaptador do Codex. **Decidida (adendo 1, DA-7):** matriz aceita; Codex sem adaptador e sem prazo.
+10. **Decidida (D-9, §7):** o matcher só é conferido, não gerado.
 
 ## 7. Decisões do responsável (2026-11-04)
 
@@ -242,3 +242,13 @@ Tomadas pelo responsável na conversa, em 2026-11-04.
 - **D-4.** Mapa de níveis sem servidor correspondente no `.mcp.json` não tem utilidade e **falha**. A mensagem identifica as causas prováveis e as soluções (§2f, ponto 1).
 - **§4 corrigido** (apontado pelo @po): o texto dizia que as D1–D3 passavam a ser detectáveis, mas os seis pontos da fatia 1 não liam documentação em prosa. Com a D-2, a fatia 1 ganhou os pontos 7 e 8, que detectam a D1 e a D2; a D3 é só corrigida.
 - **P-5.** A fatia 4 foi dividida em 4a (gate MCP, `rea-gate.mjs`) e 4b (`cli-gate.mjs`, com a recusa de tool desconhecida condicionada à 6.5).
+
+### Decisões de 2026-11-05 (perguntas 2, 4, 5, 8 e 10 do §6)
+
+Tomadas pelo responsável na conversa, por `AskUserQuestion`. Registro do orquestrador; nenhuma decisão de 2026-11-04 foi alterada. Recomendação seguida em D-5, D-6, D-8 e D-9; **D-7 foi contra a recomendação** (que era deixar o CLI fora).
+
+- **D-5 (6.2).** "Revisão nova" é protocolo novo por versão do alvo: mudou o alvo (hash ou versão), faz-se novo `00-seguranca.md` com `schema: 00-seguranca/1` e aprovação nova. Nada migra nem aprova sozinho. Efeito: define o relatório da fatia 3 (legado, inválido, revisão nova).
+- **D-6 (6.4).** A aprovação continua **por nível**; aprovar um nível libera todas as tools dele. Fica descartada, por ora, a aprovação por tool via adendo (D5). Efeito: o desenho do schema (fatia 3) e a 4a não precisam de lista de tools aprovadas; a mensagem de "adendo" do gate só é ajustada ou documentada, se preciso.
+- **D-7 (6.5).** O caminho CLI **entra** na regra "tool desconhecida é recusada". Efeito: a fatia 4b inclui a recusa de comando sem classificação e, por isso, o **mapa de comando para nível** (hoje inexistente, D6); o desenho desse mapa precisa de adendo ao ADR e a 4b sobe de tamanho (provável G). O `cli-gate.mjs` continua fora do alcance até lá.
+- **D-8 (6.8).** O parser compartilhado mora em `.claude/hooks/lib/`, para o gate importar sem depender de `scripts/`. A CI da fatia 3 testa só fixtures; registros reais não são validados na CI (só relatório local).
+- **D-9 (6.10).** O matcher é só **conferido** (já é, desde a fatia 1); não se gera `settings.json` por script. A fatia 5 deixa de ter objeto; fecha-se sem implementação, salvo decisão nova.
