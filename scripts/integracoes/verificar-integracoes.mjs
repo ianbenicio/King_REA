@@ -9,7 +9,8 @@
 //
 // Decisões do gate @qa da fatia 1 (2026-11-04):
 // - QA-4: commit abreviado tem no mínimo 7 caracteres hexadecimais, tanto no campo `versao` do mapa do Ghidra
-//   (AC7) quanto em cada referência GhidraMCP@<ref> do runbook (ponto 8, AC17); o .mcp.json já exige 7 a 40.
+//   (AC7) quanto em cada referência GhidraMCP@<ref> da auditoria do GhidraMCP (ponto 8; o AC17 da fatia 1, que
+//   olhava o runbook, foi substituído pelo F2-AC21 da fatia 2); o .mcp.json já exige 7 a 40.
 //   Referência vazia, não hexadecimal ou com 1 a 6 caracteres reprova, mesmo sendo prefixo do commit.
 // - QA-5: o matcher só é testado como regex quando já está na forma mcp__(n1|n2…)__.* com nomes [a-z0-9-]+;
 //   fora dela reprova direto, sem executar RegExp sobre texto arbitrário (sem risco de regex patológica).
@@ -40,9 +41,11 @@ const LOCK = "package-lock.json";
 const MODELO = "registros/_modelos/00-seguranca.md";
 const GUIA = "docs/guia-rea.md";
 const RUNBOOK = "docs/runbook-prereqs-nativo.md";
+/** Auditoria do GhidraMCP: único lugar da referência GhidraMCP@<commit> (fatia 2, F2-AC18 e F2-AC21; DA-16). */
+const AUDITORIA_GHIDRA = "docs/seguranca/auditoria-ghidramcp-2.0.md";
 
-/** Arquivos lidos, além dos mapas de .claude/hooks/ (AC14). */
-export const ARQUIVOS_FIXOS = [MCP, SETTINGS, PACOTE, LOCK, MODELO, GUIA, RUNBOOK];
+/** Arquivos lidos, além dos mapas de .claude/hooks/ (AC14; F2-AC21 (a)). */
+export const ARQUIVOS_FIXOS = [MCP, SETTINGS, PACOTE, LOCK, MODELO, GUIA, RUNBOOK, AUDITORIA_GHIDRA];
 
 // Mesmo conjunto de nomes de servidor da regex do gate (rea-gate.mjs:63), em minúsculas.
 const NOME_SERVIDOR = /^[a-z0-9-]+$/;
@@ -330,27 +333,53 @@ function conferirGuia(fs, servidores, achados) {
   }
 }
 
-function conferirRunbook(fs, servidores, achados) {
-  const texto = lerTexto(fs, RUNBOOK, CONTRATOS.documentacao, achados);
+const referenciasGhidra = (texto) => [...texto.matchAll(/GhidraMCP@([^\s"'`)\],;]*)/g)].map((m) => m[1].replace(/\.+$/, ""));
+
+// Ponto 8 (fatia 2, F2-AC21 (b) e (d)): a auditoria do GhidraMCP tem ao menos uma referência GhidraMCP@<ref>, e
+// cada uma é prefixo (7 a 40 hexadecimais, QA-4) do commit do .mcp.json. Ausente ou ilegível reprova.
+function conferirAuditoriaGhidra(fs, servidores, achados) {
+  const texto = lerTexto(fs, AUDITORIA_GHIDRA, CONTRATOS.documentacao, achados);
   if (texto === undefined) return;
-  const refs = [...texto.matchAll(/GhidraMCP@([^\s"'`)\],;]*)/g)].map((m) => m[1].replace(/\.+$/, ""));
+  const refs = referenciasGhidra(texto);
   if (refs.length === 0) {
-    achados.push({ contrato: CONTRATOS.documentacao, arquivo: RUNBOOK, campo: "GhidraMCP@<ref>", mensagem: `${RUNBOOK} não tem referência \`GhidraMCP@<ref>\` a conferir com o commit do .mcp.json` });
+    achados.push({
+      contrato: CONTRATOS.documentacao,
+      arquivo: AUDITORIA_GHIDRA,
+      campo: "GhidraMCP@<ref>",
+      mensagem: `${AUDITORIA_GHIDRA} não tem referência \`GhidraMCP@<ref>\` a conferir com o commit do .mcp.json`,
+    });
     return;
   }
   const commit = servidores ? commitDoMcp(servidores) : undefined;
   if (!commit) {
-    achados.push({ contrato: CONTRATOS.documentacao, arquivo: RUNBOOK, campo: "GhidraMCP@<ref>", mensagem: "sem commit GhidraMCP@<commit> no .mcp.json para conferir as referências do runbook" });
+    achados.push({ contrato: CONTRATOS.documentacao, arquivo: AUDITORIA_GHIDRA, campo: "GhidraMCP@<ref>", mensagem: "sem commit GhidraMCP@<commit> no .mcp.json para conferir as referências da auditoria" });
     return;
   }
   for (const ref of new Set(refs))
     if (!COMMIT.test(ref) || !commit.startsWith(ref.toLowerCase()))
       achados.push({
         contrato: CONTRATOS.documentacao,
-        arquivo: RUNBOOK,
+        arquivo: AUDITORIA_GHIDRA,
         campo: `GhidraMCP@${corta(ref)}`,
         mensagem: `referência \`GhidraMCP@${corta(ref)}\` não é prefixo (7 a 40 hexadecimais) do commit \`${abreviado(commit)}\` do .mcp.json (mcpServers.ghidra.args)`,
       });
+}
+
+// Ponto 8 (fatia 2, F2-AC21 (c)): o runbook não tem nenhuma referência GhidraMCP@ (o commit mora só na
+// auditoria, DA-16) e aponta para a auditoria.
+function conferirRunbook(fs, achados) {
+  const texto = lerTexto(fs, RUNBOOK, CONTRATOS.documentacao, achados);
+  if (texto === undefined) return;
+  const refs = referenciasGhidra(texto);
+  if (refs.length > 0)
+    achados.push({
+      contrato: CONTRATOS.documentacao,
+      arquivo: RUNBOOK,
+      campo: "GhidraMCP@",
+      mensagem: `${RUNBOOK} tem ${refs.length} referência(s) GhidraMCP@ (a primeira: \`GhidraMCP@${corta(refs[0])}\`): o commit do GhidraMCP só pode estar em ${AUDITORIA_GHIDRA}`,
+    });
+  if (!texto.includes(AUDITORIA_GHIDRA))
+    achados.push({ contrato: CONTRATOS.documentacao, arquivo: RUNBOOK, campo: "auditoria do GhidraMCP", mensagem: `${RUNBOOK} não aponta para a auditoria \`${AUDITORIA_GHIDRA}\`` });
 }
 
 /**
@@ -431,7 +460,8 @@ export function verificarIntegracoes(raiz, { fs = lerArquivosPadrao(raiz) } = {}
   conferirVersoes(fs, mapas, servidores, achados);
   conferirModelo(fs, achados);
   conferirGuia(fs, servidores, achados);
-  conferirRunbook(fs, servidores, achados);
+  conferirRunbook(fs, achados);
+  conferirAuditoriaGhidra(fs, servidores, achados);
   // Arquivo e campo vêm de nomes lidos (mapa, tool, referência): teto também neles (QA-7).
   return achados.map((a) => ({ ...a, arquivo: corta(a.arquivo, 2 * MAX_NOME), campo: corta(a.campo, 2 * MAX_NOME) }));
 }

@@ -64,35 +64,18 @@ setx JAVA_HOME "C:\Program Files\Microsoft\jdk-21.0.12.7-hotspot"
 
 ## 3. GhidraMCP 2.0 (plugin + servidor MCP)
 
-Auditado em 13/10/2026 (tag `2.0`, commit `1e98025`): Apache-2.0, servidor HTTP **só em 127.0.0.1** (allowlist de loopback), sem `exec`, sem rede de saída no plugin. Clone de auditoria em `ferramentas/ghidramcp/` (fora do git).
+Auditado em 13/10/2026 (tag `2.0`, commit `1e98025`). Juízo, origem, integridade e registro fixado: `docs/seguranca/auditoria-ghidramcp-2.0.md`.
 
 - **Plugin:** baixar `GhidraMCP-release-2-0.zip` de `https://github.com/LaurieWired/GhidraMCP/releases/tag/2.0`.
 - Dentro do zip vem a extensão `ghidra_12.1.4_PUBLIC_<data>_GhidraMCP.zip`.
 - No Ghidra: `File → Install Extensions → +`, escolher essa extensão, reiniciar o Ghidra, e habilitar o `GhidraMCPPlugin` em `File → Configure → Developer`.
 - A porta do servidor fica em `Edit → Tool Options → GhidraMCP HTTP Server` (padrão `127.0.0.1:8080`).
 
-**Servidor MCP** (precisa do `uv`/`uvx`; se faltar: `winget install --id astral-sh.uv`). Registro **fixado no commit completo** `1e980252087b2479a21b9ca6d82d5829538651a7` (o commit `1e98025` auditado, da tag 2.0), com as dependências Python fixadas em `mcp==1.30.0` e `requests==2.34.2`, a cargo do @devops, no `.mcp.json` do projeto. É o registro que está no `.mcp.json` hoje; o verificador (`node scripts/verificar/verificar.mjs --so integracoes`) confere que o commit de cada referência ao GhidraMCP com arroba neste runbook é prefixo desse commit.
-
-```json
-{
-  "mcpServers": {
-    "ghidra": {
-      "command": "uvx",
-      "args": [
-        "--from", "git+https://github.com/LaurieWired/GhidraMCP@1e980252087b2479a21b9ca6d82d5829538651a7",
-        "--with", "mcp==1.30.0",
-        "--with", "requests==2.34.2",
-        "ghidra-mcp",
-        "--ghidra-server", "http://127.0.0.1:8080/"
-      ]
-    }
-  }
-}
-```
+**Servidor MCP** (precisa do `uv`/`uvx`; se faltar: `winget install --id astral-sh.uv`). O registro, a cargo do @devops, está no `.mcp.json` do projeto, fixado no commit completo da tag 2.0 auditada, com `mcp==1.30.0` e `requests==2.34.2`. O commit completo e o bloco do registro ficam **só** na auditoria (`docs/seguranca/auditoria-ghidramcp-2.0.md`); o verificador (`node scripts/verificar/verificar.mjs --so integracoes`) confere que cada referência ao GhidraMCP com arroba na auditoria é prefixo do commit do `.mcp.json` e que este runbook não traz nenhuma.
 
 ### Instalação feita em 14/10/2026 (e uma armadilha do Windows)
 
-- **Release 2.0 verificada:** `GhidraMCP-release-2-0.zip` com o digest do GitHub (`ebf904…2e72`); o fonte Java dentro da extensão (12 arquivos) e o wheel Python (6 arquivos) são **idênticos** ao commit `1e98025` auditado. Arquivos guardados em `C:\tools\GhidraMCP\` (extensão `4a5901…4ad8`, wheel `af9818…7e8e`).
+- **Release 2.0 verificada** contra o commit `1e98025` auditado (digests e arquivos guardados em `C:\tools\GhidraMCP\`): ver `docs/seguranca/auditoria-ghidramcp-2.0.md`, "Origem e integridade".
 - **Plugin instalado na pasta da instalação:** `C:\tools\ghidra_12.1.4_PUBLIC\Ghidra\Extensions\GhidraMCP` (método oficial do `GettingStarted.md` do Ghidra: extrair ali; vale na próxima abertura, para qualquer usuário). Desinstalar = apagar essa pasta.
 - **Armadilha (app do Claude é pacote MSIX):** tudo que o app, ou um programa aberto por ele, grava em `%APPDATA%` vai para `%LOCALAPPDATA%\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\`. Um Ghidra aberto pelo Claude e um aberto pelo Explorer **enxergam pastas de usuário diferentes**. Por isso: extensões vão na pasta da instalação (não em `AppData`), e o Ghidra de trabalho deve ser aberto **por você**, pelo Explorer (`C:\tools\ghidra_12.1.4_PUBLIC\ghidraRun.bat`).
 - **Servidor MCP:** registrado pelo @devops no `.mcp.json` (`b92a651`), fixado no commit `1e98025` com `mcp==1.30.0` e `requests==2.34.2`; teste de `tools/list`: 30 tools, todas no mapa N1.
