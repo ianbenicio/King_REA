@@ -332,3 +332,11 @@ Respondidas por `AskUserQuestion`, seguindo a recomendação do @po em todas. Re
 - **Q4 (L3):** `catalogo.digest` obrigatório só com `origem.tipo: npm`.
 - **Q5 (DA-16):** as menções abreviadas `1e98025` e `b92a651` podem ficar como histórico; o commit completo sai do runbook.
 - **P1 (aprovação para editar os mapas): ainda NÃO dada.** Vem depois do adendo 2, por lote.
+
+### Decisões do responsável de 2026-11-05 (registro do orquestrador; nenhum AC alterado)
+
+Respondidas por `AskUserQuestion`, na opção recomendada.
+
+- **P1 — aprovada com condições (2026-11-05).** Escopo: **só** os blocos `contrato` e `atributos` em `.claude/hooks/rea-niveis.json` e `.claude/hooks/ghidra-niveis.json`; nenhum valor de `ferramentas` muda. Condições: (1) o @dev só edita depois do **aceite do adendo 2** (P3, com a L4) pelo responsável; (2) um commit por lote (L-1 a L-6); (3) o **conteúdo de cada lote** continua dependendo do OK do responsável na conversa e da amostra do @qa (F2-AC25); (4) F2-AC23 (resto do mapa igual ao do `main`) a cada lote. Esta aprovação não vale para outro arquivo de gate, para `settings.json` nem para `.mcp.json`.
+- **P2 — conferência da P-U5 (feita pelo orquestrador em 2026-11-05, por git).** `git log` dos dois mapas: só os commits `b6c1510` e `1650bc5` (criação do gate); nenhuma edição depois. A U5 não começou: P-U4 aguarda alvo novo e P-U5 é condicional à U4 (estado geral de 2026-11-02, linhas 59-60; fechamento da etapa 2, linhas 38 e 47). Nenhuma das 13 branches remotas diferentes do `main` altera os mapas (`git diff origin/main...<branch>`). **Não verificado:** trabalho da U5 em sessão ou clone local não enviado. O @dev refaz `git log` dos mapas no início do PR-B.
+- **Adendo 2:** o @architect foi acionado para redigi-lo (Proposto); o aceite é do responsável. Enquanto não aceito, P1 não tem efeito e P3 segue aberta.
