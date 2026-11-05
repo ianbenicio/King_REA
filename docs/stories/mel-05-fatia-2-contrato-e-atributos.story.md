@@ -284,6 +284,7 @@ Nenhuma foi decidida pelo @sm. As de L1 a L4 bloqueiam parte do trabalho (P3, P4
 | 2026-11-04 | Validação @po (10 pontos): 8,0/10 como estava; correções: ponto 8 (e) e caso (6) movidos para o commit 8 (no commit 1 reprovariam a CI, porque o bloco `contrato` ainda não existe); matriz em prosa só depois da L2; F2-AC17 (b) por palavra inteira (`testado` ⊂ `nao-testado`); F2-AC19 tira também o commit completo do runbook (DA-16); F2-AC23 (2) copia o gate, que lê o mapa da própria pasta; F2-AC10 condicionado à L4; P6 (um PR por story, conflito do F2-AC22 com a 2b); L2 e L4 ampliadas; L5, L6 e L7 fechadas; recomendação de dois PRs na "Estimativa". 9,5/10, **GO condicional**. Revalidação do AC17 da fatia 1 feita: story-mãe atualizada (P5 cumprida). **Transição de status: Draft → Ready** | @po (Pax) |
 | 2026-11-05 | Início da implementação pelo @dev (PR-A, branch `feat/e3-2a-auditoria-ghidramcp`). **Transição de status: Ready → InProgress** | @dev (Dex) |
 | 2026-11-05 | Commit 1 (R10, um commit): auditoria `docs/seguranca/auditoria-ghidramcp-2.0.md`, runbook e guia reapontados, ponto 8 (a)–(d) e testes (testes primeiro: 29 falhas antes, 50/50 depois). F2-AC18 a F2-AC20 marcados; F2-AC21 aberto até o commit 8 ((e) e caso (6)). Evidências: `npm test` 327/332 (5 do gitleaks pulados, Docker desligado: **não executados**), lint e tipos aprovados, `verificar.mjs --so integracoes` aprovado, `npm run verificar` INCOMPLETO (gitleaks e 3 semgrep **não executados**, Docker). Status continua **InProgress** (faltam commits 2 a 8). Story-mãe não editada | @dev (Dex) |
+| 2026-11-05 | Gate @qa do commit 1 (PR-A, `ed73716`): **CONCERNS**, 4 achados baixos (QA-E32A-01 a 04), 27 mutações (22 mortas, 2 equivalentes, 3 sobreviventes). Docker desligado: gitleaks e 3 componentes semgrep **não executados**. Status não muda (InProgress; PR-B pendente). Ver "QA Results" | @qa (Quinn) |
 
 ## Validação @po (2026-11-04)
 
@@ -354,3 +355,46 @@ Respondidas por `AskUserQuestion`, na opção recomendada.
 - **P1 — aprovada com condições (2026-11-05).** Escopo: **só** os blocos `contrato` e `atributos` em `.claude/hooks/rea-niveis.json` e `.claude/hooks/ghidra-niveis.json`; nenhum valor de `ferramentas` muda. Condições: (1) o @dev só edita depois do **aceite do adendo 2** (P3, com a L4) pelo responsável; (2) um commit por lote (L-1 a L-6); (3) o **conteúdo de cada lote** continua dependendo do OK do responsável na conversa e da amostra do @qa (F2-AC25); (4) F2-AC23 (resto do mapa igual ao do `main`) a cada lote. Esta aprovação não vale para outro arquivo de gate, para `settings.json` nem para `.mcp.json`.
 - **P2 — conferência da P-U5 (feita pelo orquestrador em 2026-11-05, por git).** `git log` dos dois mapas: só os commits `b6c1510` e `1650bc5` (criação do gate); nenhuma edição depois. A U5 não começou: P-U4 aguarda alvo novo e P-U5 é condicional à U4 (estado geral de 2026-11-02, linhas 59-60; fechamento da etapa 2, linhas 38 e 47). Nenhuma das 13 branches remotas diferentes do `main` altera os mapas (`git diff origin/main...<branch>`). **Não verificado:** trabalho da U5 em sessão ou clone local não enviado. O @dev refaz `git log` dos mapas no início do PR-B.
 - **Adendo 2 — aceito (2026-11-05).** `docs/adr/ADR-0001-adendo-2-recurso-e-contexto-de-execucao.md`, 8 valores de `recurso`, 5 de `contexto_execucao`, tabela C11 com duas casas de aviso, `recurso_padrao` = `banco_de_analise` (decisões no §11 do adendo). **P3, L1 e L4 fechadas**; a P1 passa a valer nas condições acima. O @po reconcilia F2-AC5, F2-AC10 e F2-AC13 conforme o §7 do adendo (a story não foi editada aqui). O PR-B ainda precisa do PR #15 e deste adendo no `main`, e do OK do responsável em cada lote.
+
+## QA Results
+
+### Gate do commit 1 (PR-A) — 2026-11-05, @qa (Quinn)
+
+**Revisado:** `ed73716` sobre `74741d2` (plano) e `origin/main` @ `3c6b8db`. **Escopo:** F2-AC18, F2-AC19, F2-AC20, F2-AC21 (a)–(d) (sem (e) nem o caso (6)), F2-AC22 e a parte do F2-AC26 que cabe no commit 1. Só leitura do código; nenhuma tool `rea`/`ghidra`; nada em `alvos/` ou `saidas/`; a suíte de UI WPF não foi rodada.
+
+**Veredito: CONCERNS.** A entrega cumpre os AC do escopo. Ficam 4 achados de severidade baixa, mais a pendência do Docker, que é do ambiente e não do código.
+
+| # | Verificação | Resultado |
+|---|---|---|
+| 1 | Revisão de código | OK. `conferirAuditoriaGhidra` mantém as regras da fatia 1 (fail-closed sem referência, faixa de 7 a 40 hexadecimais, prefixo do commit do `.mcp.json`) e `conferirRunbook` reprova qualquer `GhidraMCP@`, inclusive vazio, e a falta do caminho da auditoria. Mensagens com contrato `documentação`, arquivo e campo. `referenciasGhidra` é compartilhada, sem duplicação. |
+| 2 | Testes | `node --test scripts/integracoes/`: 50/50. `npm test`: 332 testes, 327 aprovados, 0 falhas, 5 pulados (gitleaks, Docker desligado: **não executados**). Mutação: 27 mutações, 22 mortas, 2 equivalentes e 3 sobreviventes (ver abaixo). |
+| 3 | AC | F2-AC18: o juízo saiu sem reescrita (13/10/2026, tag `2.0`, `1e98025`, Apache-2.0, loopback, sem `exec`, sem rede de saída no plugin, clone em `ferramentas/ghidramcp/`, instalação de 14/10/2026). Nada se perdeu e nada foi inventado: "leitura estática" vem de `runbook:129` (`origin/main`) e o resto vem das linhas 67, 74 a 91, 97 e 100. O commit completo da auditoria é igual aos `args` do `.mcp.json`. F2-AC19: o `grep -nE "GhidraMCP@\|[0-9a-f]{40}"` no runbook só acha o SHA-256 do Ghidra (64 hex, linha 40); o caminho da auditoria aparece nas linhas 67, 74 e 78. F2-AC20: linhas 77 e 80 coerentes; o guia não tem matriz. F2-AC21 (a)–(d): cumpridos (`AUDITORIA_GHIDRA` em `ARQUIVOS_FIXOS`; o AC14 e o AC12 o cobrem). A caixa fica aberta, corretamente. |
+| 4 | Regressão | `verificar --so integracoes` aprovado no repositório real. F2-AC22: o `git diff --name-only origin/main HEAD` não lista hooks, `settings.json`, `.mcp.json`, `registros/`, `CLAUDE.md` nem os testes dos gates. A documentação do produto no diff se resume a runbook, guia e auditoria; o resto é story, handoff, `plano-de-execucao.md` e `planos/`, todos artefatos de processo. |
+| 5 | Desempenho | OK. Duas leituras de texto e uma regex linear. |
+| 6 | Segurança | OK. A lista de leitura continua fechada e não há escrita, rede nem `child_process` no módulo (o teste AC14 está verde). |
+| 7 | Documentação | OK. A auditoria segue o padrão de `auditoria-rea-6.4.0.md`, e o runbook e o guia apontam para ela. |
+
+**Comandos:** `npm run lint`: aprovado, 23 arquivos. `npm run tipos`: aprovado, 7 arquivos. `verificar` com todos os componentes, exceto `notepad-ui`: INCOMPLETO, 12 aprovados, 0 falhas, 4 **não executados** (`gitleaks`, `semgrep-scan`, `semgrep-test`, `semgrep-mutacoes`; daemon do Docker inacessível). `notepad-core`: 137/137. A CI do PR ainda não existe.
+
+**Mutação** (cópia temporária fora do repositório, `node --test scripts/integracoes/` mais `verificar --so integracoes` na cópia):
+
+- **Mortas (22):** auditoria sem referência aprova; checagem de faixa removida; checagem de prefixo removida; faixa `{1,40}` e `{6,40}`; `toLowerCase` removido; sem commit no `.mcp.json` aprova; no runbook, `> 0` → `> 1`, regra de arroba desligada, apontamento desligado e apontamento afrouxado para `"auditoria"`; `AUDITORIA_GHIDRA` fora de `ARQUIVOS_FIXOS`; cada uma das duas chamadas removida; auditoria lendo o runbook; auditoria ausente aprova; runbook ausente aprova; captura `*` → `+`; contrato `versao` nos dois achados do runbook; mensagem sem "só pode estar em"; arquivo do achado da auditoria trocado.
+- **Equivalentes (2):** faixa sem teto (`{7,}`) e classe `[0-9a-z]`. Nos dois casos, o prefixo de um commit de 40 hexadecimais já barra a referência.
+- **Sobreviventes (3):** apontamento afrouxado para `"docs/seguranca/"` (QA-E32A-01); remoção do corte de ponto final (QA-E32A-04); `new Set` removido (só duplica o achado, e o veredito não muda).
+
+**Achados:**
+
+| ID | Sev. | Cat. | Descrição | Recomendação |
+|---|---|---|---|---|
+| QA-E32A-01 | baixa | tests | Nenhum teste distingue o apontamento para a auditoria certa de um apontamento para outro arquivo de `docs/seguranca/`: a mutação `includes("docs/seguranca/")` sobrevive. | Adicionar ao caso (2) um runbook que cite só `docs/seguranca/auditoria-rea-6.4.0.md`, que deve reprovar. |
+| QA-E32A-02 | baixa | requirements | O F2-AC19 proíbe o commit completo no runbook, mas o ponto 8 só confere a forma `GhidraMCP@`. Sondado na cópia: um runbook com `commit 1e98025…51a7` sem arroba é aprovado. Hoje o AC está cumprido (conferido por grep), mas uma regressão passaria sem alerta. O F2-AC21 (c) não pede essa regra. | Decisão do @po: aceitar como está ou acrescentar ao F2-AC21 que "runbook com o commit completo do `.mcp.json` reprova". A regra não é inventada aqui. |
+| QA-E32A-03 | baixa | security | A regex é sensível à caixa e ao formato. `ghidramcp@<commit>`, `GhidraMCP%40<commit>` e `GhidraMCP @<ref>` no runbook passam (sondado). Fora do texto literal do AC, o risco é só de documentação. | Registrar como limite conhecido. Se o @po quiser, a busca no runbook pode usar a flag `i`. |
+| QA-E32A-04 | baixa | tests | O corte do ponto final (`replace(/\.+$/, "")`) não tem teste: sem ele, nenhum teste quebra. A regra vem da fatia 1, e um ponto colado à referência hoje aprova sem que nenhum teste o diga. | Adicionar um caso `GhidraMCP@1e98025.` na auditoria, que aprova. |
+
+**Parecer sobre os achados do @dev para o @po:**
+
+- (i) Caixa do F2-AC21 aberta: correto, porque (e) e o caso (6) são do commit 8 pela ordem da própria story.
+- (ii) "Único arquivo com `GhidraMCP@`": concordo com a leitura "único na documentação do produto". ADR, adendos, stories, planos e handoffs são processo e o verificador não os lê. Como a letra do F2-AC18 diz outra coisa, cabe ao @po ajustar o texto.
+- (iii) A prosa da auditoria também é conferida: o efeito é fail-closed e aceitável. A forma literal com arroba não pode aparecer em prosa nem como exemplo de regra; vale registrar isso na Dev Notes para quem editar a auditoria depois.
+
+**Não executado:** `gitleaks` (5 testes de `npm test` e o componente) e `semgrep-scan`, `semgrep-test` e `semgrep-mutacoes`, por causa do Docker desligado (**não são verde**). Também ficaram de fora a suíte `notepad-ui` (regra do responsável) e o `resultado` da CI do PR, que ainda não existe. Antes do merge do PR-A, rodar com o Docker ligado ou confiar no `resultado` da CI.
