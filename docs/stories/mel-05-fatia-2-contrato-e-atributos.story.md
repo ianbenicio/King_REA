@@ -231,7 +231,7 @@ Commit 1 (PR-A, 2026-11-05):
 - `docs/runbook-prereqs-nativo.md` — apontamentos para a auditoria; registro com o commit completo removido (F2-AC19).
 - `docs/guia-rea.md` — linhas 77 e 80 (F2-AC20).
 - `scripts/integracoes/verificar-integracoes.mjs` — `AUDITORIA_GHIDRA` em `ARQUIVOS_FIXOS`; ponto 8 dividido em `conferirRunbook` (nenhum `GhidraMCP@`, apontamento obrigatório) e `conferirAuditoriaGhidra` (regras de antes, agora na auditoria) (F2-AC21 (a)–(d)).
-- `scripts/integracoes/verificar-integracoes.test.mjs` — fixture padrão, casos do AC17 trocados pelos do F2-AC21, QA-2, QA-3, AC9, AC14, QA-7 ajustados; casos novos (1) a (5) e (7).
+- `scripts/integracoes/verificar-integracoes.test.mjs` — fixture padrão, casos do AC17 trocados pelos do F2-AC21, QA-2, QA-3, AC9, AC14, QA-7 ajustados; casos novos (1) a (5) e (7). Correções do gate: caso (2) ampliado (QA-E32A-01) e caso do ponto final (QA-E32A-04).
 - `docs/stories/mel-05-fatia-2-contrato-e-atributos.story.md` — esta story (status, checkboxes, File List, Change Log).
 - `docs/handoffs/2026-11-05-e3-2a-pr-a.md` — handoff do commit 1 (artefato de processo).
 
@@ -249,6 +249,7 @@ Commit 1 (PR-A, 2026-11-05):
 - **Matriz no guia:** a forma textual é do @dev (tabela Markdown ou lista), desde que cada item caiba numa linha com cliente, servidor, caminho e estado (F2-AC17).
 - **Código de saída:** só `achados` contam; `avisos` e `matriz` só se imprimem.
 - **Constitution Art. IV:** nada acima inventa requisito. As decisões do @sm estão marcadas `[AUTO-DECISION]` abaixo.
+- **Limites conhecidos do ponto 8 (QA-E32A-02 e QA-E32A-03, aceitos pelo responsável em 2026-11-05):** (a) o ponto 8 não barra o commit completo de 40 hexadecimais escrito no runbook sem a forma `GhidraMCP@`; hoje o F2-AC19 está cumprido e é conferido por grep. (b) A busca diferencia maiúsculas e só reconhece o formato exato: `ghidramcp@…`, `GhidraMCP%40…` e `GhidraMCP @…` não são barrados. (c) A forma literal com arroba não pode aparecer em prosa da auditoria, porque o verificador confere cada ocorrência contra o commit do `.mcp.json`.
 
 ### Decisões autônomas do @sm (a confirmar pelo @po)
 
@@ -285,6 +286,7 @@ Nenhuma foi decidida pelo @sm. As de L1 a L4 bloqueiam parte do trabalho (P3, P4
 | 2026-11-05 | Início da implementação pelo @dev (PR-A, branch `feat/e3-2a-auditoria-ghidramcp`). **Transição de status: Ready → InProgress** | @dev (Dex) |
 | 2026-11-05 | Commit 1 (R10, um commit): auditoria `docs/seguranca/auditoria-ghidramcp-2.0.md`, runbook e guia reapontados, ponto 8 (a)–(d) e testes (testes primeiro: 29 falhas antes, 50/50 depois). F2-AC18 a F2-AC20 marcados; F2-AC21 aberto até o commit 8 ((e) e caso (6)). Evidências: `npm test` 327/332 (5 do gitleaks pulados, Docker desligado: **não executados**), lint e tipos aprovados, `verificar.mjs --so integracoes` aprovado, `npm run verificar` INCOMPLETO (gitleaks e 3 semgrep **não executados**, Docker). Status continua **InProgress** (faltam commits 2 a 8). Story-mãe não editada | @dev (Dex) |
 | 2026-11-05 | Gate @qa do commit 1 (PR-A, `ed73716`): **CONCERNS**, 4 achados baixos (QA-E32A-01 a 04), 27 mutações (22 mortas, 2 equivalentes, 3 sobreviventes). Docker desligado: gitleaks e 3 componentes semgrep **não executados**. Status não muda (InProgress; PR-B pendente). Ver "QA Results" | @qa (Quinn) |
+| 2026-11-05 | Correções do gate do commit 1 (decisão do responsável): **QA-E32A-01 corrigido** (caso (2) ganhou runbook que cita só `docs/seguranca/auditoria-rea-6.4.0.md` e reprova; o código já exigia o caminho exato, então não mudou; o teste mata a mutação `includes("docs/seguranca/")`); **QA-E32A-04 corrigido** (teste novo: `GhidraMCP@1e98025.` na auditoria aprova; mata a remoção do corte de ponto final). **QA-E32A-02 e QA-E32A-03 aceitos como limite conhecido pelo responsável (2026-11-05)**, registrados nas Dev Notes. `node --test scripts/integracoes/` 51/51. Status continua InProgress | @dev (Dex) |
 
 ## Validação @po (2026-11-04)
 

@@ -463,6 +463,10 @@ test("F2-AC21 (b): na auditoria, referência abreviada que é prefixo do commit 
   assert.match(achados[0].mensagem, /`GhidraMCP@1e98026`/);
 });
 
+test("F2-AC21 (b): na auditoria, ponto final colado à referência é cortado e o prefixo válido aprova (QA-E32A-04)", (t) => {
+  assert.deepEqual(verificar(projeto(t, { [AUDITORIA]: "Fixado em GhidraMCP@1e98025.\n" })), []);
+});
+
 test("F2-AC21 (5): auditoria sem nenhuma referência GhidraMCP@ reprova (P-6, fail-closed)", (t) => {
   const achados = verificar(projeto(t, { [AUDITORIA]: "GhidraMCP 2.0, tag 2.0, sem a forma com arroba.\n" }));
   assert.equal(achados.length, 1, texto(achados));
@@ -496,12 +500,15 @@ test("F2-AC21 (1, c): runbook com GhidraMCP@ reprova, mesmo com hexadecimal vál
   }
 });
 
-test("F2-AC21 (2, c): runbook sem o apontamento para a auditoria reprova", (t) => {
-  const achados = verificar(projeto(t, { [RUNBOOK]: "Registro no `.mcp.json`; auditoria em outro lugar.\n" }));
-  assert.equal(achados.length, 1, texto(achados));
-  assert.equal(achados[0].contrato, CONTRATOS.documentacao);
-  assert.equal(achados[0].arquivo, RUNBOOK);
-  assert.match(achados[0].mensagem, /docs\/runbook-prereqs-nativo\.md não aponta para a auditoria `docs\/seguranca\/auditoria-ghidramcp-2\.0\.md`/);
+test("F2-AC21 (2, c): runbook sem o apontamento para a auditoria reprova, também se citar outra auditoria de docs/seguranca/", (t) => {
+  // QA-E32A-01: o apontamento é o caminho exato da auditoria do GhidraMCP, não qualquer arquivo de docs/seguranca/.
+  for (const runbook of ["Registro no `.mcp.json`; auditoria em outro lugar.\n", "Auditoria em `docs/seguranca/auditoria-rea-6.4.0.md`.\n"]) {
+    const achados = verificar(projeto(t, { [RUNBOOK]: runbook }));
+    assert.equal(achados.length, 1, `${runbook}: ${texto(achados)}`);
+    assert.equal(achados[0].contrato, CONTRATOS.documentacao);
+    assert.equal(achados[0].arquivo, RUNBOOK);
+    assert.match(achados[0].mensagem, /docs\/runbook-prereqs-nativo\.md não aponta para a auditoria `docs\/seguranca\/auditoria-ghidramcp-2\.0\.md`/);
+  }
 });
 
 test("F2-AC21 (c): runbook com GhidraMCP@ e sem apontamento gera os dois achados", (t) => {
