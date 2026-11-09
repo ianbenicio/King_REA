@@ -77,7 +77,7 @@ Commits na branch (todos com `[Story MEL-05]`): `eac3579` (plano, decisões, ade
 
 ## 4. Pendências e ressalvas
 
-- **Push, PR e merge:** não feitos; esta branch tem só documentação. Perguntar ao responsável.
+- **Push, PR e merge: feitos** (atualizado depois do fechamento). Push e PR pelo @devops com autorização do responsável; [PR #14](https://github.com/ianbenicio/King_REA/pull/14) mesclado em 2026-11-04 com o "confirmo" dele (merge commit `7313b03`), após resolver dois conflitos com o `main` (PR #12 e PR #13) e a CI (`resultado`) verde. O adendo 2 do item 1 da seção 3 foi aceito depois por outra sessão (PR #16).
 - **`LICENSE` ausente na raiz** do repositório público; levantamento do REA depois da 6.4.0: ambos adiados pelo responsável.
 - **Ideias adiadas** (adendo §7): hook de proveniência (opção B; não verificado se o Claude Code deixa um PostToolUse alterar a saída de tool MCP), ledger de obrigações (opção C), taxonomia de toolsets em `familia`, códigos estáveis de decisão do gate, `usa_rede` e `pode_descartar_dados`.
 - Story-mãe: a P-7 e a linha P4 aparecem como abertas, mas a DA-8 já as decidiu; o AC15 continua desmarcado mesmo com o PR #12 mesclado. Fecha quem encerrar a mãe.
