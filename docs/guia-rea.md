@@ -74,10 +74,10 @@ Este projeto **não usa** o `rea setup` oficial, que grava configuração global
 |---|---|
 | Pacote `rea-agents@6.4.0` (versão exata, hash travado) | `package.json`, `package-lock.json` |
 | Servidor MCP `rea` | `.mcp.json` (só vale dentro desta pasta) |
-| Servidor MCP `ghidra` (GhidraMCP, fixado no commit `1e98025`) | `.mcp.json`; registro e auditoria em `docs/runbook-prereqs-nativo.md` |
+| Servidor MCP `ghidra` (GhidraMCP, fixado no commit `1e98025`) | registro em `.mcp.json`; auditoria em `docs/seguranca/auditoria-ghidramcp-2.0.md` |
 | Skill de investigação | `.claude/skills/reverse-engineer-anything/` |
 | Trava de segurança | `.claude/hooks/rea-gate.mjs`, com um mapa de níveis por servidor: `rea-niveis.json` e `ghidra-niveis.json` |
-| Auditoria da versão | `docs/seguranca/auditoria-rea-6.4.0.md` |
+| Auditoria da versão | `docs/seguranca/auditoria-rea-6.4.0.md` (REA) e `docs/seguranca/auditoria-ghidramcp-2.0.md` (GhidraMCP) |
 
 **Conferir se está funcionando:**
 
