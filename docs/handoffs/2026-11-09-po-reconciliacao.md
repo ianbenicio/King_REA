@@ -19,7 +19,7 @@ A story 2b não mudou. Nenhuma caixa de AC ou de task foi marcada, nenhum AC ren
 - F2-AC5, AC10 e AC13 lidos contra o adendo 2 §3 a §7 e §11: batem (8 valores, 5 valores, 64 casas, Q-A2-1, Q-A2-2, Q-A2-3, Q-A2-8).
 - `node scripts/verificar/verificar.mjs --so integracoes`: aprovado, "contratos coerentes" (prova de não regressão; nada de código mudou).
 
-## 3. Perguntas ao responsável (do @po; nenhuma decidida)
+## 3. Perguntas ao responsável (do @po; todas decididas em 2026-11-09, ver 3.1)
 
 | # | Pergunta | Recomendação do @po |
 |---|---|---|
@@ -29,6 +29,12 @@ A story 2b não mudou. Nenhuma caixa de AC ou de task foi marcada, nenhum AC ren
 | 4 | A story-mãe deveria estar em InProgress desde 2026-11-05 (fatia 2 puxada). Fazer a transição? | Sim, com registro no Change Log |
 | 5 | Lista fechada dos "caminhos suportados" (P-4): o Codex fica fora? | Fechar no adendo 3, com o mapa comando→nível |
 | 6 | Conferir o tamanho total do plano (soma acima do M) antes da fatia 3 | Fazer quando o adendo 3 fixar o tamanho da 4b |
+
+### 3.1 Decisões do responsável (2026-11-09, na conversa)
+
+- **As 6 recomendações acima aceitas.** Aplicadas pelo @po (itens 1, 2, 5, 6) e por mim (itens 3 e 4: duas tasks do responsável marcadas na story da fatia 2 e story-mãe movida de InReview para InProgress, com registro no Change Log). Commit `120a7fa`.
+- **Três perguntas novas do @po, respondidas pela recomendação:** (1) o item do provider Ghidra no mapa `rea` ganha **cliente próprio**, literal `rea-provider-ghidra` (vem do exemplo da opção escolhida, não de texto digitado por ele; fica anotado no Change Log), mantendo a unicidade de (`cliente`, `caminho`); (2) `cliente` do Codex: **`codex`**, um item por mapa, `caminho: mcp`, `estado: sem-adaptador`; (3) `catalogo.digest` em mapa `git`: **conferir o formato (64 hexadecimais) se presente; ausente não gera achado**, com dois testes novos previstos no F2-AC3.
+- Nenhum AC marcado nem renumerado; a pontuação do @po na seção "Reconciliação" ficou em 10 (antes 9,5, por causa do conflito do F2-AC6, agora resolvido).
 
 ## 4. Não conferido
 
