@@ -40,9 +40,9 @@ Condição para encerrar a etapa 2: clone limpo executa as verificações e a CI
 
 | # | Demanda | Tam. | Decisão? |
 |---|---|---|---|
-| M-1 | **MEL-06a-m:** acrescentar a seção 8 "Identidade dos arquivos" (SHA-256 completo por arquivo) aos `00-seguranca.md` que voltarem a ser usados. Hoje **todo alvo registrado, inclusive o `ALVO_ATIVO` `uo-classic`, está bloqueado na admissão** para tools do REA com caminho em `alvos/<slug>/`. Fontes dos hashes: tabelas da triagem e `saidas/uo-classic/*-sha256.tsv`; `notepad-reimpl` só tem hash abreviado e precisa de medição nova | P por alvo | sim: aprovação na conversa, alvo por alvo |
+| M-1 | **MEL-06a-m:** acrescentar a seção 8 "Identidade dos arquivos" (SHA-256 completo por arquivo) aos `00-seguranca.md` que voltarem a ser usados. **`uo-classic` migrado em 2026-11-10** (154 arquivos, hashes da triagem conferidos com os arquivos atuais; [handoff](2026-11-10-mel-06a-m-uo-classic.md)); commit local na branch `docs/mel-06a-m-uo-classic`, push pendente. **Os outros seis alvos (`notepad-teste`, `notepad-reimpl`, `blocos-a`, `blocos-b`, `encaixe-1`, `encaixe-2`) continuam bloqueados na admissão** para tools do REA com caminho em `alvos/<slug>/`. Fontes dos hashes: tabelas da triagem de cada registro; `notepad-reimpl` só tem hash abreviado e precisa de medição nova | P por alvo | sim: aprovação na conversa, alvo por alvo (dada para o `uo-classic`) |
 
-Impacto: as próximas perguntas de volta do PRKing_UO que pedirem análise do binário (e não só pesquisa pública) ficam paradas até a M-1 do `uo-classic`.
+Impacto: com a M-1 do `uo-classic` feita, as perguntas de volta do PRKing_UO que pedirem análise do binário deixam de parar na admissão. Os outros alvos só voltam a ser usados depois da migração de cada um.
 
 ### Etapas 3 a 5
 
@@ -86,7 +86,7 @@ Registradas para não se perderem; o trabalho acontece no PRKing_UO, em sessão 
 ## 5. Recomendação de sequência
 
 1. ~~**E2-1** (validação @po)~~: feita em 2026-11-02; E2-2 a E2-5 destravadas.
-2. **M-1 para o `uo-classic`**, se o PRKing_UO for mandar perguntas que exijam o binário; senão, deixar para quando o alvo voltar a ser usado.
+2. ~~**M-1 para o `uo-classic`**~~ (feita em 2026-11-10, com aprovação do responsável na conversa; [handoff](2026-11-10-mel-06a-m-uo-classic.md)). Os outros alvos ficam para quando voltarem a ser usados.
 3. ~~**E2-4a**~~ e ~~**E2-4b**~~ (feitas em 2026-11-02). Não sobra unidade da etapa 2 sem decisão pendente.
 4. ~~**E2-2**~~ (feita em 2026-11-02, com o AC6/E2-6). ~~**E2-3**~~ parte fechada em 2026-11-02; **E2-3b** (auditoria do gitleaks) fecha a MEL-04.
 5. ~~**E2-5**~~ (feita em 2026-11-03). PR #1 no `main` e `enforce_admins` ligado. Falta só o novo gate @qa da MEL-08.

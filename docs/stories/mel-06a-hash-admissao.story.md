@@ -95,3 +95,4 @@ A migração acrescenta a seção 8 a cada registro que voltar a ser usado, com 
 | 2026-11-01 | Draft → InProgress: implementação iniciada | @dev |
 | 2026-11-01 | InProgress → InReview: implementação e testes concluídos; migração fatiada (MEL-06a-m) | @dev |
 | 2026-11-01 | InReview → Done: gate PASS | @qa |
+| 2026-11-10 | Fatia MEL-06a-m: `uo-classic` migrado (seção 8 com 154 arquivos, hashes da triagem conferidos com os arquivos atuais), com aprovação do responsável na conversa. Os outros seis alvos seguem pendentes. Handoff: `docs/handoffs/2026-11-10-mel-06a-m-uo-classic.md` | sessão `cdb53d36` |
