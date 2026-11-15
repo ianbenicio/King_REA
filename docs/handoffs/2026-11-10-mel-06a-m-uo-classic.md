@@ -1,6 +1,6 @@
 # Handoff — MEL-06a-m: identidade dos arquivos do `uo-classic` (2026-11-10)
 
-**Sessão:** `cdb53d36` · **Branch:** `docs/mel-06a-m-uo-classic`, a partir de `origin/main` @ `e3a8164` (separada do [PR #19](https://github.com/ianbenicio/King_REA/pull/19), por decisão do responsável) · **Estado:** commit local, **push pendente** (pelo @devops, com autorização) · **Story:** [`mel-06a-hash-admissao.story.md`](../stories/mel-06a-hash-admissao.story.md), fatia MEL-06a-m · **Item do estado geral:** M-1
+**Sessão:** `cdb53d36` · **Branch:** `docs/mel-06a-m-uo-classic`, a partir de `origin/main` @ `e3a8164` (separada do [PR #19](https://github.com/ianbenicio/King_REA/pull/19), por decisão do responsável) · **Estado:** [PR #20](https://github.com/ianbenicio/King_REA/pull/20) aberto pelo @devops, CI verde; **merge pendente** (só com o "sim" do responsável) · **Story:** [`mel-06a-hash-admissao.story.md`](../stories/mel-06a-hash-admissao.story.md), fatia MEL-06a-m · **Item do estado geral:** M-1
 
 ## 1. Decisão do responsável
 
@@ -61,11 +61,11 @@ Os scripts de conferência, inserção e prova ficaram em pasta temporária, for
 
 - Nenhuma tool do REA ou do Ghidra foi chamada de verdade contra o alvo. A prova é do hook, com entrada sintética. A primeira chamada real fica para a próxima análise.
 - Gitleaks e os três componentes do Semgrep não rodaram: precisam do Docker Desktop ligado.
-- CI: só roda depois do push.
+- CI do PR #20 (run `42932188931`): 6 de 6 checks aprovados, inclusive o `resultado`. Isso cobre o gitleaks e o Semgrep, que localmente não rodaram.
 
 ## 5. Pendências
 
-1. **Envio.** Commit local na branch própria `docs/mel-06a-m-uo-classic` (o responsável escolheu não misturar com o PR #19). Push e PR, só pelo @devops com autorização. O PR #19 também mexe no `2026-11-02-estado-geral.md`, em outros trechos (itens 7 a 9 da §5); quem entrar depois no `main` pode precisar de um merge simples nesse arquivo.
+1. **Merge.** Branch própria `docs/mel-06a-m-uo-classic` (o responsável escolheu não misturar com o PR #19). Push e [PR #20](https://github.com/ianbenicio/King_REA/pull/20) feitos pelo @devops em 2026-11-10, com autorização do responsável; Auto-fix ligado no PR. Falta o merge, só com o "sim" do responsável e pelo @devops. O PR #19 também mexe no `2026-11-02-estado-geral.md`, em outros trechos (itens 7 a 9 da §5); quem entrar depois no `main` pode precisar de um merge simples nesse arquivo.
 2. **Outros seis alvos** (`notepad-teste`, `notepad-reimpl`, `blocos-a`, `blocos-b`, `encaixe-1`, `encaixe-2`): seguem bloqueados na admissão. Cada um pede aprovação própria. O `notepad-reimpl` só tem hash abreviado e precisa de medição nova conferida pelo responsável.
 3. **Redação do Adendo 1.** Ele fala em "os 10 `.exe` do cliente" na cópia A; a lista tem 8. Registrado como observação no Adendo 3, sem alterar o texto antigo.
 4. `npm audit` aponta 6 vulnerabilidades (4 moderadas, 2 altas) nas dependências. Nada foi mudado: troca de versão é decisão do responsável.
